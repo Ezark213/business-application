@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MS経費申請アプリ 作成手順書</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0078d4, #106ebe);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 8px;
+        }
+
+        header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            opacity: 0.9;
+        }
+
+        .toc {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .toc h2 {
+            color: #0078d4;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .toc ul {
+            list-style: none;
+        }
+
+        .toc li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .toc li:last-child {
+            border-bottom: none;
+        }
+
+        .toc a {
+            color: #333;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .toc a:hover {
+            color: #0078d4;
+        }
+
+        .toc .step-num {
+            background: #0078d4;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            color: #0078d4;
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #0078d4;
+        }
+
+        .task {
+            background: #fafafa;
+            border-left: 4px solid #0078d4;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .task h3 {
+            color: #106ebe;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .task-num {
+            background: #0078d4;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 12px;
+        }
+
+        .task ol {
+            margin-left: 20px;
+        }
+
+        .task li {
+            margin: 8px 0;
+        }
+
+        .task code {
+            background: #e8e8e8;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: #c7254e;
+        }
+
+        .check-point {
+            background: #e7f3ff;
+            border: 1px solid #0078d4;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .check-point::before {
+            content: "✓ 確認: ";
+            font-weight: bold;
+            color: #0078d4;
+        }
+
+        .warning {
+            background: #fff4e5;
+            border: 1px solid #ff9800;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .warning::before {
+            content: "⚠ 注意: ";
+            font-weight: bold;
+            color: #ff9800;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #0078d4;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        .choices {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            white-space: pre-line;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            height: 8px;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar .fill {
+            background: linear-gradient(90deg, #0078d4, #00bcf2);
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .checklist {
+            background: #f0fff0;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .checklist h3 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+        }
+
+        .checklist label {
+            display: block;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+
+        .checklist input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .btn {
+            display: inline-block;
+            background: #0078d4;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #106ebe;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media print {
+            .container {
+                max-width: 100%;
+            }
+            .section {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>MS経費申請アプリ 作成手順書</h1>
+            <p>Microsoft 365 で経費申請システムを構築するための完全ガイド</p>
+        </header>
+
+        <nav class="toc">
+            <h2>目次</h2>
+            <ul>
+                <li><a href="#section1"><span class="step-num">1</span>事前準備</a></li>
+                <li><a href="#section2"><span class="step-num">2</span>SharePointサイトの作成</a></li>
+                <li><a href="#section3"><span class="step-num">3</span>SharePointリストの作成</a></li>
+                <li><a href="#section4"><span class="step-num">4</span>Power Appsアプリの作成</a></li>
+                <li><a href="#section5"><span class="step-num">5</span>Power Automateフローの作成</a></li>
+                <li><a href="#section6"><span class="step-num">6</span>Teamsとの連携</a></li>
+                <li><a href="#section7"><span class="step-num">7</span>テストと公開</a></li>
+            </ul>
+        </nav>
+
+        <!-- Section 1 -->
+        <section class="section" id="section1">
+            <h2>1. 事前準備</h2>
+            <div class="progress-bar"><div class="fill" style="width: 14%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 1-1</span>必要なものを確認する</h3>
+                <p>以下が揃っているか確認してください：</p>
+                <div class="checklist">
+                    <label><input type="checkbox"> Microsoft 365 のアカウント（会社から配布されたもの）</label>
+                    <label><input type="checkbox"> ブラウザ（Edge または Chrome を推奨）</label>
+                    <label><input type="checkbox"> インターネット接続</label>
+                </div>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 1-2</span>Microsoft 365 にサインインする</h3>
+                <ol>
+                    <li>ブラウザを開く</li>
+                    <li>アドレスバーに <code>https://www.office.com</code> と入力してEnter</li>
+                    <li>会社のメールアドレスを入力して「次へ」</li>
+                    <li>パスワードを入力して「サインイン」</li>
+                    <li>「サインインの状態を維持しますか？」→「はい」をクリック</li>
+                </ol>
+                <div class="check-point">左上に「Microsoft 365」と表示されていればOK</div>
+            </div>
+        </section>
+
+        <!-- Section 2 -->
+        <section class="section" id="section2">
+            <h2>2. SharePointサイトの作成</h2>
+            <div class="progress-bar"><div class="fill" style="width: 28%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 2-1</span>SharePointを開く</h3>
+                <ol>
+                    <li>Microsoft 365 のホーム画面で、左側のメニューから「SharePoint」をクリック</li>
+                    <li>（見つからない場合）左上の9つの点（アプリランチャー）をクリック → 「SharePoint」を選択</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 2-2</span>新しいサイトを作成する</h3>
+                <ol>
+                    <li>SharePointの画面で「+ サイトの作成」ボタンをクリック</li>
+                    <li>「チームサイト」を選択</li>
+                    <li>以下を入力：
+                        <table>
+                            <tr><th>項目</th><th>入力値</th></tr>
+                            <tr><td>サイト名</td><td><code>経費管理</code></td></tr>
+                            <tr><td>サイトの説明</td><td><code>経費申請を管理するサイト</code></td></tr>
+                            <tr><td>プライバシー設定</td><td>「プライベート」を選択</td></tr>
+                        </table>
+                    </li>
+                    <li>「次へ」をクリック</li>
+                    <li>メンバーの追加は後でできるので「完了」をクリック</li>
+                </ol>
+                <div class="check-point">「経費管理」というサイトが表示されればOK</div>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 2-3</span>サイトのURLをメモする</h3>
+                <ol>
+                    <li>ブラウザのアドレスバーを見る</li>
+                    <li><code>https://xxxxx.sharepoint.com/sites/経費管理</code> のようなURLをコピー</li>
+                    <li>メモ帳などに保存しておく（後で使います）</li>
+                </ol>
+                <div class="warning">このURLは後の手順で必要になるので、必ず保存してください</div>
+            </div>
+        </section>
+
+        <!-- Section 3 -->
+        <section class="section" id="section3">
+            <h2>3. SharePointリストの作成</h2>
+            <div class="progress-bar"><div class="fill" style="width: 42%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-1</span>経費申請リストを作成する</h3>
+                <ol>
+                    <li>経費管理サイトの画面で「+ 新規」→「リスト」をクリック</li>
+                    <li>「空白のリスト」を選択</li>
+                    <li>名前に <code>ExpenseRequests</code> と入力</li>
+                    <li>「作成」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-2</span>列を追加する（支出日）</h3>
+                <ol>
+                    <li>リストが表示されたら「+ 列の追加」をクリック</li>
+                    <li>「日付」を選択</li>
+                    <li>以下を設定：
+                        <table>
+                            <tr><th>項目</th><th>設定値</th></tr>
+                            <tr><td>名前</td><td><code>支出日</code></td></tr>
+                            <tr><td>この列に情報が必要ですか</td><td>「はい」を選択</td></tr>
+                        </table>
+                    </li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-3</span>列を追加する（部署）</h3>
+                <ol>
+                    <li>「+ 列の追加」をクリック</li>
+                    <li>「選択肢」を選択</li>
+                    <li>名前: <code>部署</code></li>
+                    <li>選択肢に以下を1行ずつ入力：
+                        <div class="choices">営業部
+開発部
+管理部
+経理部
+人事部
+総務部</div>
+                    </li>
+                    <li>「この列に情報が必要ですか」→「はい」を選択</li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-4</span>列を追加する（勘定科目）</h3>
+                <ol>
+                    <li>「+ 列の追加」をクリック</li>
+                    <li>「選択肢」を選択</li>
+                    <li>名前: <code>勘定科目</code></li>
+                    <li>選択肢に以下を1行ずつ入力：
+                        <div class="choices">旅費交通費
+交際費
+会議費
+通信費
+消耗品費
+新聞図書費
+水道光熱費
+地代家賃
+支払手数料
+広告宣伝費
+福利厚生費
+修繕費
+租税公課
+車両費
+雑費</div>
+                    </li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-5</span>列を追加する（内容）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「1行テキスト」を選択</li>
+                    <li>名前: <code>内容</code></li>
+                    <li>「この列に情報が必要ですか」→「はい」を選択</li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-6</span>列を追加する（金額税込）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「通貨」を選択</li>
+                    <li>名前: <code>金額税込</code></li>
+                    <li>通貨形式: 「¥123,456 (日本)」を選択</li>
+                    <li>「この列に情報が必要ですか」→「はい」を選択</li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-7</span>列を追加する（税区分）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「選択肢」を選択</li>
+                    <li>名前: <code>税区分</code></li>
+                    <li>選択肢に以下を1行ずつ入力：
+                        <div class="choices">10%・適格（インボイス）
+10%・区分記載
+10%・経過措置80%
+10%・経過措置50%
+8%軽減・適格（インボイス）
+8%軽減・区分記載
+8%軽減・経過措置80%
+8%軽減・経過措置50%
+非課税
+不課税</div>
+                    </li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-8</span>列を追加する（消費税額）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「通貨」を選択</li>
+                    <li>名前: <code>消費税額</code></li>
+                    <li>通貨形式: 「¥123,456 (日本)」を選択</li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-9</span>列を追加する（税抜金額）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「通貨」を選択</li>
+                    <li>名前: <code>税抜金額</code></li>
+                    <li>通貨形式: 「¥123,456 (日本)」を選択</li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-10</span>列を追加する（インボイス番号）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「1行テキスト」を選択</li>
+                    <li>名前: <code>インボイス番号</code></li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-11</span>列を追加する（承認状況）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「選択肢」を選択</li>
+                    <li>名前: <code>承認状況</code></li>
+                    <li>選択肢に以下を1行ずつ入力：
+                        <div class="choices">下書き
+申請中
+承認済み
+差戻し
+却下</div>
+                    </li>
+                    <li>既定値: <code>下書き</code></li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-12</span>列を追加する（承認者）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「ユーザー」を選択</li>
+                    <li>名前: <code>承認者</code></li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-13</span>列を追加する（承認日）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「日付と時刻」を選択</li>
+                    <li>名前: <code>承認日</code></li>
+                    <li>「保存」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-14</span>列を追加する（承認コメント）</h3>
+                <ol>
+                    <li>「+ 列の追加」→「複数行テキスト」を選択</li>
+                    <li>名前: <code>承認コメント</code></li>
+                    <li>「保存」をクリック</li>
+                </ol>
+                <div class="check-point">ExpenseRequestsリストに13個の列（Title含む）があればOK</div>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-15</span>承認者マスタリストを作成する</h3>
+                <ol>
+                    <li>サイトのホームに戻る（左上の「経費管理」をクリック）</li>
+                    <li>「+ 新規」→「リスト」をクリック</li>
+                    <li>「空白のリスト」を選択</li>
+                    <li>名前に <code>Approvers</code> と入力</li>
+                    <li>「作成」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-16</span>承認者マスタに列を追加する</h3>
+                <p>以下の列を追加してください：</p>
+                <table>
+                    <tr><th>列名</th><th>種類</th><th>設定</th></tr>
+                    <tr><td>部署</td><td>選択肢</td><td>営業部/開発部/管理部/経理部/人事部/総務部</td></tr>
+                    <tr><td>第一承認者</td><td>ユーザー</td><td>必須</td></tr>
+                    <tr><td>第二承認者</td><td>ユーザー</td><td>（任意）</td></tr>
+                    <tr><td>上限金額</td><td>通貨</td><td>既定値: 50000</td></tr>
+                </table>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 3-17</span>承認者データを登録する</h3>
+                <ol>
+                    <li>Approversリストで「+ 新しいアイテム」をクリック</li>
+                    <li>各部署の承認者を登録：
+                        <table>
+                            <tr><th>項目</th><th>入力例</th></tr>
+                            <tr><td>部署</td><td>営業部</td></tr>
+                            <tr><td>第一承認者</td><td>（部長のメールアドレスを検索して選択）</td></tr>
+                            <tr><td>第二承認者</td><td>（必要なら追加）</td></tr>
+                            <tr><td>上限金額</td><td>50000</td></tr>
+                        </table>
+                    </li>
+                    <li>「保存」をクリック</li>
+                    <li>他の部署も同様に登録</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- Section 4 -->
+        <section class="section" id="section4">
+            <h2>4. Power Appsアプリの作成</h2>
+            <div class="progress-bar"><div class="fill" style="width: 56%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-1</span>Power Appsを開く</h3>
+                <ol>
+                    <li>ブラウザの新しいタブを開く</li>
+                    <li>アドレスバーに <code>https://make.powerapps.com</code> と入力してEnter</li>
+                    <li>会社のアカウントでサインイン</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-2</span>アプリを新規作成する</h3>
+                <ol>
+                    <li>左側メニューの「+ 作成」をクリック</li>
+                    <li>「空のアプリ」をクリック</li>
+                    <li>「空のキャンバスアプリ」の「作成」をクリック</li>
+                    <li>以下を入力：
+                        <table>
+                            <tr><th>項目</th><th>入力値</th></tr>
+                            <tr><td>アプリ名</td><td><code>経費申請アプリ</code></td></tr>
+                            <tr><td>形式</td><td>「タブレット」を選択</td></tr>
+                        </table>
+                    </li>
+                    <li>「作成」をクリック</li>
+                </ol>
+                <div class="warning">読み込みに数十秒かかることがあります。そのまま待ってください</div>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-3</span>SharePointリストに接続する</h3>
+                <ol>
+                    <li>左側の「データ」アイコン（円柱のマーク）をクリック</li>
+                    <li>「+ データの追加」をクリック</li>
+                    <li>検索ボックスに <code>SharePoint</code> と入力</li>
+                    <li>「SharePoint」を選択</li>
+                    <li>「直接接続（クラウドサービス）」を選択して「接続」</li>
+                    <li>SharePointサイトのURL（作業2-3でメモしたもの）を入力</li>
+                    <li>「接続」をクリック</li>
+                    <li><code>ExpenseRequests</code> にチェックを入れる</li>
+                    <li><code>Approvers</code> にチェックを入れる</li>
+                    <li>「接続」をクリック</li>
+                </ol>
+                <div class="check-point">左側のデータパネルに2つのリストが表示されればOK</div>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-4</span>一覧画面を作成する</h3>
+                <ol>
+                    <li>左側の「挿入」タブをクリック</li>
+                    <li>「レイアウト」→「垂直ギャラリー」をクリック</li>
+                    <li>画面に配置されたギャラリーを選択</li>
+                    <li>右側の「データソース」で <code>ExpenseRequests</code> を選択</li>
+                    <li>ギャラリーの四隅をドラッグして画面いっぱいに調整</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-5</span>ギャラリーの表示項目を設定する</h3>
+                <ol>
+                    <li>ギャラリーを選択した状態で</li>
+                    <li>右側パネルの「フィールド」→「編集」をクリック</li>
+                    <li>以下を設定：
+                        <table>
+                            <tr><th>フィールド</th><th>選択する列</th></tr>
+                            <tr><td>Title1</td><td>内容</td></tr>
+                            <tr><td>Subtitle1</td><td>勘定科目</td></tr>
+                            <tr><td>Body1</td><td>金額税込</td></tr>
+                        </table>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-6</span>申請フォーム画面を追加する</h3>
+                <ol>
+                    <li>左側の「ツリービュー」（画面アイコン）をクリック</li>
+                    <li>「新しい画面」→「空白」をクリック</li>
+                    <li>「挿入」→「入力」→「編集フォーム」をクリック</li>
+                    <li>追加されたフォームを選択</li>
+                    <li>右側パネルの「データソース」で <code>ExpenseRequests</code> を選択</li>
+                    <li>「フィールドの編集」で表示する項目を選択</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-7</span>ナビゲーションを設定する</h3>
+                <ol>
+                    <li>Screen1（一覧画面）に戻る</li>
+                    <li>「挿入」→「ボタン」をクリック</li>
+                    <li>ボタンのテキストを <code>新規申請</code> に変更</li>
+                    <li>ボタンを選択して、上部の数式バーで「OnSelect」を選択</li>
+                    <li>以下を入力：
+                        <div class="choices">Navigate(Screen2)</div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 4-8</span>アプリを保存する</h3>
+                <ol>
+                    <li>右上の「保存」アイコン（ディスクのマーク）をクリック</li>
+                    <li>または <code>Ctrl + S</code> を押す</li>
+                </ol>
+                <div class="check-point">「すべての変更が保存されました」と表示されればOK</div>
+            </div>
+        </section>
+
+        <!-- Section 5 -->
+        <section class="section" id="section5">
+            <h2>5. Power Automateフローの作成</h2>
+            <div class="progress-bar"><div class="fill" style="width: 70%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-1</span>Power Automateを開く</h3>
+                <ol>
+                    <li>ブラウザの新しいタブを開く</li>
+                    <li>アドレスバーに <code>https://make.powerautomate.com</code> と入力してEnter</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-2</span>承認フローを作成する</h3>
+                <ol>
+                    <li>左側メニューの「+ 作成」をクリック</li>
+                    <li>「自動クラウドフロー」をクリック</li>
+                    <li>以下を入力：
+                        <table>
+                            <tr><th>項目</th><th>入力値</th></tr>
+                            <tr><td>フロー名</td><td><code>経費申請承認フロー</code></td></tr>
+                            <tr><td>トリガー</td><td>検索ボックスに <code>SharePoint</code> と入力</td></tr>
+                        </table>
+                    </li>
+                    <li>「アイテムが作成または変更されたとき」を選択</li>
+                    <li>「作成」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-3</span>トリガーを設定する</h3>
+                <ol>
+                    <li>「アイテムが作成または変更されたとき」のボックスをクリック</li>
+                    <li>以下を設定：
+                        <table>
+                            <tr><th>項目</th><th>設定値</th></tr>
+                            <tr><td>サイトのアドレス</td><td>ドロップダウンから「経費管理」を選択</td></tr>
+                            <tr><td>リスト名</td><td><code>ExpenseRequests</code> を選択</td></tr>
+                        </table>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-4</span>条件を追加する</h3>
+                <ol>
+                    <li>「+ 新しいステップ」をクリック</li>
+                    <li>検索ボックスに <code>条件</code> と入力して選択</li>
+                    <li>条件を設定：
+                        <table>
+                            <tr><th>位置</th><th>設定値</th></tr>
+                            <tr><td>左側</td><td>「動的なコンテンツ」から「承認状況 Value」を選択</td></tr>
+                            <tr><td>中央</td><td>「次の値に等しい」</td></tr>
+                            <tr><td>右側</td><td><code>申請中</code> と入力</td></tr>
+                        </table>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-5</span>承認アクションを追加する</h3>
+                <ol>
+                    <li>「はい」の分岐内で「アクションの追加」をクリック</li>
+                    <li>検索ボックスに <code>承認</code> と入力</li>
+                    <li>「開始して承認を待機」を選択</li>
+                    <li>以下を設定：
+                        <table>
+                            <tr><th>項目</th><th>設定値</th></tr>
+                            <tr><td>承認の種類</td><td>「承認/拒否 - 最初に応答」</td></tr>
+                            <tr><td>タイトル</td><td><code>経費申請の承認依頼</code></td></tr>
+                            <tr><td>担当者</td><td>承認者のメールアドレス</td></tr>
+                            <tr><td>詳細</td><td>動的コンテンツで「内容」「金額税込」などを追加</td></tr>
+                        </table>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-6</span>承認結果でSharePointを更新する</h3>
+                <ol>
+                    <li>承認アクションの後に「+ 新しいステップ」→「条件」を追加</li>
+                    <li>条件: 「結果」が <code>Approve</code> に等しい</li>
+                    <li>「はい」の場合:
+                        <ul>
+                            <li>「アクションの追加」→「SharePoint」→「項目の更新」</li>
+                            <li>承認状況を <code>承認済み</code> に設定</li>
+                        </ul>
+                    </li>
+                    <li>「いいえ」の場合:
+                        <ul>
+                            <li>「アクションの追加」→「SharePoint」→「項目の更新」</li>
+                            <li>承認状況を <code>却下</code> に設定</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 5-7</span>フローを保存してテストする</h3>
+                <ol>
+                    <li>右上の「保存」をクリック</li>
+                    <li>「テスト」をクリック</li>
+                    <li>「手動」を選択して「テスト」</li>
+                    <li>SharePointリストで新しいアイテムを「申請中」で作成</li>
+                    <li>フローが動作することを確認</li>
+                </ol>
+                <div class="check-point">承認者にメール/Teams通知が届けばOK</div>
+            </div>
+        </section>
+
+        <!-- Section 6 -->
+        <section class="section" id="section6">
+            <h2>6. Teamsとの連携</h2>
+            <div class="progress-bar"><div class="fill" style="width: 84%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 6-1</span>Teams通知フローを作成する</h3>
+                <ol>
+                    <li>Power Automateで「+ 作成」→「自動クラウドフロー」</li>
+                    <li>フロー名: <code>経費申請Teams通知</code></li>
+                    <li>トリガー: 「アイテムが作成または変更されたとき (SharePoint)」</li>
+                    <li>サイトとリストを設定（作業5-3と同様）</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 6-2</span>Teams通知アクションを追加する</h3>
+                <ol>
+                    <li>「+ 新しいステップ」をクリック</li>
+                    <li>検索ボックスに <code>Teams</code> と入力</li>
+                    <li>「チャットまたはチャネルでメッセージを投稿する」を選択</li>
+                    <li>以下を設定：
+                        <table>
+                            <tr><th>項目</th><th>設定値</th></tr>
+                            <tr><td>投稿先</td><td>「Channel」</td></tr>
+                            <tr><td>チーム</td><td>通知先のチームを選択</td></tr>
+                            <tr><td>チャネル</td><td>通知先のチャネルを選択</td></tr>
+                            <tr><td>メッセージ</td><td>動的コンテンツで申請内容を設定</td></tr>
+                        </table>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 6-3</span>Power AppsをTeamsに追加する</h3>
+                <ol>
+                    <li>Teamsを開く</li>
+                    <li>経費申請用のチーム/チャネルを開く</li>
+                    <li>上部の「+」タブをクリック</li>
+                    <li>「Power Apps」を検索して選択</li>
+                    <li>「経費申請アプリ」を選択して「保存」</li>
+                </ol>
+                <div class="check-point">Teamsのタブからアプリが開ければOK</div>
+            </div>
+        </section>
+
+        <!-- Section 7 -->
+        <section class="section" id="section7">
+            <h2>7. テストと公開</h2>
+            <div class="progress-bar"><div class="fill" style="width: 100%"></div></div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 7-1</span>テストデータを登録する</h3>
+                <ol>
+                    <li>SharePointの ExpenseRequests リストを開く</li>
+                    <li>「+ 新しいアイテム」をクリック</li>
+                    <li>テストデータを入力して保存</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 7-2</span>Power Appsでテストする</h3>
+                <ol>
+                    <li>Power Appsエディタで右上の「▶」ボタンをクリック</li>
+                    <li>アプリをプレビューモードで操作</li>
+                    <li>データの表示、登録、編集ができることを確認</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 7-3</span>承認フローをテストする</h3>
+                <ol>
+                    <li>Power AppsまたはSharePointで新規申請を作成</li>
+                    <li>承認状況を「申請中」に設定</li>
+                    <li>承認者にメール/Teams通知が届くことを確認</li>
+                    <li>承認者が承認/却下できることを確認</li>
+                    <li>SharePointのステータスが更新されることを確認</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 7-4</span>アプリを公開する</h3>
+                <ol>
+                    <li>Power Appsエディタで右上の「公開」をクリック</li>
+                    <li>「このバージョンの公開」をクリック</li>
+                </ol>
+            </div>
+
+            <div class="task">
+                <h3><span class="task-num">作業 7-5</span>ユーザーとアプリを共有する</h3>
+                <ol>
+                    <li>Power Apps の「アプリ」画面を開く（<code>https://make.powerapps.com</code> → 左側「アプリ」）</li>
+                    <li>「経費申請アプリ」の「...」→「共有」をクリック</li>
+                    <li>共有したいユーザーやグループのメールアドレスを入力</li>
+                    <li>「共有」をクリック</li>
+                </ol>
+                <div class="check-point">共有されたユーザーがアプリにアクセスできればOK</div>
+            </div>
+        </section>
+
+        <!-- Final Checklist -->
+        <section class="section">
+            <h2>最終チェックリスト</h2>
+            <div class="checklist">
+                <h3>作業完了後、以下を確認してください：</h3>
+                <label><input type="checkbox"> SharePointサイト「経費管理」が作成された</label>
+                <label><input type="checkbox"> ExpenseRequestsリストに13個の列がある</label>
+                <label><input type="checkbox"> Approversリストに承認者データが登録された</label>
+                <label><input type="checkbox"> Power Appsで経費の一覧表示ができる</label>
+                <label><input type="checkbox"> Power Appsで新規申請ができる</label>
+                <label><input type="checkbox"> 申請すると承認フローが動作する</label>
+                <label><input type="checkbox"> 承認/却下するとSharePointが更新される</label>
+                <label><input type="checkbox"> Teamsに通知が届く</label>
+                <label><input type="checkbox"> ユーザーとアプリが共有された</label>
+            </div>
+        </section>
+
+        <!-- Troubleshooting -->
+        <section class="section">
+            <h2>トラブルシューティング</h2>
+            <table>
+                <tr><th>問題</th><th>解決方法</th></tr>
+                <tr><td>SharePointリストが表示されない</td><td>データソースを削除して再接続する</td></tr>
+                <tr><td>フローが動作しない</td><td>Power Automateの「フロー実行履歴」でエラーを確認</td></tr>
+                <tr><td>Power Appsでデータが保存されない</td><td>フォームのModeプロパティが「FormMode.New」または「FormMode.Edit」か確認</td></tr>
+                <tr><td>Teams通知が届かない</td><td>チャネルの設定とフローのチーム/チャネルIDを確認</td></tr>
+                <tr><td>承認メールが届かない</td><td>担当者のメールアドレスが正しいか確認</td></tr>
+            </table>
+        </section>
+
+        <footer>
+            <p>MS経費申請アプリ 作成手順書 v1.0</p>
+            <p>
+                <a href="https://make.powerapps.com" class="btn">Power Apps</a>
+                <a href="https://make.powerautomate.com" class="btn">Power Automate</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // チェックボックスの状態をローカルストレージに保存
+        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox, index) => {
+            const key = 'checkbox_' + index;
+            checkbox.checked = localStorage.getItem(key) === 'true';
+            checkbox.addEventListener('change', () => {
+                localStorage.setItem(key, checkbox.checked);
+            });
+        });
+    </script>
+</body>
+</html>
