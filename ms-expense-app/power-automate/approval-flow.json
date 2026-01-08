@@ -1,0 +1,186 @@
+{
+  "name": "経費申請承認フロー",
+  "description": "経費申請が作成されたときに承認者へ承認リクエストを送信するフロー",
+  "trigger": {
+    "type": "SharePointListItemCreatedOrModified",
+    "parameters": {
+      "siteAddress": "{SharePointSiteUrl}",
+      "listName": "ExpenseRequests",
+      "triggerCondition": "[ApprovalStatus] = '申請中'"
+    }
+  },
+  "actions": [
+    {
+      "order": 1,
+      "name": "申請者情報の取得",
+      "type": "GetUserProfile",
+      "parameters": {
+        "userId": "@{triggerOutputs()?['body/Applicant/Email']}"
+      }
+    },
+    {
+      "order": 2,
+      "name": "承認者の取得",
+      "type": "GetItemsFromSharePointList",
+      "parameters": {
+        "siteAddress": "{SharePointSiteUrl}",
+        "listName": "Approvers",
+        "filter": "Department eq '@{triggerOutputs()?['body/Department']}' and IsActive eq true"
+      }
+    },
+    {
+      "order": 3,
+      "name": "金額による承認者判定",
+      "type": "Condition",
+      "expression": "@greater(triggerOutputs()?['body/AmountWithTax'], outputs('承認者の取得')?['body/value'][0]?['ThresholdAmount'])",
+      "ifTrue": {
+        "approvers": [
+          "@{outputs('承認者の取得')?['body/value'][0]?['PrimaryApprover/Email']}",
+          "@{outputs('承認者の取得')?['body/value'][0]?['SecondaryApprover/Email']}"
+        ],
+        "approvalType": "Sequential"
+      },
+      "ifFalse": {
+        "approvers": [
+          "@{outputs('承認者の取得')?['body/value'][0]?['PrimaryApprover/Email']}"
+        ],
+        "approvalType": "Basic"
+      }
+    },
+    {
+      "order": 4,
+      "name": "承認リクエストの送信",
+      "type": "StartAndWaitForApproval",
+      "parameters": {
+        "approvalType": "@{outputs('金額による承認者判定')?['approvalType']}",
+        "title": "経費申請の承認依頼: @{triggerOutputs()?['body/Description']}",
+        "assignedTo": "@{outputs('金額による承認者判定')?['approvers']}",
+        "details": {
+          "申請者": "@{outputs('申請者情報の取得')?['body/displayName']}",
+          "部署": "@{triggerOutputs()?['body/Department']}",
+          "支出日": "@{formatDateTime(triggerOutputs()?['body/ExpenseDate'], 'yyyy/MM/dd')}",
+          "勘定科目": "@{triggerOutputs()?['body/AccountCategory']}",
+          "内容": "@{triggerOutputs()?['body/Description']}",
+          "金額（税込）": "¥@{formatNumber(triggerOutputs()?['body/AmountWithTax'], 'N0')}",
+          "税区分": "@{triggerOutputs()?['body/TaxCategory']}",
+          "消費税額": "¥@{formatNumber(triggerOutputs()?['body/TaxAmount'], 'N0')}",
+          "インボイス番号": "@{triggerOutputs()?['body/InvoiceNumber']}",
+          "領収書": "@{triggerOutputs()?['body/ReceiptAttachment']}"
+        },
+        "itemLink": "@{triggerOutputs()?['body/{Link}']}",
+        "itemLinkDescription": "SharePointで詳細を確認"
+      }
+    },
+    {
+      "order": 5,
+      "name": "承認結果の処理",
+      "type": "Condition",
+      "expression": "@equals(outputs('承認リクエストの送信')?['body/outcome'], 'Approve')",
+      "ifTrue": {
+        "actions": [
+          {
+            "name": "SharePointアイテム更新（承認）",
+            "type": "UpdateSharePointItem",
+            "parameters": {
+              "siteAddress": "{SharePointSiteUrl}",
+              "listName": "ExpenseRequests",
+              "id": "@{triggerOutputs()?['body/ID']}",
+              "ApprovalStatus": "承認済み",
+              "Approver": "@{outputs('承認リクエストの送信')?['body/responses'][0]?['approver/email']}",
+              "ApprovalDate": "@{utcNow()}",
+              "ApprovalComment": "@{outputs('承認リクエストの送信')?['body/responses'][0]?['comments']}"
+            }
+          },
+          {
+            "name": "申請者へ承認通知",
+            "type": "PostMessageToTeams",
+            "parameters": {
+              "recipient": "@{triggerOutputs()?['body/Applicant/Email']}",
+              "messageType": "AdaptiveCard",
+              "adaptiveCard": {
+                "type": "AdaptiveCard",
+                "version": "1.4",
+                "body": [
+                  {
+                    "type": "TextBlock",
+                    "text": "経費申請が承認されました",
+                    "weight": "Bolder",
+                    "size": "Medium",
+                    "color": "Good"
+                  },
+                  {
+                    "type": "FactSet",
+                    "facts": [
+                      { "title": "内容", "value": "@{triggerOutputs()?['body/Description']}" },
+                      { "title": "金額", "value": "¥@{formatNumber(triggerOutputs()?['body/AmountWithTax'], 'N0')}" },
+                      { "title": "承認者", "value": "@{outputs('承認リクエストの送信')?['body/responses'][0]?['approver/displayName']}" }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "ifFalse": {
+        "actions": [
+          {
+            "name": "SharePointアイテム更新（却下/差戻し）",
+            "type": "UpdateSharePointItem",
+            "parameters": {
+              "siteAddress": "{SharePointSiteUrl}",
+              "listName": "ExpenseRequests",
+              "id": "@{triggerOutputs()?['body/ID']}",
+              "ApprovalStatus": "@{if(equals(outputs('承認リクエストの送信')?['body/outcome'], 'Reject'), '却下', '差戻し')}",
+              "Approver": "@{outputs('承認リクエストの送信')?['body/responses'][0]?['approver/email']}",
+              "ApprovalDate": "@{utcNow()}",
+              "ApprovalComment": "@{outputs('承認リクエストの送信')?['body/responses'][0]?['comments']}"
+            }
+          },
+          {
+            "name": "申請者へ却下/差戻し通知",
+            "type": "PostMessageToTeams",
+            "parameters": {
+              "recipient": "@{triggerOutputs()?['body/Applicant/Email']}",
+              "messageType": "AdaptiveCard",
+              "adaptiveCard": {
+                "type": "AdaptiveCard",
+                "version": "1.4",
+                "body": [
+                  {
+                    "type": "TextBlock",
+                    "text": "経費申請が@{if(equals(outputs('承認リクエストの送信')?['body/outcome'], 'Reject'), '却下', '差戻し')}されました",
+                    "weight": "Bolder",
+                    "size": "Medium",
+                    "color": "Attention"
+                  },
+                  {
+                    "type": "FactSet",
+                    "facts": [
+                      { "title": "内容", "value": "@{triggerOutputs()?['body/Description']}" },
+                      { "title": "コメント", "value": "@{outputs('承認リクエストの送信')?['body/responses'][0]?['comments']}" }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "errorHandling": {
+    "runAfter": "any",
+    "actions": [
+      {
+        "name": "エラー通知",
+        "type": "SendEmail",
+        "parameters": {
+          "to": "{AdminEmail}",
+          "subject": "経費申請承認フローでエラーが発生しました",
+          "body": "フロー実行ID: @{workflow()?['run']['name']}\nエラー詳細: @{result('承認リクエストの送信')}"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "name": "経費申請Teams通知フロー",
+  "description": "経費申請の状態変更時にTeamsチャネルへ通知するフロー",
+  "trigger": {
+    "type": "SharePointListItemModified",
+    "parameters": {
+      "siteAddress": "{SharePointSiteUrl}",
+      "listName": "ExpenseRequests"
+    }
+  },
+  "actions": [
+    {
+      "order": 1,
+      "name": "変更前のアイテム取得",
+      "type": "GetChanges",
+      "parameters": {
+        "siteAddress": "{SharePointSiteUrl}",
+        "listName": "ExpenseRequests",
+        "id": "@{triggerOutputs()?['body/ID']}"
+      }
+    },
+    {
+      "order": 2,
+      "name": "ステータス変更の検出",
+      "type": "Condition",
+      "expression": "@not(equals(outputs('変更前のアイテム取得')?['body/ApprovalStatus'], triggerOutputs()?['body/ApprovalStatus']))",
+      "ifTrue": {
+        "actions": [
+          {
+            "order": 3,
+            "name": "Teamsチャネルへ投稿",
+            "type": "PostAdaptiveCardToTeamsChannel",
+            "parameters": {
+              "teamId": "{TeamId}",
+              "channelId": "{ChannelId}",
+              "adaptiveCard": {
+                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                "type": "AdaptiveCard",
+                "version": "1.4",
+                "body": [
+                  {
+                    "type": "Container",
+                    "style": "@{if(equals(triggerOutputs()?['body/ApprovalStatus'], '承認済み'), 'good', if(or(equals(triggerOutputs()?['body/ApprovalStatus'], '却下'), equals(triggerOutputs()?['body/ApprovalStatus'], '差戻し')), 'attention', 'default'))}",
+                    "items": [
+                      {
+                        "type": "TextBlock",
+                        "text": "経費申請 - @{triggerOutputs()?['body/ApprovalStatus']}",
+                        "weight": "Bolder",
+                        "size": "Medium"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "FactSet",
+                    "facts": [
+                      {
+                        "title": "申請者",
+                        "value": "@{triggerOutputs()?['body/Applicant/DisplayName']}"
+                      },
+                      {
+                        "title": "部署",
+                        "value": "@{triggerOutputs()?['body/Department']}"
+                      },
+                      {
+                        "title": "支出日",
+                        "value": "@{formatDateTime(triggerOutputs()?['body/ExpenseDate'], 'yyyy/MM/dd')}"
+                      },
+                      {
+                        "title": "勘定科目",
+                        "value": "@{triggerOutputs()?['body/AccountCategory']}"
+                      },
+                      {
+                        "title": "内容",
+                        "value": "@{triggerOutputs()?['body/Description']}"
+                      },
+                      {
+                        "title": "金額（税込）",
+                        "value": "¥@{formatNumber(triggerOutputs()?['body/AmountWithTax'], 'N0')}"
+                      },
+                      {
+                        "title": "税区分",
+                        "value": "@{triggerOutputs()?['body/TaxCategory']}"
+                      }
+                    ]
+                  },
+                  {
+                    "type": "TextBlock",
+                    "text": "@{if(not(empty(triggerOutputs()?['body/ApprovalComment'])), concat('コメント: ', triggerOutputs()?['body/ApprovalComment']), '')}",
+                    "wrap": true,
+                    "isVisible": "@{not(empty(triggerOutputs()?['body/ApprovalComment']))}"
+                  }
+                ],
+                "actions": [
+                  {
+                    "type": "Action.OpenUrl",
+                    "title": "詳細を見る",
+                    "url": "@{triggerOutputs()?['body/{Link}']}"
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "weeklyDigestFlow": {
+    "name": "週次経費サマリー通知",
+    "trigger": {
+      "type": "Recurrence",
+      "parameters": {
+        "frequency": "Week",
+        "interval": 1,
+        "schedule": {
+          "weekDays": ["Monday"],
+          "hours": [9],
+          "minutes": [0]
+        }
+      }
+    },
+    "actions": [
+      {
+        "name": "先週の承認済み経費を取得",
+        "type": "GetItemsFromSharePointList",
+        "parameters": {
+          "siteAddress": "{SharePointSiteUrl}",
+          "listName": "ExpenseRequests",
+          "filter": "ApprovalStatus eq '承認済み' and ApprovalDate ge '@{addDays(utcNow(), -7)}'"
+        }
+      },
+      {
+        "name": "部署別集計",
+        "type": "Select",
+        "parameters": {
+          "from": "@{outputs('先週の承認済み経費を取得')?['body/value']}",
+          "select": {
+            "Department": "@{item()?['Department']}",
+            "Amount": "@{item()?['AmountWithTax']}"
+          }
+        }
+      },
+      {
+        "name": "Teamsチャネルへサマリー投稿",
+        "type": "PostAdaptiveCardToTeamsChannel",
+        "parameters": {
+          "teamId": "{TeamId}",
+          "channelId": "{ChannelId}",
+          "adaptiveCard": {
+            "type": "AdaptiveCard",
+            "version": "1.4",
+            "body": [
+              {
+                "type": "TextBlock",
+                "text": "週次経費サマリー",
+                "weight": "Bolder",
+                "size": "Large"
+              },
+              {
+                "type": "TextBlock",
+                "text": "@{formatDateTime(addDays(utcNow(), -7), 'yyyy/MM/dd')} - @{formatDateTime(addDays(utcNow(), -1), 'yyyy/MM/dd')}",
+                "isSubtle": true
+              },
+              {
+                "type": "FactSet",
+                "facts": [
+                  {
+                    "title": "承認件数",
+                    "value": "@{length(outputs('先週の承認済み経費を取得')?['body/value'])}件"
+                  },
+                  {
+                    "title": "合計金額",
+                    "value": "¥@{formatNumber(sum(outputs('Select')?['body'], 'Amount'), 'N0')}"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

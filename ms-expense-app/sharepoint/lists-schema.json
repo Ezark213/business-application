@@ -1,0 +1,287 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/sp/v2/site-scripts/site-script.schema.json",
+  "version": 1,
+  "lists": [
+    {
+      "listName": "ExpenseRequests",
+      "displayName": "経費申請",
+      "description": "経費申請データを管理するリスト",
+      "columns": [
+        {
+          "internalName": "ExpenseDate",
+          "displayName": "支出日",
+          "type": "DateTime",
+          "required": true,
+          "dateFormat": "DateOnly"
+        },
+        {
+          "internalName": "Applicant",
+          "displayName": "申請者",
+          "type": "Person",
+          "required": true
+        },
+        {
+          "internalName": "AccountCategory",
+          "displayName": "勘定科目",
+          "type": "Choice",
+          "required": true,
+          "choices": [
+            "旅費交通費",
+            "交際費",
+            "会議費",
+            "通信費",
+            "消耗品費",
+            "新聞図書費",
+            "水道光熱費",
+            "地代家賃",
+            "支払手数料",
+            "広告宣伝費",
+            "接待交際費",
+            "福利厚生費",
+            "修繕費",
+            "租税公課",
+            "車両費",
+            "雑費",
+            "その他"
+          ]
+        },
+        {
+          "internalName": "Description",
+          "displayName": "内容",
+          "type": "Text",
+          "required": true,
+          "maxLength": 500
+        },
+        {
+          "internalName": "AmountWithTax",
+          "displayName": "金額（税込）",
+          "type": "Currency",
+          "required": true,
+          "currencyLocaleId": 1041
+        },
+        {
+          "internalName": "TaxCategory",
+          "displayName": "税区分",
+          "type": "Choice",
+          "required": true,
+          "choices": [
+            "10%・適格（インボイス）",
+            "10%・区分記載",
+            "10%・経過措置80%",
+            "10%・経過措置50%",
+            "8%軽減・適格（インボイス）",
+            "8%軽減・区分記載",
+            "8%軽減・経過措置80%",
+            "8%軽減・経過措置50%",
+            "非課税",
+            "不課税"
+          ]
+        },
+        {
+          "internalName": "TaxAmount",
+          "displayName": "消費税額",
+          "type": "Currency",
+          "required": false,
+          "currencyLocaleId": 1041
+        },
+        {
+          "internalName": "AmountWithoutTax",
+          "displayName": "税抜金額",
+          "type": "Currency",
+          "required": false,
+          "currencyLocaleId": 1041
+        },
+        {
+          "internalName": "InvoiceNumber",
+          "displayName": "インボイス番号",
+          "type": "Text",
+          "required": false,
+          "maxLength": 14,
+          "validation": {
+            "formula": "=OR(ISBLANK([InvoiceNumber]),AND(LEFT([InvoiceNumber],1)=\"T\",LEN([InvoiceNumber])=14))",
+            "message": "インボイス番号はT+13桁の形式で入力してください"
+          }
+        },
+        {
+          "internalName": "ReceiptAttachment",
+          "displayName": "領収書",
+          "type": "Hyperlink",
+          "required": false
+        },
+        {
+          "internalName": "ApprovalStatus",
+          "displayName": "承認状況",
+          "type": "Choice",
+          "required": true,
+          "default": "申請中",
+          "choices": [
+            "下書き",
+            "申請中",
+            "承認済み",
+            "差戻し",
+            "却下"
+          ]
+        },
+        {
+          "internalName": "Approver",
+          "displayName": "承認者",
+          "type": "Person",
+          "required": false
+        },
+        {
+          "internalName": "ApprovalDate",
+          "displayName": "承認日",
+          "type": "DateTime",
+          "required": false
+        },
+        {
+          "internalName": "ApprovalComment",
+          "displayName": "承認コメント",
+          "type": "Note",
+          "required": false
+        },
+        {
+          "internalName": "Department",
+          "displayName": "部署",
+          "type": "Choice",
+          "required": true,
+          "choices": [
+            "営業部",
+            "開発部",
+            "管理部",
+            "経理部",
+            "人事部",
+            "総務部"
+          ]
+        }
+      ],
+      "views": [
+        {
+          "viewName": "MyRequests",
+          "displayName": "自分の申請",
+          "filter": "[Applicant] = @Me",
+          "sortBy": "ExpenseDate",
+          "sortDescending": true
+        },
+        {
+          "viewName": "PendingApproval",
+          "displayName": "承認待ち",
+          "filter": "[ApprovalStatus] = '申請中'",
+          "sortBy": "Created",
+          "sortDescending": false
+        },
+        {
+          "viewName": "Approved",
+          "displayName": "承認済み",
+          "filter": "[ApprovalStatus] = '承認済み'",
+          "sortBy": "ApprovalDate",
+          "sortDescending": true
+        },
+        {
+          "viewName": "AllByMonth",
+          "displayName": "月別一覧",
+          "groupBy": "ExpenseDate",
+          "groupByFormat": "Month"
+        }
+      ]
+    },
+    {
+      "listName": "Approvers",
+      "displayName": "承認者マスタ",
+      "description": "部署ごとの承認者を管理",
+      "columns": [
+        {
+          "internalName": "Department",
+          "displayName": "部署",
+          "type": "Choice",
+          "required": true,
+          "choices": [
+            "営業部",
+            "開発部",
+            "管理部",
+            "経理部",
+            "人事部",
+            "総務部"
+          ]
+        },
+        {
+          "internalName": "PrimaryApprover",
+          "displayName": "第一承認者",
+          "type": "Person",
+          "required": true
+        },
+        {
+          "internalName": "SecondaryApprover",
+          "displayName": "第二承認者",
+          "type": "Person",
+          "required": false
+        },
+        {
+          "internalName": "ThresholdAmount",
+          "displayName": "上位承認閾値",
+          "type": "Currency",
+          "required": true,
+          "default": 50000,
+          "currencyLocaleId": 1041
+        },
+        {
+          "internalName": "IsActive",
+          "displayName": "有効",
+          "type": "Boolean",
+          "default": true
+        }
+      ]
+    },
+    {
+      "listName": "TaxRates",
+      "displayName": "税率マスタ",
+      "description": "税区分ごとの計算パラメータ",
+      "columns": [
+        {
+          "internalName": "TaxCategory",
+          "displayName": "税区分",
+          "type": "Text",
+          "required": true
+        },
+        {
+          "internalName": "TaxRate",
+          "displayName": "税率",
+          "type": "Number",
+          "required": true,
+          "decimalPlaces": 2
+        },
+        {
+          "internalName": "DeductionRate",
+          "displayName": "控除率",
+          "type": "Number",
+          "required": true,
+          "decimalPlaces": 2
+        },
+        {
+          "internalName": "Divisor",
+          "displayName": "除数",
+          "type": "Number",
+          "required": true
+        },
+        {
+          "internalName": "Multiplier",
+          "displayName": "乗数",
+          "type": "Number",
+          "required": true
+        }
+      ],
+      "defaultData": [
+        { "TaxCategory": "10%・適格（インボイス）", "TaxRate": 0.10, "DeductionRate": 1.00, "Divisor": 110, "Multiplier": 10 },
+        { "TaxCategory": "10%・区分記載", "TaxRate": 0.10, "DeductionRate": 0.80, "Divisor": 110, "Multiplier": 10 },
+        { "TaxCategory": "10%・経過措置80%", "TaxRate": 0.10, "DeductionRate": 0.80, "Divisor": 110, "Multiplier": 10 },
+        { "TaxCategory": "10%・経過措置50%", "TaxRate": 0.10, "DeductionRate": 0.50, "Divisor": 110, "Multiplier": 10 },
+        { "TaxCategory": "8%軽減・適格（インボイス）", "TaxRate": 0.08, "DeductionRate": 1.00, "Divisor": 108, "Multiplier": 8 },
+        { "TaxCategory": "8%軽減・区分記載", "TaxRate": 0.08, "DeductionRate": 0.80, "Divisor": 108, "Multiplier": 8 },
+        { "TaxCategory": "8%軽減・経過措置80%", "TaxRate": 0.08, "DeductionRate": 0.80, "Divisor": 108, "Multiplier": 8 },
+        { "TaxCategory": "8%軽減・経過措置50%", "TaxRate": 0.08, "DeductionRate": 0.50, "Divisor": 108, "Multiplier": 8 },
+        { "TaxCategory": "非課税", "TaxRate": 0.00, "DeductionRate": 0.00, "Divisor": 1, "Multiplier": 0 },
+        { "TaxCategory": "不課税", "TaxRate": 0.00, "DeductionRate": 0.00, "Divisor": 1, "Multiplier": 0 }
+      ]
+    }
+  ]
+}
