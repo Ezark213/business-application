@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>申請完了画面 - Power Apps イメージ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Meiryo', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #0078D4 0%, #106EBE 100%);
+            color: white;
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        .content {
+            padding: 80px 40px;
+            text-align: center;
+        }
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        .success-message {
+            font-size: 1.5em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .sub-message {
+            font-size: 1em;
+            color: #666;
+            margin-bottom: 50px;
+        }
+        .btn {
+            padding: 14px 40px;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            background: #0078D4;
+            color: white;
+        }
+        .btn:hover {
+            background: #106EBE;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            資格取得申請
+        </div>
+
+        <div class="content">
+            <div class="success-icon">✅</div>
+
+            <div class="success-message">
+                申請が完了しました
+            </div>
+
+            <div class="sub-message">
+                承認されるとTeamsで通知されます
+            </div>
+
+            <button class="btn">新しい申請を作成</button>
+        </div>
+    </div>
+</body>
+</html>
