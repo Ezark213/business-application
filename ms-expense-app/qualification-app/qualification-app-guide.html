@@ -327,6 +327,42 @@ If(RadioApplicationType.Selected.Value = "資格取得宣言届",
                 </table>
             </div>
 
+            <!-- 今後の課題 -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-number">5</div>
+                    <h2>今後の課題（TODO）</h2>
+                </div>
+
+                <div class="warning-box">
+                    <h4>未対応の機能</h4>
+                    <table>
+                        <tr><th>課題</th><th>詳細</th><th>ステータス</th></tr>
+                        <tr>
+                            <td><strong>資格の詳細列による金額変動</strong></td>
+                            <td>現在は資格名だけで報奨金を取得しているが、同じ資格でも「詳細」列（級やレベル）によって金額が異なる。例：簿記1級と簿記2級で報奨金が違う場合、詳細列を考慮した金額計算が必要。</td>
+                            <td>未対応</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Power Automateの金額表示</strong></td>
+                            <td>承認依頼・Teams通知での報奨金額表示が0になる問題。動的コンテンツの内部列名の確認が必要。</td>
+                            <td>調査中</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="step-card">
+                    <h3>詳細列対応の実装案</h3>
+                    <p>資格名と詳細をセットで選択できるようにする方法：</p>
+                    <ol>
+                        <li>詳細ドロップダウン（DropdownDetail）を追加</li>
+                        <li>Items: <code>Filter(資格マスタ, 名前 = DropdownQualification.Selected.名前)</code></li>
+                        <li>Patch式の報奨金を <code>DropdownDetail.Selected.報奨金</code> に変更</li>
+                    </ol>
+                    <p>または、資格名と詳細を結合した表示にする方法もある。</p>
+                </div>
+            </div>
+
             <div class="success-box">
                 <h4>完成チェックリスト</h4>
                 <ul>
