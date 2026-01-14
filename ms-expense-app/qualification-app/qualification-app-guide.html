@@ -3,1287 +3,349 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>資格取得申請アプリ 構築ガイド - 次の工程</title>
+    <title>資格取得申請アプリ 構築ガイド【最新版】</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', 'Meiryo', sans-serif;
-            line-height: 1.8;
-            color: #333;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        header {
-            background: linear-gradient(135deg, #0078D4 0%, #106EBE 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-        }
-        header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        header p {
-            opacity: 0.9;
-            font-size: 1.1em;
-        }
-        .progress-bar {
-            display: flex;
-            justify-content: space-between;
-            padding: 30px 40px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .progress-step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            flex: 1;
-            position: relative;
-        }
-        .progress-step:not(:last-child)::after {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 60%;
-            width: 80%;
-            height: 3px;
-            background: #dee2e6;
-        }
-        .progress-step.completed:not(:last-child)::after {
-            background: #28a745;
-        }
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #dee2e6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #6c757d;
-            margin-bottom: 8px;
-            z-index: 1;
-        }
-        .progress-step.completed .step-circle {
-            background: #28a745;
-            color: white;
-        }
-        .progress-step.current .step-circle {
-            background: #0078D4;
-            color: white;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-        .step-label {
-            font-size: 0.75em;
-            text-align: center;
-            color: #6c757d;
-        }
-        .progress-step.completed .step-label,
-        .progress-step.current .step-label {
-            color: #333;
-            font-weight: 600;
-        }
-        main {
-            padding: 40px;
-        }
-        .section {
-            margin-bottom: 50px;
-        }
-        .section-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #0078D4;
-        }
-        .section-number {
-            background: linear-gradient(135deg, #0078D4 0%, #106EBE 100%);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-            font-weight: bold;
-            margin-right: 15px;
-        }
-        .section h2 {
-            color: #0078D4;
-            font-size: 1.5em;
-        }
-        .step-card {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-left: 4px solid #0078D4;
-        }
-        .step-card h3 {
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
-        .step-card h3 .step-badge {
-            background: #0078D4;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            margin-right: 10px;
-        }
-        .step-card p {
-            margin-bottom: 15px;
-        }
-        .step-card ol, .step-card ul {
-            margin-left: 25px;
-            margin-bottom: 15px;
-        }
-        .step-card li {
-            margin-bottom: 10px;
-        }
-        .screenshot-placeholder {
-            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-            border: 2px dashed #adb5bd;
-            border-radius: 8px;
-            padding: 40px;
-            text-align: center;
-            color: #6c757d;
-            margin: 20px 0;
-        }
-        .code-block {
-            background: #1e1e1e;
-            color: #d4d4d4;
-            padding: 20px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
-            margin: 15px 0;
-        }
-        .code-block .comment {
-            color: #6a9955;
-        }
-        .code-block .keyword {
-            color: #569cd6;
-        }
-        .code-block .string {
-            color: #ce9178;
-        }
-        .code-block .function {
-            color: #dcdcaa;
-        }
-        .tip-box {
-            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-            border: 1px solid #28a745;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .tip-box h4 {
-            color: #155724;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        .tip-box h4::before {
-            content: '💡';
-            margin-right: 8px;
-        }
-        .warning-box {
-            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
-            border: 1px solid #ffc107;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .warning-box h4 {
-            color: #856404;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        .warning-box h4::before {
-            content: '⚠️';
-            margin-right: 8px;
-        }
-        .info-box {
-            background: linear-gradient(135deg, #cce5ff 0%, #b8daff 100%);
-            border: 1px solid #0078D4;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .info-box h4 {
-            color: #004085;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-        }
-        .info-box h4::before {
-            content: 'ℹ️';
-            margin-right: 8px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        th {
-            background: #0078D4;
-            color: white;
-            padding: 15px;
-            text-align: left;
-        }
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e9ecef;
-        }
-        tr:hover {
-            background: #f8f9fa;
-        }
-        .button-example {
-            display: inline-block;
-            background: #0078D4;
-            color: white;
-            padding: 10px 25px;
-            border-radius: 4px;
-            text-decoration: none;
-            margin: 5px;
-        }
-        .checklist {
-            background: #fff;
-            border: 1px solid #e9ecef;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .checklist h4 {
-            margin-bottom: 15px;
-            color: #333;
-        }
-        .checklist label {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .checklist label:hover {
-            background: #f8f9fa;
-        }
-        .checklist input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-        }
-        footer {
-            background: #333;
-            color: white;
-            padding: 30px 40px;
-            text-align: center;
-        }
-        footer a {
-            color: #7cb9e8;
-        }
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #e9ecef;
-        }
-        .nav-button {
-            background: #0078D4;
-            color: white;
-            padding: 15px 30px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .nav-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0,120,212,0.4);
-        }
-        .form-layout {
-            background: #f0f0f0;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        .form-layout .form-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: white;
-            border-radius: 4px;
-        }
-        .form-layout .form-label {
-            width: 150px;
-            font-weight: 600;
-            color: #333;
-        }
-        .form-layout .form-input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background: #f8f9fa;
-        }
-        .subsection {
-            margin-left: 20px;
-            padding-left: 20px;
-            border-left: 3px solid #e9ecef;
-            margin-top: 20px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Meiryo', sans-serif; line-height: 1.8; color: #333; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        header { background: linear-gradient(135deg, #0078D4 0%, #106EBE 100%); color: white; padding: 40px; text-align: center; }
+        header h1 { font-size: 2em; margin-bottom: 10px; }
+        .version-badge { background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9em; margin-top: 10px; display: inline-block; }
+        main { padding: 40px; }
+        .section { margin-bottom: 50px; }
+        .section-header { display: flex; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #0078D4; }
+        .section-number { background: linear-gradient(135deg, #0078D4 0%, #106EBE 100%); color: white; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5em; font-weight: bold; margin-right: 15px; }
+        .section h2 { color: #0078D4; font-size: 1.5em; }
+        .step-card { background: #f8f9fa; border-radius: 12px; padding: 25px; margin-bottom: 20px; border-left: 4px solid #0078D4; }
+        .step-card h3 { color: #333; margin-bottom: 15px; }
+        .code-block { background: #1e1e1e; color: #d4d4d4; padding: 20px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.9em; margin: 15px 0; white-space: pre-wrap; }
+        .warning-box { background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%); border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .warning-box h4 { color: #856404; margin-bottom: 10px; }
+        .info-box { background: linear-gradient(135deg, #cce5ff 0%, #b8daff 100%); border: 1px solid #0078D4; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .info-box h4 { color: #004085; margin-bottom: 10px; }
+        .success-box { background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%); border: 1px solid #28a745; border-radius: 8px; padding: 20px; margin: 20px 0; }
+        .success-box h4 { color: #155724; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        th { background: #0078D4; color: white; padding: 15px; text-align: left; }
+        td { padding: 12px 15px; border-bottom: 1px solid #e9ecef; }
+        tr:hover { background: #f8f9fa; }
+        footer { background: #333; color: white; padding: 30px 40px; text-align: center; }
+        footer a { color: #7cb9e8; }
+        ul, ol { margin-left: 25px; margin-bottom: 15px; }
+        li { margin-bottom: 8px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>資格取得申請アプリ 構築ガイド</h1>
-            <p>SharePointリスト作成完了後の次の工程を、初心者向けに丁寧に解説します</p>
+            <p>Power Apps + Power Automate + SharePoint【実動作確認済み】</p>
+            <div class="version-badge">最終更新: 2026年1月14日</div>
         </header>
 
-        <!-- 進捗バー -->
-        <div class="progress-bar">
-            <div class="progress-step completed">
-                <div class="step-circle">✓</div>
-                <div class="step-label">SharePoint<br>リスト作成</div>
-            </div>
-            <div class="progress-step current">
-                <div class="step-circle">2</div>
-                <div class="step-label">Power Apps<br>フォーム作成</div>
-            </div>
-            <div class="progress-step">
-                <div class="step-circle">3</div>
-                <div class="step-label">Power Automate<br>承認フロー</div>
-            </div>
-            <div class="progress-step">
-                <div class="step-circle">4</div>
-                <div class="step-label">Teams<br>通知設定</div>
-            </div>
-            <div class="progress-step">
-                <div class="step-circle">5</div>
-                <div class="step-label">テスト<br>公開</div>
-            </div>
-        </div>
-
         <main>
-            <!-- 現在の状況確認 -->
+            <!-- 重要な注意事項 -->
+            <div class="warning-box">
+                <h4>この環境での重要な注意点</h4>
+                <ul>
+                    <li>Power Appsの数式では<strong>カンマ（,）</strong>を区切り文字として使用（セミコロンではない）</li>
+                    <li>選択肢型の列には <code>{Value: "値"}</code> の形式で設定</li>
+                    <li>ユーザー型・参照型の列はPower Automateで設定する方が簡単</li>
+                    <li>列名はSharePointの実際の列名と完全一致させる（報奨金額 vs 報奨金 など）</li>
+                </ul>
+            </div>
+
+            <!-- SharePointリストの列構成 -->
             <div class="section">
                 <div class="section-header">
-                    <div class="section-number">✓</div>
-                    <h2>完了済み：SharePointリストの確認</h2>
+                    <div class="section-number">1</div>
+                    <h2>SharePointリストの列構成</h2>
                 </div>
 
-                <p>あなたは以下の2つのSharePointリストを作成済みです。次の工程に進む前に、正しく設定されているか確認しましょう。</p>
-
-                <div class="checklist">
-                    <h4>確認チェックリスト</h4>
-                    <label><input type="checkbox"> 資格マスタリストに資格データが登録されている</label>
-                    <label><input type="checkbox"> 資格取得申請リストの列がすべて作成されている</label>
-                    <label><input type="checkbox"> 資格マスタの「資格名」列がルックアップ元として設定可能</label>
-                    <label><input type="checkbox"> SharePointサイトのURLをメモしている</label>
+                <div class="step-card">
+                    <h3>資格マスタ</h3>
+                    <table>
+                        <tr><th>列名</th><th>種類</th><th>用途</th></tr>
+                        <tr><td>名前</td><td>1行テキスト</td><td>資格の名称（タイトル列）</td></tr>
+                        <tr><td>分類</td><td>1行テキスト</td><td>税務、会計、IT など</td></tr>
+                        <tr><td>詳細</td><td>1行テキスト</td><td>級やレベル</td></tr>
+                        <tr><td>報奨金</td><td>数値</td><td>基本報奨金額</td></tr>
+                        <tr><td>難易度</td><td>1行テキスト</td><td>S, A, B, C, D</td></tr>
+                        <tr><td>参考URL</td><td>ハイパーリンク</td><td>公式サイト</td></tr>
+                    </table>
                 </div>
 
-                <div class="info-box">
-                    <h4>あなたのSharePointリストの列名（実際のデータに基づく）</h4>
+                <div class="step-card">
+                    <h3>資格取得申請</h3>
+                    <table>
+                        <tr><th>列名</th><th>種類</th><th>設定元</th></tr>
+                        <tr><td>タイトル</td><td>1行テキスト</td><td>Power Apps（資格名を保存）</td></tr>
+                        <tr><td>申請種別</td><td>選択肢</td><td>Power Apps</td></tr>
+                        <tr><td>申請者</td><td>ユーザー</td><td>Power Automate（登録者から）</td></tr>
+                        <tr><td>申請日</td><td>日付と時刻</td><td>Power Apps</td></tr>
+                        <tr><td>取得資格</td><td>参照</td><td>使用しない（タイトルで代用）</td></tr>
+                        <tr><td>予定日_取得日</td><td>日付と時刻</td><td>Power Apps</td></tr>
+                        <tr><td>理由_内容</td><td>複数行テキスト</td><td>Power Apps</td></tr>
+                        <tr><td>ステータス</td><td>選択肢</td><td>Power Apps / Power Automate</td></tr>
+                        <tr><td>承認者</td><td>ユーザー</td><td>Power Automate</td></tr>
+                        <tr><td>承認日</td><td>日付と時刻</td><td>Power Automate</td></tr>
+                        <tr><td>報奨金</td><td>数値</td><td>Power Apps</td></tr>
+                        <tr><td>事前ボーナス</td><td>数値</td><td>Power Apps</td></tr>
+                    </table>
                 </div>
-
-                <h4 style="margin-top: 20px;">資格マスタ</h4>
-                <table>
-                    <tr><th>列名</th><th>説明</th><th>例</th></tr>
-                    <tr><td>資格名</td><td>資格の名称</td><td>税理士試験、日商簿記検定</td></tr>
-                    <tr><td>分類</td><td>資格のカテゴリ</td><td>税務、会計、IT、お金、労務社保、給与、その他</td></tr>
-                    <tr><td>詳細</td><td>級やレベル</td><td>1級、2級、税法科目合格</td></tr>
-                    <tr><td>報奨金</td><td>基本報奨金額</td><td>150,000、50,000、10,000</td></tr>
-                    <tr><td>難易度</td><td>難易度ランク</td><td>S、A、B、C、D</td></tr>
-                    <tr><td>参考URL</td><td>資格の公式サイト</td><td>https://www.nta.go.jp/...</td></tr>
-                </table>
-
-                <h4 style="margin-top: 20px;">資格取得申請</h4>
-                <table>
-                    <tr><th>列名</th><th>説明</th><th>Power Appsでの設定</th></tr>
-                    <tr><td>申請ID</td><td>一意の申請番号</td><td>自動生成（QA-yyyymmddhhmmss）</td></tr>
-                    <tr><td>申請種別</td><td>宣言届 or 取得届</td><td>ラジオボタンから</td></tr>
-                    <tr><td>申請者</td><td>申請者の氏名</td><td>User().FullName</td></tr>
-                    <tr><td>申請日</td><td>申請日付</td><td>Today()</td></tr>
-                    <tr><td>取得資格</td><td>資格の名前</td><td>ドロップダウンから</td></tr>
-                    <tr><td>予定日_取得日</td><td>取得予定日/取得日</td><td>日付ピッカーから</td></tr>
-                    <tr><td>理由_内容</td><td>申請理由</td><td>テキスト入力から</td></tr>
-                    <tr><td>備考</td><td>その他メモ</td><td>（任意）</td></tr>
-                    <tr><td>ステータス</td><td>承認状態</td><td>"申請中" で初期化</td></tr>
-                    <tr><td>承認者</td><td>承認した人</td><td>Power Automateで設定</td></tr>
-                    <tr><td>承認日</td><td>承認された日</td><td>Power Automateで設定</td></tr>
-                    <tr><td>事前申請フラグ</td><td>事前申請かどうか</td><td>はい/いいえ</td></tr>
-                    <tr><td>報奨金額</td><td>基本報奨金</td><td>資格マスタから取得</td></tr>
-                    <tr><td>事前ボーナス</td><td>事前申請ボーナス</td><td>5000 or 0</td></tr>
-                </table>
             </div>
 
-            <!-- STEP 2: Power Apps -->
+            <!-- Power Apps設定 -->
             <div class="section">
                 <div class="section-header">
                     <div class="section-number">2</div>
-                    <h2>Power Appsで申請フォームを作成する</h2>
+                    <h2>Power Apps の設定</h2>
                 </div>
 
-                <p>Power Appsを使って、社員が資格取得を申請するためのフォームを作成します。スマホやPCから簡単に申請できるアプリになります。</p>
-
-                <!-- 2-1: Power Appsにアクセス -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 2-1</span>Power Appsにアクセスする</h3>
-
-                    <ol>
-                        <li>ブラウザで <strong><a href="https://make.powerapps.com" target="_blank">https://make.powerapps.com</a></strong> にアクセスします</li>
-                        <li>会社のMicrosoftアカウントでサインインします</li>
-                        <li>左上の「環境」が正しい環境（会社名など）になっているか確認します</li>
-                    </ol>
-
-                    <div class="screenshot-placeholder">
-                        📸 Power Apps ホーム画面<br>
-                        左メニューに「ホーム」「作成」「学習」などが表示されます
-                    </div>
-
-                    <div class="tip-box">
-                        <h4>初めての方へ</h4>
-                        <p>Power Appsは、Microsoft 365のライセンスに含まれている場合が多いです。アクセスできない場合は、IT管理者に確認してください。</p>
-                    </div>
+                    <h3>コントロール名一覧</h3>
+                    <table>
+                        <tr><th>コントロール</th><th>名前</th><th>用途</th></tr>
+                        <tr><td>ラジオボタン</td><td>RadioApplicationType</td><td>申請種別の選択</td></tr>
+                        <tr><td>ドロップダウン</td><td>DropdownCategory</td><td>分類の選択</td></tr>
+                        <tr><td>ドロップダウン</td><td>DropdownQualification</td><td>資格名の選択</td></tr>
+                        <tr><td>日付ピッカー</td><td>DatePickerAcquisition</td><td>取得予定日</td></tr>
+                        <tr><td>テキスト入力</td><td>TextInputReason</td><td>理由・内容</td></tr>
+                        <tr><td>ボタン</td><td>ButtonSubmit</td><td>申請ボタン</td></tr>
+                    </table>
                 </div>
 
-                <!-- 2-2: 新しいアプリを作成 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 2-2</span>新しいキャンバスアプリを作成する</h3>
+                    <h3>分類ドロップダウン（DropdownCategory）の Items</h3>
+                    <div class="code-block">Table(
+    {Value: "税務"},
+    {Value: "会計"},
+    {Value: "お金"},
+    {Value: "労務社保"},
+    {Value: "給与"},
+    {Value: "IT"},
+    {Value: "その他"}
+)</div>
+                </div>
 
-                    <ol>
-                        <li>左メニューの「<strong>+ 作成</strong>」をクリック</li>
-                        <li>「<strong>空のアプリ</strong>」セクションを探す</li>
-                        <li>「<strong>空のキャンバスアプリ</strong>」をクリック</li>
-                        <li>アプリ名を入力：<code>資格取得申請</code></li>
-                        <li>形式は「<strong>タブレット</strong>」を選択（PC・タブレット両方で見やすい）</li>
-                        <li>「<strong>作成</strong>」ボタンをクリック</li>
-                    </ol>
+                <div class="step-card">
+                    <h3>資格名ドロップダウン（DropdownQualification）の Items</h3>
+                    <div class="code-block">Filter(資格マスタ, 分類 = DropdownCategory.Selected.Value)</div>
+                    <p><strong>Value プロパティ：</strong>「名前」を選択</p>
+                </div>
 
+                <div class="step-card">
+                    <h3>申請ボタン（ButtonSubmit）の OnSelect【実動作確認済み】</h3>
+                    <div class="code-block">Patch(
+    資格取得申請,
+    Defaults(資格取得申請),
+    {
+        タイトル: DropdownQualification.Selected.名前,
+        申請種別: {Value: RadioApplicationType.Selected.Value},
+        申請日: Today(),
+        予定日_取得日: DatePickerAcquisition.SelectedDate,
+        理由_内容: TextInputReason.Text,
+        ステータス: {Value: "申請中"},
+        報奨金: DropdownQualification.Selected.報奨金,
+        事前ボーナス: If(RadioApplicationType.Selected.Value = "資格取得宣言届", 5000, 0)
+    }
+); Navigate(Screen2, ScreenTransition.Fade)</div>
                     <div class="info-box">
-                        <h4>タブレット vs 電話</h4>
-                        <p><strong>タブレット形式</strong>：横長のレイアウト。PCやタブレットで使いやすい。<br>
-                        <strong>電話形式</strong>：縦長のレイアウト。スマホ専用の場合に選択。<br>
-                        今回は「タブレット」を推奨します。</p>
-                    </div>
-                </div>
-
-                <!-- 2-3: データソースを接続 -->
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 2-3</span>SharePointリストをデータソースとして接続する</h3>
-
-                    <p>作成したSharePointリストをアプリに接続します。これにより、アプリからリストのデータを読み書きできるようになります。</p>
-
-                    <ol>
-                        <li>Power Appsの編集画面が開いたら、左側の「<strong>データ</strong>」アイコン（円柱マーク）をクリック</li>
-                        <li>「<strong>+ データの追加</strong>」をクリック</li>
-                        <li>検索ボックスに「<strong>SharePoint</strong>」と入力</li>
-                        <li>「<strong>SharePoint</strong>」コネクタをクリック</li>
-                        <li>接続方法を聞かれたら「<strong>直接接続（クラウドサービス）</strong>」を選択</li>
-                        <li>SharePointサイトのURLを入力または選択
-                            <div class="code-block">
-                                例: https://あなたの会社.sharepoint.com/sites/社内申請システム
-                            </div>
-                        </li>
-                        <li>「<strong>接続</strong>」をクリック</li>
-                        <li>リスト選択画面で以下の2つにチェックを入れる：
-                            <ul>
-                                <li>✅ <strong>資格マスタ</strong></li>
-                                <li>✅ <strong>資格取得申請</strong></li>
-                            </ul>
-                        </li>
-                        <li>「<strong>接続</strong>」をクリック</li>
-                    </ol>
-
-                    <div class="screenshot-placeholder">
-                        📸 データソース接続後の画面<br>
-                        左側の「データ」パネルに「資格マスタ」と「資格取得申請」が表示されます
-                    </div>
-
-                    <div class="warning-box">
-                        <h4>接続できない場合</h4>
+                        <h4>ポイント</h4>
                         <ul>
-                            <li>SharePointサイトへのアクセス権限があるか確認</li>
-                            <li>URLに誤りがないか確認（コピー＆ペーストを推奨）</li>
-                            <li>ブラウザのキャッシュをクリアして再試行</li>
+                            <li>選択肢型の列（申請種別、ステータス）は <code>{Value: "値"}</code> で設定</li>
+                            <li>資格名は「タイトル」列に保存（参照型は複雑なため）</li>
+                            <li>申請者はPower Automateで設定</li>
                         </ul>
                     </div>
                 </div>
 
-                <!-- 2-4: 画面のレイアウトを作成 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 2-4</span>申請フォーム画面のレイアウトを作成する</h3>
-
-                    <p>以下のような申請フォームを作成します。一つずつコントロール（部品）を配置していきましょう。</p>
-
-                    <div class="form-layout">
-                        <h4 style="text-align: center; padding: 15px; background: #0078D4; color: white; margin: -20px -20px 20px -20px;">資格取得申請</h4>
-                        <div class="form-row">
-                            <span class="form-label">申請種別</span>
-                            <span class="form-input">◉ 資格取得宣言届　○ 資格取得届</span>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">分類</span>
-                            <span class="form-input">▼ 選択してください</span>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">資格名</span>
-                            <span class="form-input">▼ 選択してください</span>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">詳細・級</span>
-                            <span class="form-input">▼ 選択してください</span>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">取得予定日</span>
-                            <span class="form-input">📅 日付を選択</span>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">理由・内容</span>
-                            <span class="form-input" style="height: 60px;">複数行テキスト入力欄</span>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">報奨金</span>
-                            <span class="form-input" style="background: #e8f4e8;">¥55,000（事前申請ボーナス ¥5,000 含む）</span>
-                        </div>
-                        <div style="text-align: center; padding: 20px;">
-                            <span class="button-example">申請する</span>
-                        </div>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-1. ヘッダー（タイトル）を追加</h4>
-                        <ol>
-                            <li>上部メニューの「<strong>+ 挿入</strong>」をクリック</li>
-                            <li>「<strong>テキストラベル</strong>」をクリック</li>
-                            <li>画面上部にラベルが追加されるので、ドラッグして位置を調整</li>
-                            <li>右側のプロパティパネルで設定：
-                                <ul>
-                                    <li><strong>Text</strong>: <code>"資格取得申請"</code></li>
-                                    <li><strong>Size</strong>: 24</li>
-                                    <li><strong>FontWeight</strong>: Bold</li>
-                                    <li><strong>Fill</strong>: #0078D4（青色）</li>
-                                    <li><strong>Color</strong>: White</li>
-                                </ul>
-                            </li>
-                            <li>幅を画面いっぱいに広げる</li>
-                        </ol>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-2. 申請種別（ラジオボタン）を追加</h4>
-                        <ol>
-                            <li>「<strong>+ 挿入</strong>」→「<strong>入力</strong>」→「<strong>ラジオ</strong>」をクリック</li>
-                            <li>画面に配置してサイズを調整</li>
-                            <li>プロパティを設定：
-                                <ul>
-                                    <li><strong>Items</strong>: <code>["資格取得宣言届", "資格取得届"]</code></li>
-                                    <li><strong>Default</strong>: <code>"資格取得宣言届"</code></li>
-                                </ul>
-                            </li>
-                            <li>コントロール名を「<strong>RadioApplicationType</strong>」に変更（左のツリービューで右クリック→名前の変更）</li>
-                        </ol>
-
-                        <div class="info-box">
-                            <h4>申請種別の違い</h4>
-                            <p><strong>資格取得宣言届</strong>：これから資格を取る予定を申請（事前申請）→ ボーナス+5,000円<br>
-                            <strong>資格取得届</strong>：すでに取得した資格を報告（事後申請）</p>
-                        </div>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-3. 分類ドロップダウンを追加</h4>
-                        <ol>
-                            <li>「<strong>+ 挿入</strong>」→「<strong>入力</strong>」→「<strong>ドロップダウン</strong>」をクリック</li>
-                            <li>画面に配置</li>
-                            <li>プロパティを設定：
-                                <ul>
-                                    <li><strong>Items</strong>:（以下の数式を入力）</li>
-                                </ul>
-                            </li>
-                        </ol>
-                        <div class="code-block">
-<span class="function">Distinct</span>(資格マスタ, 分類)
-</div>
-                        <p>この数式は、資格マスタリストから「分類」列の重複しない値を取得します。</p>
-                        <ol start="4">
-                            <li>コントロール名を「<strong>DropdownCategory</strong>」に変更</li>
-                        </ol>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-4. 資格名ドロップダウンを追加</h4>
-                        <ol>
-                            <li>もう一つドロップダウンを追加</li>
-                            <li>プロパティを設定：
-                                <ul>
-                                    <li><strong>Items</strong>:（以下の数式を入力）</li>
-                                </ul>
-                            </li>
-                        </ol>
-                        <div class="code-block">
-<span class="function">Filter</span>(資格マスタ, 分類 = DropdownCategory.Selected.Value)
-</div>
-                        <p>この数式は、選択された分類に該当する資格だけを表示します。</p>
-                        <ol start="3">
-                            <li>コントロール名を「<strong>DropdownQualification</strong>」に変更</li>
-                        </ol>
-
-                        <div class="tip-box">
-                            <h4>連動ドロップダウンのポイント</h4>
-                            <p>分類を選ぶと、その分類に属する資格だけが資格名ドロップダウンに表示されます。これを「連動ドロップダウン」と呼びます。</p>
-                        </div>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-5. 日付選択を追加</h4>
-                        <ol>
-                            <li>「<strong>+ 挿入</strong>」→「<strong>入力</strong>」→「<strong>日付の選択</strong>」をクリック</li>
-                            <li>画面に配置</li>
-                            <li>コントロール名を「<strong>DatePickerAcquisition</strong>」に変更</li>
-                        </ol>
-
-                        <p>日付ラベルを動的に変更したい場合は、ラベルを追加して以下の数式を設定：</p>
-                        <div class="code-block">
-<span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>,
-   <span class="string">"取得予定日"</span>,
-   <span class="string">"取得日"</span>)
-</div>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-6. 理由・内容テキスト入力を追加</h4>
-                        <ol>
-                            <li>「<strong>+ 挿入</strong>」→「<strong>入力</strong>」→「<strong>テキスト入力</strong>」をクリック</li>
-                            <li>画面に配置し、高さを広げる（複数行入力用）</li>
-                            <li>プロパティを設定：
-                                <ul>
-                                    <li><strong>Mode</strong>: TextMode.MultiLine</li>
-                                    <li><strong>HintText</strong>:（以下の数式）</li>
-                                </ul>
-                            </li>
-                        </ol>
-                        <div class="code-block">
-<span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>,
-   <span class="string">"資格を取得したい理由を入力してください"</span>,
-   <span class="string">"取得した資格の内容を入力してください"</span>)
-</div>
-                        <ol start="4">
-                            <li>コントロール名を「<strong>TextInputReason</strong>」に変更</li>
-                        </ol>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-7. 報奨金表示ラベルを追加</h4>
-                        <ol>
-                            <li>テキストラベルを追加</li>
-                            <li>プロパティの<strong>Text</strong>に以下の数式を設定：</li>
-                        </ol>
-                        <div class="code-block">
-<span class="string">"報奨金: ¥"</span> & <span class="function">Text</span>(
+                    <h3>報奨金表示ラベルの Text</h3>
+                    <div class="code-block">"報奨金: ¥" & Text(
     DropdownQualification.Selected.報奨金 +
-    <span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>, 5000, 0),
-    <span class="string">"#,##0"</span>
+    If(RadioApplicationType.Selected.Value = "資格取得宣言届", 5000, 0),
+    "#,##0"
 ) &
-<span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>,
-   <span class="string">"（事前申請ボーナス ¥5,000 含む）"</span>,
-   <span class="string">""</span>)
-</div>
-                        <p>この数式は、選択した資格の報奨金を表示し、事前申請の場合は5,000円を加算します。</p>
-
-                        <div class="warning-box">
-                            <h4>エラーが出る場合の対処法</h4>
-                            <p>資格が未選択の状態でエラーが出る場合は、以下の「安全な数式」を使用してください：</p>
-                        </div>
-                        <div class="code-block">
-<span class="string">"報奨金: ¥"</span> & <span class="function">Text</span>(
-    <span class="keyword">If</span>(
-        <span class="function">IsBlank</span>(DropdownQualification.Selected),
-        0,
-        DropdownQualification.Selected.報奨金 +
-        <span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>, 5000, 0)
-    ),
-    <span class="string">"#,##0"</span>
-) &
-<span class="keyword">If</span>(
-    RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span> && !<span class="function">IsBlank</span>(DropdownQualification.Selected),
-    <span class="string">"（事前申請ボーナス ¥5,000 含む）"</span>,
-    <span class="string">""</span>
-)
-</div>
-                    </div>
-
-                    <div class="subsection">
-                        <h4>2-4-8. 申請ボタンを追加</h4>
-                        <ol>
-                            <li>「<strong>+ 挿入</strong>」→「<strong>ボタン</strong>」をクリック</li>
-                            <li>画面下部に配置</li>
-                            <li>プロパティを設定：
-                                <ul>
-                                    <li><strong>Text</strong>: <code>"申請する"</code></li>
-                                    <li><strong>Fill</strong>: #0078D4</li>
-                                </ul>
-                            </li>
-                            <li><strong>OnSelect</strong>プロパティに以下の数式を設定：</li>
-                        </ol>
-                        <div class="code-block">
-<span class="comment">// SharePointリストにデータを保存</span>
-<span class="function">Patch</span>(
-    資格取得申請,
-    <span class="function">Defaults</span>(資格取得申請),
-    {
-        申請ID: <span class="string">"QA-"</span> & <span class="function">Text</span>(<span class="function">Now</span>(), <span class="string">"yyyymmddhhmmss"</span>),
-        申請種別: RadioApplicationType.Selected.Value,
-        申請者: <span class="function">User</span>().FullName,
-        申請日: <span class="function">Today</span>(),
-        取得資格: DropdownQualification.Selected.資格名,
-        予定日_取得日: DatePickerAcquisition.SelectedDate,
-        理由_内容: TextInputReason.Text,
-        ステータス: <span class="string">"申請中"</span>,
-        報奨金額: DropdownQualification.Selected.報奨金,
-        事前ボーナス: <span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>, 5000, 0),
-        事前申請フラグ: <span class="keyword">If</span>(RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>, <span class="string">"はい"</span>, <span class="string">"いいえ"</span>)
-    }
-);
-
-<span class="comment">// 完了画面に移動</span>
-<span class="function">Navigate</span>(Screen2, ScreenTransition.Fade);
-</div>
-
-                        <div class="info-box">
-                            <h4>あなたのSharePointリスト「資格取得申請」の列名</h4>
-                            <table style="margin: 10px 0; font-size: 0.9em;">
-                                <tr><th>列名</th><th>用途</th></tr>
-                                <tr><td>申請ID</td><td>一意の申請番号</td></tr>
-                                <tr><td>申請種別</td><td>宣言届 or 取得届</td></tr>
-                                <tr><td>申請者</td><td>申請者の氏名</td></tr>
-                                <tr><td>申請日</td><td>申請した日付</td></tr>
-                                <tr><td>取得資格</td><td>資格の名前</td></tr>
-                                <tr><td>予定日_取得日</td><td>取得予定日または取得日</td></tr>
-                                <tr><td>理由_内容</td><td>申請理由や内容</td></tr>
-                                <tr><td>備考</td><td>その他メモ</td></tr>
-                                <tr><td>ステータス</td><td>申請中/承認済/却下</td></tr>
-                                <tr><td>報奨金額</td><td>基本報奨金</td></tr>
-                                <tr><td>事前ボーナス</td><td>事前申請の追加報奨</td></tr>
-                                <tr><td>事前申請フラグ</td><td>はい/いいえ</td></tr>
-                            </table>
-                        </div>
-                        <ol start="5">
-                            <li>コントロール名を「<strong>ButtonSubmit</strong>」に変更</li>
-                        </ol>
-
-                        <div class="warning-box">
-                            <h4>列名に注意</h4>
-                            <p>上記の列名（Title, 申請者名, 資格名など）は、SharePointリストで作成した列名と<strong>完全に一致</strong>させる必要があります。スペースや大文字小文字も含めて確認してください。</p>
-                        </div>
-                    </div>
+If(RadioApplicationType.Selected.Value = "資格取得宣言届",
+   "（事前申請ボーナス ¥5,000 含む）",
+   "")</div>
                 </div>
 
-                <!-- 2-5: 完了画面を作成 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 2-5</span>申請完了画面（Screen2）を作成する</h3>
-
-                    <ol>
-                        <li>左側のツリービューで「<strong>+ 新しい画面</strong>」をクリック</li>
-                        <li>「<strong>空</strong>」を選択</li>
-                        <li>画面名を「<strong>Screen2</strong>」に変更</li>
-                        <li>以下のコントロールを追加：</li>
-                    </ol>
-
+                    <h3>完了画面（Screen2）</h3>
                     <table>
-                        <tr>
-                            <th>コントロール</th>
-                            <th>プロパティ</th>
-                            <th>値</th>
-                        </tr>
-                        <tr>
-                            <td>テキストラベル</td>
-                            <td>Text</td>
-                            <td>"✅ 申請が完了しました"</td>
-                        </tr>
-                        <tr>
-                            <td>テキストラベル</td>
-                            <td>Text</td>
-                            <td>"承認されるとTeamsで通知されます"</td>
-                        </tr>
-                        <tr>
-                            <td>ボタン</td>
-                            <td>Text</td>
-                            <td>"新しい申請を作成"</td>
-                        </tr>
-                        <tr>
-                            <td>ボタン</td>
-                            <td>OnSelect</td>
-                            <td>Navigate(Screen1, ScreenTransition.Fade)</td>
-                        </tr>
+                        <tr><th>コントロール</th><th>プロパティ</th><th>値</th></tr>
+                        <tr><td>ラベル</td><td>Text</td><td>"✅ 申請が完了しました"</td></tr>
+                        <tr><td>ラベル</td><td>Text</td><td>"承認されるとTeamsで通知されます"</td></tr>
+                        <tr><td>ボタン</td><td>Text</td><td>"新しい申請を作成"</td></tr>
+                        <tr><td>ボタン</td><td>OnSelect</td><td>Navigate(Screen1, ScreenTransition.Fade)</td></tr>
                     </table>
-                </div>
-
-                <!-- 2-6: 入力検証 -->
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 2-6</span>入力検証を設定する（必須チェック）</h3>
-
-                    <p>必須項目が入力されていない場合、申請ボタンを押せないようにします。</p>
-
-                    <ol>
-                        <li>申請ボタン（ButtonSubmit）を選択</li>
-                        <li><strong>DisplayMode</strong>プロパティに以下の数式を設定：</li>
-                    </ol>
-
-                    <div class="code-block">
-<span class="keyword">If</span>(
-    <span class="function">IsBlank</span>(DropdownCategory.Selected) ||
-    <span class="function">IsBlank</span>(DropdownQualification.Selected) ||
-    <span class="function">IsBlank</span>(DatePickerAcquisition.SelectedDate) ||
-    <span class="function">IsBlank</span>(TextInputReason.Text),
-    DisplayMode.Disabled,  <span class="comment">// 未入力があればボタン無効</span>
-    DisplayMode.Edit       <span class="comment">// すべて入力済みならボタン有効</span>
-)
-</div>
-
-                    <div class="tip-box">
-                        <h4>検証のポイント</h4>
-                        <p><code>||</code>は「または」を意味します。いずれかの項目が空白の場合、ボタンがグレーアウトして押せなくなります。</p>
-                    </div>
-                </div>
-
-                <!-- 2-7: 保存と公開 -->
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 2-7</span>アプリを保存して公開する</h3>
-
-                    <ol>
-                        <li>右上の「<strong>💾 保存</strong>」アイコンをクリック（または Ctrl+S）</li>
-                        <li>「<strong>公開</strong>」をクリック</li>
-                        <li>確認ダイアログで「<strong>このバージョンを公開</strong>」をクリック</li>
-                    </ol>
-
-                    <div class="info-box">
-                        <h4>保存と公開の違い</h4>
-                        <p><strong>保存</strong>：編集中の作業を保存（自分だけが見える）<br>
-                        <strong>公開</strong>：他のユーザーがアプリを使えるようにする</p>
-                    </div>
-
-                    <h4>アプリを共有する（任意）</h4>
-                    <ol>
-                        <li>Power Appsのホーム画面に戻る</li>
-                        <li>作成したアプリの「<strong>...</strong>」→「<strong>共有</strong>」をクリック</li>
-                        <li>共有したいユーザーやグループを追加</li>
-                        <li>「<strong>共有</strong>」をクリック</li>
-                    </ol>
                 </div>
             </div>
 
-            <!-- STEP 3: Power Automate -->
+            <!-- Power Automate設定 -->
             <div class="section">
                 <div class="section-header">
                     <div class="section-number">3</div>
-                    <h2>Power Automateで承認フローを作成する</h2>
+                    <h2>Power Automate の設定</h2>
                 </div>
 
-                <p>申請が送信されたら、自動的に上長に承認依頼が届き、承認/却下の結果が申請者に通知されるフローを作成します。</p>
-
-                <!-- 3-1: Power Automateにアクセス -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 3-1</span>Power Automateにアクセスする</h3>
-
+                    <h3>フローの全体構成</h3>
                     <ol>
-                        <li>ブラウザで <strong><a href="https://make.powerautomate.com" target="_blank">https://make.powerautomate.com</a></strong> にアクセス</li>
-                        <li>会社のMicrosoftアカウントでサインイン</li>
-                        <li>左メニューの「<strong>+ 作成</strong>」をクリック</li>
-                        <li>「<strong>自動化したクラウドフロー</strong>」をクリック</li>
+                        <li>トリガー：項目が作成されたとき（資格取得申請リスト）</li>
+                        <li>アクション：項目の更新（申請者を設定）</li>
+                        <li>アクション：開始して承認を待機</li>
+                        <li>条件：承認 or 却下</li>
+                        <li>True：項目の更新 + Teams通知（承認）</li>
+                        <li>False：項目の更新 + Teams通知（却下）</li>
                     </ol>
                 </div>
 
-                <!-- 3-2: トリガーを設定 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 3-2</span>トリガー（起動条件）を設定する</h3>
-
-                    <ol>
-                        <li>フロー名を入力：<code>資格取得申請_承認フロー</code></li>
-                        <li>「フローのトリガーを選択してください」で「<strong>SharePoint</strong>」を検索</li>
-                        <li>「<strong>項目が作成されたとき</strong>」を選択</li>
-                        <li>「<strong>作成</strong>」をクリック</li>
-                    </ol>
-
-                    <div class="screenshot-placeholder">
-                        📸 トリガー設定画面<br>
-                        「項目が作成されたとき」トリガーが表示されます
-                    </div>
-
-                    <ol start="5">
-                        <li>トリガーの設定：
-                            <ul>
-                                <li><strong>サイトのアドレス</strong>：SharePointサイトのURLを選択</li>
-                                <li><strong>リスト名</strong>：「資格取得申請」を選択</li>
-                            </ul>
-                        </li>
-                    </ol>
-
-                    <div class="tip-box">
-                        <h4>トリガーとは？</h4>
-                        <p>トリガーは「フローが動き出すきっかけ」です。この設定により、資格取得申請リストに新しい項目（申請）が追加されるたびに、自動的にフローが実行されます。</p>
-                    </div>
-                </div>
-
-                <!-- 3-3: 承認アクションを追加 -->
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 3-3</span>承認アクションを追加する</h3>
-
-                    <ol>
-                        <li>「<strong>+ 新しいステップ</strong>」をクリック</li>
-                        <li>「<strong>承認</strong>」を検索</li>
-                        <li>「<strong>開始して承認を待機</strong>」を選択</li>
-                        <li>設定を入力：</li>
-                    </ol>
-
+                    <h3>申請者を設定する（項目の更新）- トリガー直後に追加</h3>
                     <table>
-                        <tr>
-                            <th>項目</th>
-                            <th>設定値</th>
-                        </tr>
-                        <tr>
-                            <td>承認の種類</td>
-                            <td>承認/拒否 - 最初に応答</td>
-                        </tr>
-                        <tr>
-                            <td>タイトル</td>
-                            <td>【資格取得申請】承認依頼</td>
-                        </tr>
-                        <tr>
-                            <td>担当者</td>
-                            <td>承認者のメールアドレス（例：manager@company.com）</td>
-                        </tr>
-                        <tr>
-                            <td>詳細</td>
-                            <td>（以下を参照）</td>
-                        </tr>
+                        <tr><th>設定項目</th><th>値</th></tr>
+                        <tr><td>サイトのアドレス</td><td>SharePointサイトURL</td></tr>
+                        <tr><td>リスト名</td><td>資格取得申請</td></tr>
+                        <tr><td>ID</td><td>動的コンテンツ「ID」</td></tr>
+                        <tr><td>タイトル</td><td>動的コンテンツ「タイトル」</td></tr>
+                        <tr><td>申請者</td><td>動的コンテンツ「登録者 Email」</td></tr>
                     </table>
-
-                    <p><strong>詳細</strong>欄には以下のように動的コンテンツを使って入力：</p>
-
-                    <div class="code-block">
-<span class="comment">申請者：</span> [動的コンテンツ: 申請者]
-<span class="comment">資格名：</span> [動的コンテンツ: 取得資格]
-<span class="comment">取得予定日：</span> [動的コンテンツ: 予定日_取得日]
-<span class="comment">理由：</span> [動的コンテンツ: 理由_内容]
-<span class="comment">報奨金額：</span> ¥[動的コンテンツ: 報奨金額] + ¥[動的コンテンツ: 事前ボーナス]
-</div>
-
-                    <div class="info-box">
-                        <h4>動的コンテンツとは？</h4>
-                        <p>動的コンテンツは、前のステップ（トリガー）で取得したデータを参照する仕組みです。入力欄をクリックすると、右側に「動的なコンテンツ」パネルが表示され、SharePointリストの列名が選択できます。</p>
-                    </div>
                 </div>
 
-                <!-- 3-4: 条件分岐を追加 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 3-4</span>承認/却下の条件分岐を追加する</h3>
-
-                    <ol>
-                        <li>「<strong>+ 新しいステップ</strong>」をクリック</li>
-                        <li>「<strong>条件</strong>」を検索して選択</li>
-                        <li>条件を設定：
-                            <ul>
-                                <li>左側：動的コンテンツから「<strong>結果</strong>」（Outcome）を選択</li>
-                                <li>中央：「<strong>次の値に等しい</strong>」</li>
-                                <li>右側：<code>Approve</code></li>
-                            </ul>
-                        </li>
-                    </ol>
-
-                    <div class="screenshot-placeholder">
-                        📸 条件分岐の設定<br>
-                        「はいの場合」と「いいえの場合」の2つのブランチが表示されます
-                    </div>
+                    <h3>承認依頼の詳細欄【実動作確認済み】</h3>
+                    <div class="code-block">申請者： [動的コンテンツ: 登録者 DisplayName]
+資格名： [動的コンテンツ: タイトル]
+取得予定日： [動的コンテンツ: 予定日_取得日]
+理由： [動的コンテンツ: 理由_内容]
+報奨金額： ¥[式]</div>
+                    <p><strong>報奨金額の式（Nullエラー対策済み）：</strong></p>
+                    <div class="code-block">add(coalesce(triggerBody()?['報奨金'], 0), coalesce(triggerBody()?['事前ボーナス'], 0))</div>
                 </div>
 
-                <!-- 3-5: 承認時の処理 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 3-5</span>承認された場合の処理を設定する</h3>
+                    <h3>承認時の項目の更新</h3>
+                    <table>
+                        <tr><th>設定項目</th><th>値</th></tr>
+                        <tr><td>ステータス</td><td>承認済</td></tr>
+                        <tr><td>承認日</td><td>動的コンテンツ「完了日」</td></tr>
+                        <tr><td>承認者</td><td>動的コンテンツ「応答者のユーザー プリンシパル名」</td></tr>
+                    </table>
+                </div>
 
-                    <p>「<strong>はいの場合</strong>」ブランチに以下のアクションを追加します。</p>
-
-                    <h4>3-5-1. SharePointリストを更新</h4>
-                    <ol>
-                        <li>「はいの場合」内の「<strong>アクションの追加</strong>」をクリック</li>
-                        <li>「SharePoint」→「<strong>項目の更新</strong>」を選択</li>
-                        <li>設定：
-                            <ul>
-                                <li><strong>サイトのアドレス</strong>：SharePointサイトURL</li>
-                                <li><strong>リスト名</strong>：資格取得申請</li>
-                                <li><strong>ID</strong>：動的コンテンツから「ID」を選択</li>
-                                <li><strong>ステータス</strong>：<code>承認済</code></li>
-                                <li><strong>承認日</strong>：動的コンテンツから「完了日」を選択</li>
-                            </ul>
-                        </li>
-                    </ol>
-
-                    <h4>3-5-2. 申請者にTeams通知を送信</h4>
-                    <ol>
-                        <li>「<strong>アクションの追加</strong>」をクリック</li>
-                        <li>「Microsoft Teams」→「<strong>チャットまたはチャネルでメッセージを投稿する</strong>」を選択</li>
-                        <li>設定：
-                            <ul>
-                                <li><strong>投稿者</strong>：フローボット</li>
-                                <li><strong>投稿先</strong>：Chat with Flow bot</li>
-                                <li><strong>受信者</strong>：動的コンテンツから「申請者メール」</li>
-                                <li><strong>メッセージ</strong>：（以下を参照）</li>
-                            </ul>
-                        </li>
-                    </ol>
-
-                    <div class="code-block">
-✅ <span class="string">【承認されました】資格取得申請</span>
+                <div class="step-card">
+                    <h3>承認通知メッセージ（Teams）【実動作確認済み】</h3>
+                    <table>
+                        <tr><th>設定項目</th><th>値</th></tr>
+                        <tr><td>投稿者</td><td>フローボット</td></tr>
+                        <tr><td>投稿先</td><td>Chat with Flow bot</td></tr>
+                        <tr><td>受信者</td><td>動的コンテンツ「登録者 Email」</td></tr>
+                    </table>
+                    <p><strong>メッセージ内容：</strong></p>
+                    <div class="code-block">✅ 【承認されました】資格取得申請
 
 あなたの資格取得申請が承認されました。
 
-<span class="comment">■ 資格名：</span> [動的コンテンツ: 取得資格]
-<span class="comment">■ 報奨金額：</span> ¥[動的コンテンツ: 報奨金額] + ¥[動的コンテンツ: 事前ボーナス]
+■ 資格名： [動的コンテンツ: タイトル]
+■ 報奨金額： ¥[式]
 
-おめでとうございます！
-</div>
+おめでとうございます！</div>
+                    <p><strong>報奨金額の式：</strong></p>
+                    <div class="code-block">add(coalesce(triggerBody()?['報奨金'], 0), coalesce(triggerBody()?['事前ボーナス'], 0))</div>
                 </div>
 
-                <!-- 3-6: 却下時の処理 -->
                 <div class="step-card">
-                    <h3><span class="step-badge">Step 3-6</span>却下された場合の処理を設定する</h3>
-
-                    <p>「<strong>いいえの場合</strong>」ブランチに以下のアクションを追加します。</p>
-
-                    <ol>
-                        <li>「いいえの場合」内の「<strong>アクションの追加</strong>」をクリック</li>
-                        <li>SharePointの「<strong>項目の更新</strong>」を追加
-                            <ul>
-                                <li><strong>ステータス</strong>：<code>却下</code></li>
-                            </ul>
-                        </li>
-                        <li>Teamsの「<strong>チャットまたはチャネルでメッセージを投稿する</strong>」を追加</li>
-                    </ol>
-
-                    <div class="code-block">
-❌ <span class="string">【却下されました】資格取得申請</span>
+                    <h3>却下通知メッセージ（Teams）</h3>
+                    <div class="code-block">❌ 【却下されました】資格取得申請
 
 申し訳ありませんが、あなたの資格取得申請は却下されました。
 
-<span class="comment">■ 資格名：</span> [動的コンテンツ: 取得資格]
-<span class="comment">■ 却下理由：</span> [動的コンテンツ: 応答の概要 Responses Comments]
+■ 資格名： [動的コンテンツ: タイトル]
+■ 却下理由： [動的コンテンツ: 応答の概要 Responses Comments]
 
-詳細は上長にお問い合わせください。
-</div>
-                </div>
-
-                <!-- 3-7: フローを保存してテスト -->
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 3-7</span>フローを保存してテストする</h3>
-
-                    <ol>
-                        <li>画面右上の「<strong>保存</strong>」をクリック</li>
-                        <li>「<strong>テスト</strong>」をクリック</li>
-                        <li>「<strong>手動</strong>」を選択して「<strong>テスト</strong>」をクリック</li>
-                        <li>Power Appsで作成したアプリから申請を送信</li>
-                        <li>フローが正常に動作するか確認：
-                            <ul>
-                                <li>✅ 承認者にTeamsで承認依頼が届く</li>
-                                <li>✅ 承認/却下すると申請者に通知が届く</li>
-                                <li>✅ SharePointリストのステータスが更新される</li>
-                            </ul>
-                        </li>
-                    </ol>
-
-                    <div class="warning-box">
-                        <h4>テスト時の注意</h4>
-                        <p>テスト用の申請は、後でSharePointリストから削除してください。本番運用前に必ず動作確認を行いましょう。</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 4: Teams通知の詳細設定 -->
-            <div class="section">
-                <div class="section-header">
-                    <div class="section-number">4</div>
-                    <h2>Teams通知の詳細設定（オプション）</h2>
-                </div>
-
-                <p>基本的なTeams通知はStep 3で設定済みですが、より見やすいアダプティブカードを使った通知にカスタマイズできます。</p>
-
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 4-1</span>アダプティブカードで承認依頼を送信する</h3>
-
-                    <p>Step 3-3で設定した「開始して承認を待機」アクションは、自動的にアダプティブカード形式でTeamsに表示されます。特別な設定は不要です。</p>
-
-                    <div class="info-box">
-                        <h4>アダプティブカードとは？</h4>
-                        <p>Teams上で表示されるリッチなカード形式のメッセージです。「承認」「却下」ボタンが付いており、Teams上で直接承認操作ができます。</p>
-                    </div>
-                </div>
-
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 4-2</span>通知のベストプラクティス</h3>
-
-                    <table>
-                        <tr>
-                            <th>推奨事項</th>
-                            <th>理由</th>
-                        </tr>
-                        <tr>
-                            <td>承認依頼はアダプティブカードで送信</td>
-                            <td>ボタン操作で簡単に承認できる</td>
-                        </tr>
-                        <tr>
-                            <td>結果通知はFlow botで個別送信</td>
-                            <td>プライバシー保護、本人だけに通知</td>
-                        </tr>
-                        <tr>
-                            <td>報奨金額などの機密情報は個別チャットのみ</td>
-                            <td>チャネル投稿は他者に見える</td>
-                        </tr>
-                        <tr>
-                            <td>リマインダーは3日後に設定</td>
-                            <td>承認漏れを防止</td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <!-- STEP 5: テストと公開 -->
-            <div class="section">
-                <div class="section-header">
-                    <div class="section-number">5</div>
-                    <h2>最終テストと本番公開</h2>
-                </div>
-
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 5-1</span>エンドツーエンドテストを実施する</h3>
-
-                    <div class="checklist">
-                        <h4>テストチェックリスト</h4>
-                        <label><input type="checkbox"> Power Appsで申請フォームが正しく表示される</label>
-                        <label><input type="checkbox"> 分類を選択すると資格名が連動して変わる</label>
-                        <label><input type="checkbox"> 報奨金額が正しく計算される（事前申請は+5,000円）</label>
-                        <label><input type="checkbox"> 必須項目が未入力だと申請ボタンが押せない</label>
-                        <label><input type="checkbox"> 申請するとSharePointリストにデータが保存される</label>
-                        <label><input type="checkbox"> 申請後、承認者にTeamsで承認依頼が届く</label>
-                        <label><input type="checkbox"> 承認するとSharePointのステータスが「承認済」になる</label>
-                        <label><input type="checkbox"> 承認すると申請者にTeamsで通知が届く</label>
-                        <label><input type="checkbox"> 却下するとSharePointのステータスが「却下」になる</label>
-                        <label><input type="checkbox"> 却下すると申請者にTeamsで通知が届く</label>
-                    </div>
-                </div>
-
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 5-2</span>社員にアプリを展開する</h3>
-
-                    <ol>
-                        <li><strong>Power Appsの共有設定</strong>で対象ユーザー/グループを追加</li>
-                        <li>（オプション）Teamsにアプリを追加：
-                            <ul>
-                                <li>Teamsを開く</li>
-                                <li>左側の「<strong>アプリ</strong>」をクリック</li>
-                                <li>「<strong>組織用に構築</strong>」タブを選択</li>
-                                <li>「資格取得申請」アプリを追加</li>
-                            </ul>
-                        </li>
-                        <li>社員に利用方法を案内（マニュアル配布など）</li>
-                    </ol>
-                </div>
-
-                <div class="step-card">
-                    <h3><span class="step-badge">Step 5-3</span>運用開始後の監視</h3>
-
-                    <ul>
-                        <li><strong>Power Automateの実行履歴</strong>で、フローが正常に動作しているか定期的に確認</li>
-                        <li><strong>SharePointリスト</strong>で、申請データが正しく保存されているか確認</li>
-                        <li>問題が発生した場合は、Power Automateの「実行履歴」からエラー詳細を確認</li>
-                    </ul>
+詳細は上長にお問い合わせください。</div>
                 </div>
             </div>
 
             <!-- トラブルシューティング -->
             <div class="section">
                 <div class="section-header">
-                    <div class="section-number">?</div>
-                    <h2>よくあるトラブルと解決方法</h2>
+                    <div class="section-number">4</div>
+                    <h2>トラブルシューティング【実際に遭遇した問題】</h2>
                 </div>
 
                 <table>
+                    <tr><th>問題</th><th>原因</th><th>解決方法</th></tr>
                     <tr>
-                        <th>問題</th>
-                        <th>原因</th>
-                        <th>解決方法</th>
+                        <td>「演算子が必要です」エラー</td>
+                        <td>区切り文字の問題</td>
+                        <td>セミコロン(;)ではなく<strong>カンマ(,)</strong>を使用</td>
                     </tr>
                     <tr>
-                        <td>ドロップダウンにデータが表示されない</td>
-                        <td>データソース接続エラー</td>
-                        <td>データソースを再接続、列名を確認</td>
+                        <td>「型が一致しません」エラー</td>
+                        <td>選択肢型の列</td>
+                        <td><code>{Value: "値"}</code> の形式で設定</td>
                     </tr>
                     <tr>
-                        <td>申請ボタンを押してもエラーになる</td>
-                        <td>Patch関数の列名不一致</td>
-                        <td>SharePointの列名と完全一致させる</td>
+                        <td>「Recordと一致しません」エラー</td>
+                        <td>ユーザー型・参照型の列</td>
+                        <td>Power Automateで設定する</td>
                     </tr>
                     <tr>
-                        <td>承認依頼が届かない</td>
-                        <td>フローがオフ、またはエラー</td>
-                        <td>Power Automateでフロー状態を確認</td>
+                        <td>ドロップダウンに表示されない</td>
+                        <td>Valueプロパティ未設定</td>
+                        <td>Valueプロパティで「名前」を選択</td>
                     </tr>
                     <tr>
-                        <td>User()関数でエラー</td>
-                        <td>Office 365コネクタ未接続</td>
-                        <td>Office 365 Usersコネクタを追加</td>
+                        <td>申請者・承認者が空</td>
+                        <td>ユーザー型は複雑</td>
+                        <td>Power Automateで「登録者」から設定</td>
                     </tr>
                     <tr>
-                        <td>日本語が文字化けする</td>
-                        <td>エンコーディングの問題</td>
-                        <td>UTF-8でデータを扱う</td>
+                        <td>参照列にデータが入らない</td>
+                        <td>参照型は複雑</td>
+                        <td>「タイトル」列で代用する</td>
+                    </tr>
+                    <tr>
+                        <td>報奨金額が表示されない</td>
+                        <td>列名の違い</td>
+                        <td>SharePointの実際の列名を確認（報奨金額 vs 報奨金）</td>
+                    </tr>
+                    <tr>
+                        <td>Teams通知でNullエラー</td>
+                        <td>値が空の場合</td>
+                        <td><code>coalesce()</code>関数でNullを0に置換</td>
+                    </tr>
+                    <tr>
+                        <td>Teams送信で「'to' expects a value」エラー</td>
+                        <td>受信者が空</td>
+                        <td>受信者を「登録者 Email」に変更</td>
                     </tr>
                 </table>
             </div>
 
-            <div class="nav-buttons">
-                <a href="https://make.powerapps.com" target="_blank" class="nav-button">→ Power Appsを開く</a>
-                <a href="https://make.powerautomate.com" target="_blank" class="nav-button">→ Power Automateを開く</a>
+            <div class="success-box">
+                <h4>完成チェックリスト</h4>
+                <ul>
+                    <li>Power Appsで申請フォームが表示される</li>
+                    <li>分類を選ぶと資格名が連動して変わる</li>
+                    <li>報奨金額が正しく計算される（事前申請は+5,000円）</li>
+                    <li>申請するとSharePointリストにデータが保存される</li>
+                    <li>承認依頼がTeamsに届く（資格名・報奨金額が表示される）</li>
+                    <li>承認/却下するとTeamsで通知が届く</li>
+                    <li>SharePointリストのステータス・承認者・承認日が更新される</li>
+                </ul>
             </div>
 
         </main>
 
         <footer>
-            <p>資格取得申請アプリ 構築ガイド</p>
-            <p>参考：<a href="https://github.com/Ezark213/business-application/tree/main/qualification-application" target="_blank">GitHub - qualification-application</a></p>
-            <p style="margin-top: 15px; opacity: 0.7;">作成日: 2026年1月13日</p>
+            <p>資格取得申請アプリ 構築ガイド【最新版・実動作確認済み】</p>
+            <p><a href="https://github.com/Ezark213/business-application/tree/main/ms-expense-app/qualification-app" target="_blank">GitHub Repository</a></p>
+            <p style="margin-top: 15px; opacity: 0.7;">最終更新: 2026年1月14日</p>
         </footer>
     </div>
 </body>
