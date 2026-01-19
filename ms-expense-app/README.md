@@ -4,37 +4,43 @@
 
 既存のPython製経費計上アプリ（[expense-app](https://github.com/Ezark213/expense-app)）をMicrosoft 365エコシステムに移行したアプリケーションです。
 
+**本システムは「複数の経費をまとめて1回で申請」する設計（ヘッダー・明細方式）です。**
+
 ### 主な特徴
 
 - **Power Apps** によるモダンなUI
-- **SharePoint Lists** によるデータ管理
+- **SharePoint Lists** によるデータ管理（申請ヘッダー + 経費明細）
 - **Power Automate** による承認ワークフロー
 - **Microsoft Teams** への通知連携
-- **SharePoint** ドキュメントライブラリでの領収書管理
 - **インボイス制度対応** 8パターンの税区分に対応
 
-## アーキテクチャ
+## データ構造
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        Microsoft 365                            │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐     │
-│  │  Power Apps  │───▶│   SharePoint │◀───│   OneDrive   │     │
-│  │  (Frontend)  │    │   Lists      │    │  (添付資料)  │     │
-│  └──────┬───────┘    └──────┬───────┘    └──────────────┘     │
-│         │                   │                                  │
-│         ▼                   ▼                                  │
-│  ┌──────────────────────────────────────┐                     │
-│  │         Power Automate               │                     │
-│  │  ┌────────────┐  ┌────────────────┐  │                     │
-│  │  │ 承認フロー │  │ Teams通知     │  │                     │
-│  │  └────────────┘  └────────────────┘  │                     │
-│  └──────────────────────────────────────┘                     │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────┐     ┌─────────────────────────────┐
+│  ExpenseRequests            │     │  ExpenseDetails             │
+│  （申請ヘッダー）            │     │  （経費明細）               │
+├─────────────────────────────┤     ├─────────────────────────────┤
+│  1申請 = 1レコード          │◀────│  1経費 = 1レコード          │
+│                             │     │                             │
+│  ・申請者                   │     │  ・申請ID（参照）           │
+│  ・申請日                   │     │  ・経費日付                 │
+│  ・部署                     │     │  ・勘定科目                 │
+│  ・明細件数（自動計算）     │     │  ・内容                     │
+│  ・合計金額（自動計算）     │     │  ・税込金額                 │
+│  ・承認ステータス           │     │  ・税区分                   │
+│  ・承認者/承認日時          │     │  ・税額/税抜金額            │
+└─────────────────────────────┘     │  ・インボイス番号           │
+                                    │  ・領収書                   │
+                                    └─────────────────────────────┘
 ```
+
+## 運用フロー
+
+1. 申請者が「新規申請」を作成（ExpenseRequestsに1レコード作成）
+2. 経費を1件ずつ追加（ExpenseDetailsに複数レコード作成）
+3. すべての経費を入力したら「申請する」ボタンで一括申請
+4. 承認者は申請単位で承認/却下
 
 ## フォルダ構成
 
@@ -43,17 +49,12 @@ ms-expense-app/
 ├── README.md                           # このファイル
 ├── docs/
 │   ├── M365経費申請アプリ構築手順.html  # ★ 構築手順書（HTML）
-│   ├── architecture.md                 # 詳細アーキテクチャ
-│   ├── setup-guide.md                  # セットアップ手順
-│   ├── step-by-step-guide.html         # ステップバイステップガイド
-│   ├── step-by-step-guide.md           # ステップバイステップガイド(MD)
-│   ├── user-manual.md                  # ユーザーマニュアル
-│   ├── mf-freee-comparison.html        # 会計ソフト比較
-│   └── mf-freee-comparison.xlsx        # 会計ソフト比較(Excel)
+│   └── ...
 ├── sharepoint/
 │   ├── lists-schema.json               # SharePoint Listsスキーマ
 │   └── data/
-│       ├── ExpenseRequests.csv         # ★ 経費申請リスト（インポート用）
+│       ├── ExpenseRequests.csv         # ★ 申請ヘッダー（インポート用）
+│       ├── ExpenseDetails.csv          # ★ 経費明細（インポート用）
 │       └── TaxRates.csv                # ★ 税区分マスター（インポート用）
 ├── power-automate/
 │   ├── approval-flow.json              # 承認フロー定義
@@ -79,11 +80,12 @@ ms-expense-app/
 
 ### 3. SharePointリストのインポート
 
-以下のCSVファイルをSharePointにインポートしてリストを作成します：
+以下の3つのCSVファイルをSharePointにインポートしてリストを作成します：
 
 | ファイル | 説明 |
 |---------|------|
-| [ExpenseRequests.csv](sharepoint/data/ExpenseRequests.csv) | 経費申請データ用リスト |
+| [ExpenseRequests.csv](sharepoint/data/ExpenseRequests.csv) | 申請ヘッダー用リスト |
+| [ExpenseDetails.csv](sharepoint/data/ExpenseDetails.csv) | 経費明細用リスト |
 | [TaxRates.csv](sharepoint/data/TaxRates.csv) | 税区分マスター（8パターン） |
 
 ### 税区分一覧（TaxRates.csv）
@@ -104,12 +106,12 @@ ms-expense-app/
 | 機能 | 元アプリ (Python) | MS版 |
 |------|-------------------|------|
 | 経費登録 | Tkinter Form | Power Apps Canvas |
-| データ保存 | CSV | SharePoint Lists |
+| データ保存 | CSV | SharePoint Lists（ヘッダー+明細） |
 | 税計算 | Python Decimal | Power Fx |
+| 一括申請 | なし | ★ 複数経費をまとめて申請 |
 | 承認フロー | なし | Power Automate Approvals |
 | 通知 | なし | Teams + Outlook |
 | 領収書添付 | ローカルファイル | SharePoint/OneDrive |
-| 会計ソフト出力 | CSV Export | Power Automate + Excel |
 
 ## 関連リポジトリ
 
