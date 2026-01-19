@@ -2,517 +2,347 @@
   "name": "経費申請アプリ",
   "description": "Microsoft 365統合経費管理アプリケーション",
   "appType": "CanvasApp",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "lastUpdated": "2026-01-19",
   "author": "Business Application Team",
+
   "dataSources": [
     {
       "name": "ExpenseRequests",
       "type": "SharePointList",
       "siteUrl": "{SharePointSiteUrl}",
-      "listName": "ExpenseRequests"
+      "listName": "ExpenseRequests",
+      "description": "申請ヘッダー（1申請=1レコード）"
     },
     {
-      "name": "Approvers",
+      "name": "ExpenseDetails",
       "type": "SharePointList",
       "siteUrl": "{SharePointSiteUrl}",
-      "listName": "Approvers"
+      "listName": "ExpenseDetails",
+      "description": "経費明細（1経費=1レコード、申請IDで紐付け）"
     },
     {
       "name": "TaxRates",
       "type": "SharePointList",
       "siteUrl": "{SharePointSiteUrl}",
-      "listName": "TaxRates"
-    },
-    {
-      "name": "Office365Users",
-      "type": "Connector",
-      "connectorId": "Office365Users"
+      "listName": "TaxRates",
+      "description": "税区分マスター"
     }
   ],
+
+  "globalVariables": [
+    {
+      "name": "varCurrentRequestID",
+      "type": "Number",
+      "description": "現在選択/作成中の申請ID"
+    },
+    {
+      "name": "varNewRequest",
+      "type": "Record",
+      "description": "新規作成した申請レコード"
+    }
+  ],
+
   "screens": [
     {
       "name": "HomeScreen",
       "displayName": "ホーム",
-      "description": "ダッシュボード画面",
+      "order": 1,
+      "description": "アプリのエントリーポイント",
       "components": [
         {
-          "type": "Header",
-          "properties": {
-            "title": "経費申請",
-            "showUserProfile": true
-          }
-        },
-        {
-          "type": "Gallery",
-          "name": "SummaryTiles",
-          "layout": "Horizontal",
-          "items": [
-            {
-              "title": "今月の申請",
-              "value": "CountRows(Filter(ExpenseRequests, Month(ExpenseDate) = Month(Today()) && Applicant.Email = User().Email))",
-              "icon": "Document"
-            },
-            {
-              "title": "承認待ち",
-              "value": "CountRows(Filter(ExpenseRequests, ApprovalStatus = \"申請中\" && Applicant.Email = User().Email))",
-              "icon": "Clock"
-            },
-            {
-              "title": "今月の合計",
-              "value": "Sum(Filter(ExpenseRequests, Month(ExpenseDate) = Month(Today()) && Applicant.Email = User().Email && ApprovalStatus = \"承認済み\"), AmountWithTax)",
-              "icon": "Money",
-              "format": "Currency"
-            }
-          ]
+          "type": "Button",
+          "name": "btnRequestList",
+          "text": "申請一覧",
+          "onSelect": "Navigate(RequestListScreen)"
         },
         {
           "type": "Button",
-          "name": "NewExpenseButton",
+          "name": "btnNewRequest",
           "text": "新規申請",
-          "icon": "Add",
-          "onSelect": "Navigate(ExpenseFormScreen, ScreenTransition.Cover)"
-        },
-        {
-          "type": "Gallery",
-          "name": "RecentExpenses",
-          "title": "最近の申請",
-          "dataSource": "ExpenseRequests",
-          "filter": "Applicant.Email = User().Email",
-          "sortBy": "Created",
-          "sortDescending": true,
-          "maxItems": 5,
-          "template": {
-            "layout": "ListItem",
-            "fields": [
-              { "name": "Description", "label": "内容" },
-              { "name": "AmountWithTax", "label": "金額", "format": "Currency" },
-              { "name": "ApprovalStatus", "label": "状態", "type": "StatusBadge" }
-            ]
-          },
-          "onSelect": "Navigate(ExpenseDetailScreen, ScreenTransition.None, {SelectedExpense: ThisItem})"
+          "onSelect": "Set(varNewRequest, Patch(ExpenseRequests, Defaults(ExpenseRequests), {Title: \"申請_\" & Text(Now(), \"yyyymmddhhmmss\"), '承認ステータス': {Value: \"下書き\"}})); Set(varCurrentRequestID, varNewRequest.ID); Navigate(RequestFormScreen)",
+          "note": "申請者はPower Automateで自動設定するためPatchから除外"
         }
       ]
     },
     {
-      "name": "ExpenseFormScreen",
-      "displayName": "経費申請",
-      "description": "新規申請・編集フォーム",
-      "components": [
-        {
-          "type": "Header",
-          "properties": {
-            "title": "If(IsBlank(EditingExpense), \"新規申請\", \"申請編集\")",
-            "showBackButton": true
-          }
-        },
-        {
-          "type": "Form",
-          "name": "ExpenseForm",
-          "dataSource": "ExpenseRequests",
-          "mode": "If(IsBlank(EditingExpense), FormMode.New, FormMode.Edit)",
-          "fields": [
-            {
-              "name": "ExpenseDate",
-              "label": "支出日",
-              "type": "DatePicker",
-              "required": true,
-              "default": "Today()"
-            },
-            {
-              "name": "Department",
-              "label": "部署",
-              "type": "Dropdown",
-              "required": true,
-              "options": ["営業部", "開発部", "管理部", "経理部", "人事部", "総務部"]
-            },
-            {
-              "name": "AccountCategory",
-              "label": "勘定科目",
-              "type": "Dropdown",
-              "required": true,
-              "options": ["旅費交通費", "交際費", "会議費", "通信費", "消耗品費", "新聞図書費", "水道光熱費", "地代家賃", "支払手数料", "広告宣伝費", "接待交際費", "福利厚生費", "修繕費", "租税公課", "車両費", "雑費", "その他"]
-            },
-            {
-              "name": "Description",
-              "label": "内容",
-              "type": "TextInput",
-              "required": true,
-              "maxLength": 500,
-              "placeholder": "経費の詳細を入力してください"
-            },
-            {
-              "name": "AmountWithTax",
-              "label": "金額（税込）",
-              "type": "NumberInput",
-              "required": true,
-              "format": "Currency",
-              "onChange": "Set(varTaxResult, CalculateTax(Self.Value, ddTaxCategory.Selected.Value))"
-            },
-            {
-              "name": "TaxCategory",
-              "label": "税区分",
-              "type": "Dropdown",
-              "required": true,
-              "options": "TaxRates.TaxCategory",
-              "onChange": "Set(varTaxResult, CalculateTax(txtAmountWithTax.Value, Self.Selected.Value))"
-            },
-            {
-              "name": "TaxAmountDisplay",
-              "label": "消費税額（自動計算）",
-              "type": "Label",
-              "value": "Text(varTaxResult.TaxAmount, \"¥#,##0\")"
-            },
-            {
-              "name": "AmountWithoutTaxDisplay",
-              "label": "税抜金額（自動計算）",
-              "type": "Label",
-              "value": "Text(varTaxResult.AmountWithoutTax, \"¥#,##0\")"
-            },
-            {
-              "name": "InvoiceNumber",
-              "label": "インボイス番号",
-              "type": "TextInput",
-              "required": false,
-              "maxLength": 14,
-              "placeholder": "T1234567890123",
-              "validation": "IsBlank(Self.Value) || (Left(Self.Value, 1) = \"T\" && Len(Self.Value) = 14 && IsNumeric(Right(Self.Value, 13)))"
-            },
-            {
-              "name": "ReceiptAttachment",
-              "label": "領収書添付",
-              "type": "Attachments",
-              "allowedFileTypes": ["image/*", "application/pdf"],
-              "maxFileSize": 10485760
-            }
-          ]
-        },
-        {
-          "type": "ButtonGroup",
-          "buttons": [
-            {
-              "name": "SaveDraftButton",
-              "text": "下書き保存",
-              "style": "Secondary",
-              "onSelect": "Patch(ExpenseRequests, Defaults(ExpenseRequests), ExpenseForm.Updates, {ApprovalStatus: \"下書き\", Applicant: {Email: User().Email}}); Back()"
-            },
-            {
-              "name": "SubmitButton",
-              "text": "申請する",
-              "style": "Primary",
-              "onSelect": "Patch(ExpenseRequests, Defaults(ExpenseRequests), ExpenseForm.Updates, {ApprovalStatus: \"申請中\", Applicant: {Email: User().Email}, TaxAmount: varTaxResult.TaxAmount, AmountWithoutTax: varTaxResult.AmountWithoutTax}); Back()"
-            }
-          ]
-        }
-      ],
-      "formulas": {
-        "CalculateTax": {
-          "parameters": ["amountWithTax", "taxCategory"],
-          "formula": "With({taxRate: LookUp(TaxRates, TaxCategory = taxCategory)}, {TaxAmount: RoundDown(amountWithTax / taxRate.Divisor * taxRate.Multiplier, 0), AmountWithoutTax: amountWithTax - RoundDown(amountWithTax / taxRate.Divisor * taxRate.Multiplier, 0)})"
-        }
-      }
-    },
-    {
-      "name": "ExpenseListScreen",
+      "name": "RequestListScreen",
       "displayName": "申請一覧",
-      "description": "経費申請の一覧表示・検索",
+      "order": 2,
+      "description": "申請一覧画面（ギャラリー表示）",
       "components": [
         {
-          "type": "Header",
+          "type": "Rectangle",
+          "name": "rectHeader",
           "properties": {
-            "title": "申請一覧"
+            "X": 0,
+            "Y": 0,
+            "Width": "Parent.Width",
+            "Height": 70,
+            "Fill": "RGBA(0, 120, 212, 1)"
           }
         },
         {
-          "type": "SearchBar",
-          "name": "SearchInput",
-          "placeholder": "内容で検索..."
-        },
-        {
-          "type": "FilterBar",
-          "filters": [
-            {
-              "name": "StatusFilter",
-              "label": "状態",
-              "type": "Dropdown",
-              "options": ["すべて", "下書き", "申請中", "承認済み", "差戻し", "却下"]
-            },
-            {
-              "name": "CategoryFilter",
-              "label": "勘定科目",
-              "type": "Dropdown",
-              "options": ["すべて", "旅費交通費", "交際費", "会議費", "通信費", "消耗品費"]
-            },
-            {
-              "name": "DateRangeFilter",
-              "label": "期間",
-              "type": "DateRange"
-            }
-          ]
-        },
-        {
-          "type": "Gallery",
-          "name": "ExpenseListGallery",
-          "dataSource": "ExpenseRequests",
-          "filter": "(IsBlank(SearchInput.Text) || Description = SearchInput.Text) && (StatusFilter.Selected.Value = \"すべて\" || ApprovalStatus = StatusFilter.Selected.Value) && Applicant.Email = User().Email",
-          "sortBy": "ExpenseDate",
-          "sortDescending": true,
-          "template": {
-            "layout": "Card",
-            "fields": [
-              { "name": "ExpenseDate", "label": "日付", "format": "ShortDate" },
-              { "name": "AccountCategory", "label": "科目" },
-              { "name": "Description", "label": "内容" },
-              { "name": "AmountWithTax", "label": "金額", "format": "Currency" },
-              { "name": "ApprovalStatus", "label": "状態", "type": "StatusBadge" }
-            ]
-          },
-          "onSelect": "Navigate(ExpenseDetailScreen, ScreenTransition.None, {SelectedExpense: ThisItem})"
-        }
-      ]
-    },
-    {
-      "name": "ExpenseDetailScreen",
-      "displayName": "申請詳細",
-      "description": "経費申請の詳細表示",
-      "components": [
-        {
-          "type": "Header",
+          "type": "Label",
+          "name": "lblBack",
+          "text": "← 戻る",
+          "onSelect": "Navigate(HomeScreen)",
           "properties": {
-            "title": "申請詳細",
-            "showBackButton": true
+            "Color": "White",
+            "FontWeight": "FontWeight.Bold"
           }
         },
         {
-          "type": "DetailCard",
-          "dataSource": "SelectedExpense",
-          "sections": [
-            {
-              "title": "基本情報",
-              "fields": [
-                { "name": "ExpenseDate", "label": "支出日", "format": "LongDate" },
-                { "name": "Department", "label": "部署" },
-                { "name": "AccountCategory", "label": "勘定科目" },
-                { "name": "Description", "label": "内容" }
-              ]
-            },
-            {
-              "title": "金額情報",
-              "fields": [
-                { "name": "AmountWithTax", "label": "金額（税込）", "format": "Currency" },
-                { "name": "TaxCategory", "label": "税区分" },
-                { "name": "TaxAmount", "label": "消費税額", "format": "Currency" },
-                { "name": "AmountWithoutTax", "label": "税抜金額", "format": "Currency" },
-                { "name": "InvoiceNumber", "label": "インボイス番号" }
-              ]
-            },
-            {
-              "title": "承認情報",
-              "fields": [
-                { "name": "ApprovalStatus", "label": "承認状態", "type": "StatusBadge" },
-                { "name": "Approver", "label": "承認者" },
-                { "name": "ApprovalDate", "label": "承認日", "format": "DateTime" },
-                { "name": "ApprovalComment", "label": "コメント" }
-              ]
-            }
-          ]
-        },
-        {
-          "type": "AttachmentViewer",
-          "name": "ReceiptViewer",
-          "source": "SelectedExpense.ReceiptAttachment"
-        },
-        {
-          "type": "ButtonGroup",
-          "visible": "SelectedExpense.ApprovalStatus in [\"下書き\", \"差戻し\"]",
-          "buttons": [
-            {
-              "name": "EditButton",
-              "text": "編集",
-              "icon": "Edit",
-              "onSelect": "Navigate(ExpenseFormScreen, ScreenTransition.Cover, {EditingExpense: SelectedExpense})"
-            },
-            {
-              "name": "DeleteButton",
-              "text": "削除",
-              "icon": "Delete",
-              "style": "Danger",
-              "onSelect": "Remove(ExpenseRequests, SelectedExpense); Back()"
-            },
-            {
-              "name": "ResubmitButton",
-              "text": "再申請",
-              "icon": "Send",
-              "visible": "SelectedExpense.ApprovalStatus = \"差戻し\"",
-              "onSelect": "Patch(ExpenseRequests, SelectedExpense, {ApprovalStatus: \"申請中\"})"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "ApprovalScreen",
-      "displayName": "承認管理",
-      "description": "承認者用の承認管理画面",
-      "visibleTo": "Approvers",
-      "components": [
-        {
-          "type": "Header",
+          "type": "Label",
+          "name": "lblTitle",
+          "text": "申請一覧",
           "properties": {
-            "title": "承認管理"
+            "Align": "Align.Center",
+            "Color": "White",
+            "Size": 20
           }
-        },
-        {
-          "type": "TabControl",
-          "tabs": [
-            {
-              "name": "PendingTab",
-              "label": "承認待ち",
-              "content": {
-                "type": "Gallery",
-                "name": "PendingApprovalGallery",
-                "dataSource": "ExpenseRequests",
-                "filter": "ApprovalStatus = \"申請中\" && LookUp(Approvers, Department = ThisItem.Department && IsActive).PrimaryApprover.Email = User().Email",
-                "template": {
-                  "layout": "ApprovalCard",
-                  "fields": [
-                    { "name": "Applicant", "label": "申請者", "type": "Person" },
-                    { "name": "Description", "label": "内容" },
-                    { "name": "AmountWithTax", "label": "金額", "format": "Currency" },
-                    { "name": "ExpenseDate", "label": "支出日", "format": "ShortDate" }
-                  ],
-                  "actions": [
-                    {
-                      "name": "ApproveButton",
-                      "text": "承認",
-                      "style": "Success",
-                      "onSelect": "Patch(ExpenseRequests, ThisItem, {ApprovalStatus: \"承認済み\", Approver: {Email: User().Email}, ApprovalDate: Now()})"
-                    },
-                    {
-                      "name": "RejectButton",
-                      "text": "却下",
-                      "style": "Danger",
-                      "onSelect": "Set(varSelectedForReject, ThisItem); UpdateContext({showRejectDialog: true})"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "name": "HistoryTab",
-              "label": "承認履歴",
-              "content": {
-                "type": "Gallery",
-                "dataSource": "ExpenseRequests",
-                "filter": "Approver.Email = User().Email",
-                "sortBy": "ApprovalDate",
-                "sortDescending": true
-              }
-            }
-          ]
-        },
-        {
-          "type": "Dialog",
-          "name": "RejectDialog",
-          "visible": "showRejectDialog",
-          "title": "却下理由",
-          "content": {
-            "type": "TextInput",
-            "name": "RejectComment",
-            "multiline": true,
-            "placeholder": "却下理由を入力してください"
-          },
-          "buttons": [
-            {
-              "text": "キャンセル",
-              "onSelect": "UpdateContext({showRejectDialog: false})"
-            },
-            {
-              "text": "却下する",
-              "style": "Danger",
-              "onSelect": "Patch(ExpenseRequests, varSelectedForReject, {ApprovalStatus: \"却下\", Approver: {Email: User().Email}, ApprovalDate: Now(), ApprovalComment: RejectComment.Text}); UpdateContext({showRejectDialog: false})"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "ReportScreen",
-      "displayName": "レポート",
-      "description": "集計・レポート画面",
-      "components": [
-        {
-          "type": "Header",
-          "properties": {
-            "title": "経費レポート"
-          }
-        },
-        {
-          "type": "DateRangePicker",
-          "name": "ReportDateRange",
-          "default": {
-            "start": "DateAdd(Today(), -1, Months)",
-            "end": "Today()"
-          }
-        },
-        {
-          "type": "Chart",
-          "name": "CategoryChart",
-          "chartType": "PieChart",
-          "title": "科目別内訳",
-          "dataSource": "Filter(ExpenseRequests, ExpenseDate >= ReportDateRange.Start && ExpenseDate <= ReportDateRange.End && Applicant.Email = User().Email && ApprovalStatus = \"承認済み\")",
-          "groupBy": "AccountCategory",
-          "aggregation": "Sum(AmountWithTax)"
-        },
-        {
-          "type": "Chart",
-          "name": "MonthlyTrendChart",
-          "chartType": "ColumnChart",
-          "title": "月別推移",
-          "dataSource": "ExpenseRequests",
-          "filter": "Year(ExpenseDate) = Year(Today()) && Applicant.Email = User().Email && ApprovalStatus = \"承認済み\"",
-          "groupBy": "Month(ExpenseDate)",
-          "aggregation": "Sum(AmountWithTax)"
-        },
-        {
-          "type": "DataTable",
-          "name": "SummaryTable",
-          "title": "科目別集計",
-          "columns": [
-            { "name": "AccountCategory", "label": "勘定科目" },
-            { "name": "Count", "label": "件数" },
-            { "name": "TotalAmount", "label": "合計金額", "format": "Currency" }
-          ]
         },
         {
           "type": "Button",
-          "name": "ExportButton",
-          "text": "Excelエクスポート",
-          "icon": "ExcelDocument",
-          "onSelect": "// Power Automateフローを呼び出してExcel出力"
+          "name": "btnNewRequest",
+          "text": "+ 新規申請",
+          "onSelect": "Set(varNewRequest, Patch(ExpenseRequests, Defaults(ExpenseRequests), {Title: \"申請_\" & Text(Now(), \"yyyymmddhhmmss\"), '承認ステータス': {Value: \"下書き\"}})); Set(varCurrentRequestID, varNewRequest.ID); Navigate(RequestFormScreen)"
+        },
+        {
+          "type": "Label",
+          "name": "lblHeaderDate",
+          "text": "日付",
+          "location": "OutsideGallery",
+          "note": "ヘッダーラベルはギャラリーの外に配置"
+        },
+        {
+          "type": "Label",
+          "name": "lblHeaderDept",
+          "text": "部署",
+          "location": "OutsideGallery"
+        },
+        {
+          "type": "Label",
+          "name": "lblHeaderAmount",
+          "text": "税込金額",
+          "location": "OutsideGallery"
+        },
+        {
+          "type": "Label",
+          "name": "lblHeaderAccount",
+          "text": "勘定科目",
+          "location": "OutsideGallery"
+        },
+        {
+          "type": "Gallery",
+          "name": "galRequests",
+          "dataSource": "ExpenseRequests",
+          "properties": {
+            "Items": "ExpenseRequests",
+            "TemplateSize": 45,
+            "TemplatePadding": 2
+          },
+          "templateLabels": [
+            {
+              "name": "lblDate",
+              "text": "Text(ThisItem.'経費日付', \"mm/dd\")"
+            },
+            {
+              "name": "lblDept",
+              "text": "ThisItem.'部署'"
+            },
+            {
+              "name": "lblAmount",
+              "text": "Text(ThisItem.'税込金額', \"¥#,##0\")",
+              "note": "カンマ区切り表示"
+            },
+            {
+              "name": "lblAccount",
+              "text": "ThisItem.'勘定科目'.Value",
+              "note": "Choice列なので.Value必須"
+            }
+          ],
+          "onSelect": "Set(varCurrentRequestID, ThisItem.ID); Navigate(RequestFormScreen)"
+        }
+      ]
+    },
+    {
+      "name": "RequestFormScreen",
+      "displayName": "申請作成",
+      "order": 3,
+      "description": "申請作成・経費明細一覧画面",
+      "components": [
+        {
+          "type": "Label",
+          "name": "lblBack",
+          "text": "← 戻る",
+          "onSelect": "Navigate(RequestListScreen)"
+        },
+        {
+          "type": "DatePicker",
+          "name": "dpRequestDate",
+          "properties": {
+            "DefaultDate": "Today()"
+          }
+        },
+        {
+          "type": "TextInput",
+          "name": "txtDepartment",
+          "properties": {
+            "Default": "",
+            "HintText": "例: 営業部"
+          }
+        },
+        {
+          "type": "Gallery",
+          "name": "galDetails",
+          "dataSource": "ExpenseDetails",
+          "properties": {
+            "Items": "Filter(ExpenseDetails, 申請ID = varCurrentRequestID)",
+            "TemplateSize": 45,
+            "TemplatePadding": 2
+          },
+          "templateLabels": [
+            {
+              "name": "lblDetailDate",
+              "text": "Text(ThisItem.'経費日付', \"mm/dd\")"
+            },
+            {
+              "name": "lblDetailContent",
+              "text": "ThisItem.'内容'"
+            },
+            {
+              "name": "lblDetailAmount",
+              "text": "Text(ThisItem.'税込金額', \"¥#,##0\")"
+            },
+            {
+              "name": "lblDelete",
+              "text": "削除",
+              "onSelect": "Remove(ExpenseDetails, ThisItem)",
+              "color": "RGBA(220, 53, 69, 1)"
+            }
+          ]
+        },
+        {
+          "type": "Label",
+          "name": "lblTotalInfo",
+          "text": "\"合計: \" & CountRows(galDetails.AllItems) & \" 件 / \" & Text(Sum(galDetails.AllItems, '税込金額'), \"¥#,##0\")",
+          "note": "galDetails作成後に設定すること"
+        },
+        {
+          "type": "Button",
+          "name": "btnAddExpense",
+          "text": "+ 経費を追加",
+          "onSelect": "Navigate(DetailFormScreen)",
+          "fill": "RGBA(255, 193, 7, 1)"
+        },
+        {
+          "type": "Button",
+          "name": "btnSubmit",
+          "text": "申請する",
+          "onSelect": "Patch(ExpenseRequests, LookUp(ExpenseRequests, ID = varCurrentRequestID), {'承認ステータス': {Value: \"申請中\"}}); Notify(\"申請しました\", NotificationType.Success); Navigate(RequestListScreen)"
+        }
+      ]
+    },
+    {
+      "name": "DetailFormScreen",
+      "displayName": "経費を追加",
+      "order": 4,
+      "description": "経費明細入力画面",
+      "components": [
+        {
+          "type": "DatePicker",
+          "name": "dpExpenseDate",
+          "properties": {
+            "DefaultDate": "Today()"
+          }
+        },
+        {
+          "type": "Dropdown",
+          "name": "ddAccountItem",
+          "properties": {
+            "Items": "[\"会議費\",\"交際費\",\"旅費交通費\",\"通信費\",\"消耗品費\",\"諸会費\",\"保険料\",\"租税公課\",\"支払手数料\",\"新聞図書費\"]"
+          }
+        },
+        {
+          "type": "TextInput",
+          "name": "txtContent",
+          "properties": {
+            "HintText": "例: 新幹線 東京-大阪"
+          }
+        },
+        {
+          "type": "TextInput",
+          "name": "txtAmount",
+          "properties": {
+            "Format": "TextFormat.Number"
+          }
+        },
+        {
+          "type": "Dropdown",
+          "name": "ddTaxCategory",
+          "properties": {
+            "Items": "TaxRates"
+          }
+        },
+        {
+          "type": "Label",
+          "name": "lblTaxAmount",
+          "text": "If(IsBlank(txtAmount.Text), \"税額: ¥0\", \"税額: \" & Text(Value(txtAmount.Text) - Value(txtAmount.Text) / 1.1, \"¥#,##0\"))",
+          "note": "空欄時のエラー対策でIsBlank判定"
+        },
+        {
+          "type": "Label",
+          "name": "lblNetAmount",
+          "text": "If(IsBlank(txtAmount.Text), \"税抜: ¥0\", \"税抜: \" & Text(Value(txtAmount.Text) / 1.1, \"¥#,##0\"))"
+        },
+        {
+          "type": "Button",
+          "name": "btnCancel",
+          "text": "キャンセル",
+          "onSelect": "Navigate(RequestFormScreen)",
+          "fill": "RGBA(108, 117, 125, 1)"
+        },
+        {
+          "type": "Button",
+          "name": "btnAdd",
+          "text": "追加",
+          "onSelect": "Patch(ExpenseDetails, Defaults(ExpenseDetails), {Title: txtContent.Text, '経費日付': dpExpenseDate.SelectedDate, '勘定科目': {Value: ddAccountItem.Selected.Value}, '内容': txtContent.Text, '税込金額': Value(txtAmount.Text), '申請ID': varCurrentRequestID}); Navigate(RequestFormScreen)",
+          "note": "コントロール名は実際の名前に合わせて変更"
         }
       ]
     }
   ],
-  "navigation": {
-    "type": "BottomNavigation",
-    "items": [
-      { "screen": "HomeScreen", "icon": "Home", "label": "ホーム" },
-      { "screen": "ExpenseFormScreen", "icon": "Add", "label": "申請" },
-      { "screen": "ExpenseListScreen", "icon": "List", "label": "一覧" },
-      { "screen": "ApprovalScreen", "icon": "CheckMark", "label": "承認", "visibleTo": "Approvers" },
-      { "screen": "ReportScreen", "icon": "BarChart", "label": "レポート" }
-    ]
+
+  "knownIssuesAndSolutions": {
+    "personColumnError": {
+      "issue": "申請者（Person列）をPatchで設定するとエラー",
+      "solution": "Power Automateで自動設定。Patch式から申請者を除外する",
+      "relatedFlow": "applicant-auto-set-flow.json"
+    },
+    "thisItemNotRecognized": {
+      "issue": "'ThisItem' は認識されませんエラー",
+      "solution": "ラベルがギャラリー外にある。ギャラリーの1行目（テンプレート行）を選択してから挿入"
+    },
+    "textValueRequired": {
+      "issue": "Text値が必要です。Recordを生成しますエラー",
+      "solution": "Choice列には.Valueを付ける（例: ThisItem.'勘定科目'.Value）"
+    },
+    "headerLabelError": {
+      "issue": "ヘッダーラベルでThisItemエラー",
+      "solution": "ヘッダーラベルはギャラリーの外に配置する"
+    }
   },
+
   "theme": {
     "primaryColor": "#0078D4",
     "accentColor": "#106EBE",
     "backgroundColor": "#F3F2F1",
     "fontFamily": "Segoe UI"
   },
+
   "settings": {
-    "enableOfflineMode": true,
     "requiresAuthentication": true,
-    "defaultScreen": "HomeScreen",
-    "responsiveLayout": true
+    "defaultScreen": "HomeScreen"
   }
 }

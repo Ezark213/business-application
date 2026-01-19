@@ -1,0 +1,72 @@
+{
+  "name": "申請者自動設定フロー",
+  "description": "ExpenseRequestsに新規アイテムが作成されたとき、登録者を申請者列に自動設定するフロー",
+  "purpose": "Power AppsからPerson列を直接設定すると複雑な構文が必要でエラーになりやすいため、このフローで自動設定する",
+  "lastUpdated": "2026-01-19",
+
+  "trigger": {
+    "type": "SharePointListItemCreated",
+    "displayName": "項目が作成されたとき",
+    "parameters": {
+      "siteAddress": "{SharePointSiteUrl}",
+      "listName": "ExpenseRequests"
+    },
+    "outputs": {
+      "ID": "作成されたアイテムのID",
+      "登録者Email": "triggerOutputs()?['body/Author/Email']",
+      "登録者DisplayName": "triggerOutputs()?['body/Author/DisplayName']"
+    }
+  },
+
+  "actions": [
+    {
+      "order": 1,
+      "name": "項目の更新",
+      "displayName": "申請者を登録者に設定",
+      "type": "SharePointUpdateItem",
+      "parameters": {
+        "siteAddress": "{SharePointSiteUrl}",
+        "listName": "ExpenseRequests",
+        "id": "@{triggerOutputs()?['body/ID']}",
+        "申請者Claims": "i:0#.f|membership|@{triggerOutputs()?['body/Author/Email']}"
+      },
+      "note": "Person列の設定にはClaims形式を使用"
+    }
+  ],
+
+  "setupInstructions": {
+    "step1": {
+      "action": "Power Automateを開き、「作成」→「自動化したクラウドフロー」を選択"
+    },
+    "step2": {
+      "action": "トリガーで「SharePoint - 項目が作成されたとき」を選択",
+      "settings": {
+        "サイトのアドレス": "あなたのSharePointサイトURL",
+        "リスト名": "ExpenseRequests"
+      }
+    },
+    "step3": {
+      "action": "「新しいステップ」→「SharePoint - 項目の更新」を追加",
+      "settings": {
+        "サイトのアドレス": "あなたのSharePointサイトURL",
+        "リスト名": "ExpenseRequests",
+        "ID": "動的なコンテンツから「ID」を選択",
+        "申請者": "動的なコンテンツから「登録者 Email」を選択"
+      }
+    },
+    "step4": {
+      "action": "フローを保存してテスト"
+    }
+  },
+
+  "troubleshooting": {
+    "issue1": {
+      "problem": "申請者が設定されない",
+      "solution": "フローの実行履歴を確認し、エラーがないかチェック。Person列の内部名が正しいか確認"
+    },
+    "issue2": {
+      "problem": "フローが実行されない",
+      "solution": "フローが有効になっているか確認。トリガー条件を確認"
+    }
+  }
+}

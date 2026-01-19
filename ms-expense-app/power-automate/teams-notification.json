@@ -1,182 +1,163 @@
 {
-  "name": "経費申請Teams通知フロー",
-  "description": "経費申請の状態変更時にTeamsチャネルへ通知するフロー",
-  "trigger": {
-    "type": "SharePointListItemModified",
-    "parameters": {
-      "siteAddress": "{SharePointSiteUrl}",
-      "listName": "ExpenseRequests"
-    }
-  },
-  "actions": [
+  "name": "Teams承認通知フロー",
+  "description": "承認ステータスが「申請中」に変更されたとき、承認者にTeams通知を送信するフロー",
+  "lastUpdated": "2026-01-19",
+
+  "flows": [
     {
-      "order": 1,
-      "name": "変更前のアイテム取得",
-      "type": "GetChanges",
-      "parameters": {
-        "siteAddress": "{SharePointSiteUrl}",
-        "listName": "ExpenseRequests",
-        "id": "@{triggerOutputs()?['body/ID']}"
-      }
-    },
-    {
-      "order": 2,
-      "name": "ステータス変更の検出",
-      "type": "Condition",
-      "expression": "@not(equals(outputs('変更前のアイテム取得')?['body/ApprovalStatus'], triggerOutputs()?['body/ApprovalStatus']))",
-      "ifTrue": {
-        "actions": [
-          {
-            "order": 3,
-            "name": "Teamsチャネルへ投稿",
-            "type": "PostAdaptiveCardToTeamsChannel",
-            "parameters": {
-              "teamId": "{TeamId}",
-              "channelId": "{ChannelId}",
-              "adaptiveCard": {
-                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-                "type": "AdaptiveCard",
-                "version": "1.4",
-                "body": [
-                  {
-                    "type": "Container",
-                    "style": "@{if(equals(triggerOutputs()?['body/ApprovalStatus'], '承認済み'), 'good', if(or(equals(triggerOutputs()?['body/ApprovalStatus'], '却下'), equals(triggerOutputs()?['body/ApprovalStatus'], '差戻し')), 'attention', 'default'))}",
-                    "items": [
-                      {
-                        "type": "TextBlock",
-                        "text": "経費申請 - @{triggerOutputs()?['body/ApprovalStatus']}",
-                        "weight": "Bolder",
-                        "size": "Medium"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "FactSet",
-                    "facts": [
-                      {
-                        "title": "申請者",
-                        "value": "@{triggerOutputs()?['body/Applicant/DisplayName']}"
-                      },
-                      {
-                        "title": "部署",
-                        "value": "@{triggerOutputs()?['body/Department']}"
-                      },
-                      {
-                        "title": "支出日",
-                        "value": "@{formatDateTime(triggerOutputs()?['body/ExpenseDate'], 'yyyy/MM/dd')}"
-                      },
-                      {
-                        "title": "勘定科目",
-                        "value": "@{triggerOutputs()?['body/AccountCategory']}"
-                      },
-                      {
-                        "title": "内容",
-                        "value": "@{triggerOutputs()?['body/Description']}"
-                      },
-                      {
-                        "title": "金額（税込）",
-                        "value": "¥@{formatNumber(triggerOutputs()?['body/AmountWithTax'], 'N0')}"
-                      },
-                      {
-                        "title": "税区分",
-                        "value": "@{triggerOutputs()?['body/TaxCategory']}"
-                      }
-                    ]
-                  },
-                  {
-                    "type": "TextBlock",
-                    "text": "@{if(not(empty(triggerOutputs()?['body/ApprovalComment'])), concat('コメント: ', triggerOutputs()?['body/ApprovalComment']), '')}",
-                    "wrap": true,
-                    "isVisible": "@{not(empty(triggerOutputs()?['body/ApprovalComment']))}"
-                  }
-                ],
-                "actions": [
-                  {
-                    "type": "Action.OpenUrl",
-                    "title": "詳細を見る",
-                    "url": "@{triggerOutputs()?['body/{Link}']}"
-                  }
-                ]
-              }
-            }
-          }
-        ]
-      }
-    }
-  ],
-  "weeklyDigestFlow": {
-    "name": "週次経費サマリー通知",
-    "trigger": {
-      "type": "Recurrence",
-      "parameters": {
-        "frequency": "Week",
-        "interval": 1,
-        "schedule": {
-          "weekDays": ["Monday"],
-          "hours": [9],
-          "minutes": [0]
-        }
-      }
-    },
-    "actions": [
-      {
-        "name": "先週の承認済み経費を取得",
-        "type": "GetItemsFromSharePointList",
+      "name": "申請時承認者通知",
+      "description": "経費申請が「申請中」になったとき、承認者にTeamsで通知",
+      "trigger": {
+        "type": "SharePointListItemCreatedOrModified",
+        "displayName": "項目が作成または変更されたとき",
         "parameters": {
           "siteAddress": "{SharePointSiteUrl}",
-          "listName": "ExpenseRequests",
-          "filter": "ApprovalStatus eq '承認済み' and ApprovalDate ge '@{addDays(utcNow(), -7)}'"
+          "listName": "ExpenseRequests"
         }
       },
-      {
-        "name": "部署別集計",
-        "type": "Select",
-        "parameters": {
-          "from": "@{outputs('先週の承認済み経費を取得')?['body/value']}",
-          "select": {
-            "Department": "@{item()?['Department']}",
-            "Amount": "@{item()?['AmountWithTax']}"
+      "actions": [
+        {
+          "order": 1,
+          "name": "条件",
+          "displayName": "承認ステータスが「申請中」か確認",
+          "type": "Condition",
+          "expression": "@equals(triggerOutputs()?['body/承認ステータス/Value'], '申請中')",
+          "ifTrue": {
+            "actions": [
+              {
+                "order": 2,
+                "name": "Teamsメッセージ送信",
+                "displayName": "承認者へチャットで通知",
+                "type": "PostMessageToTeamsUser",
+                "parameters": {
+                  "recipient": "{ApproverEmail}",
+                  "messageType": "Text",
+                  "message": "【経費申請の承認依頼】\n\n申請者: @{triggerOutputs()?['body/申請者/DisplayName']}\n申請タイトル: @{triggerOutputs()?['body/Title']}\n申請日: @{formatDateTime(triggerOutputs()?['body/申請日'], 'yyyy/MM/dd')}\n\n以下のリンクから確認してください：\n@{triggerOutputs()?['body/{Link}']}"
+                },
+                "note": "承認者のメールアドレスは固定値またはSharePointリストから取得"
+              }
+            ]
+          },
+          "ifFalse": {
+            "actions": [],
+            "note": "申請中以外の場合は何もしない"
           }
         }
-      },
-      {
-        "name": "Teamsチャネルへサマリー投稿",
-        "type": "PostAdaptiveCardToTeamsChannel",
+      ],
+
+      "setupInstructions": {
+        "step1": {
+          "action": "Power Automateで「自動化したクラウドフロー」を作成"
+        },
+        "step2": {
+          "action": "トリガー「SharePoint - 項目が作成または変更されたとき」を設定",
+          "settings": {
+            "サイトのアドレス": "SharePointサイトURL",
+            "リスト名": "ExpenseRequests"
+          }
+        },
+        "step3": {
+          "action": "「条件」アクションを追加",
+          "settings": {
+            "左辺": "動的コンテンツ → 承認ステータス Value",
+            "演算子": "次の値に等しい",
+            "右辺": "申請中"
+          }
+        },
+        "step4": {
+          "action": "「はいの場合」に「Microsoft Teams - チャットまたはチャネルでメッセージを投稿する」を追加",
+          "settings": {
+            "投稿者": "フローボット",
+            "投稿先": "Chat with Flow bot",
+            "受信者": "承認者のメールアドレス",
+            "メッセージ": "上記のmessage内容を参考に設定"
+          }
+        }
+      }
+    },
+
+    {
+      "name": "承認結果通知",
+      "description": "承認/却下されたとき、申請者に通知",
+      "trigger": {
+        "type": "SharePointListItemModified",
         "parameters": {
-          "teamId": "{TeamId}",
-          "channelId": "{ChannelId}",
-          "adaptiveCard": {
-            "type": "AdaptiveCard",
-            "version": "1.4",
-            "body": [
+          "siteAddress": "{SharePointSiteUrl}",
+          "listName": "ExpenseRequests"
+        }
+      },
+      "actions": [
+        {
+          "order": 1,
+          "name": "条件",
+          "displayName": "承認済みまたは却下か確認",
+          "type": "Condition",
+          "expression": "@or(equals(triggerOutputs()?['body/承認ステータス/Value'], '承認済み'), equals(triggerOutputs()?['body/承認ステータス/Value'], '却下'))",
+          "ifTrue": {
+            "actions": [
               {
-                "type": "TextBlock",
-                "text": "週次経費サマリー",
-                "weight": "Bolder",
-                "size": "Large"
-              },
-              {
-                "type": "TextBlock",
-                "text": "@{formatDateTime(addDays(utcNow(), -7), 'yyyy/MM/dd')} - @{formatDateTime(addDays(utcNow(), -1), 'yyyy/MM/dd')}",
-                "isSubtle": true
-              },
-              {
-                "type": "FactSet",
-                "facts": [
-                  {
-                    "title": "承認件数",
-                    "value": "@{length(outputs('先週の承認済み経費を取得')?['body/value'])}件"
-                  },
-                  {
-                    "title": "合計金額",
-                    "value": "¥@{formatNumber(sum(outputs('Select')?['body'], 'Amount'), 'N0')}"
-                  }
-                ]
+                "name": "申請者へ通知",
+                "type": "PostMessageToTeamsUser",
+                "parameters": {
+                  "recipient": "@{triggerOutputs()?['body/申請者/Email']}",
+                  "message": "【経費申請 @{triggerOutputs()?['body/承認ステータス/Value']}】\n\n申請タイトル: @{triggerOutputs()?['body/Title']}\n承認者: @{triggerOutputs()?['body/承認者/DisplayName']}\nコメント: @{triggerOutputs()?['body/承認コメント']}"
+                }
               }
             ]
           }
         }
-      }
-    ]
+      ]
+    },
+
+    {
+      "name": "週次経費サマリー",
+      "description": "毎週月曜日に先週の承認済み経費をサマリー通知",
+      "trigger": {
+        "type": "Recurrence",
+        "parameters": {
+          "frequency": "Week",
+          "interval": 1,
+          "schedule": {
+            "weekDays": ["Monday"],
+            "hours": [9],
+            "minutes": [0]
+          }
+        }
+      },
+      "actions": [
+        {
+          "name": "先週の承認済み経費を取得",
+          "type": "GetItemsFromSharePointList",
+          "parameters": {
+            "filter": "承認ステータス eq '承認済み' and 承認日時 ge '@{addDays(utcNow(), -7)}'"
+          }
+        },
+        {
+          "name": "サマリーをTeamsチャネルに投稿",
+          "type": "PostToTeamsChannel",
+          "parameters": {
+            "message": "週次経費サマリー（件数・合計金額）"
+          }
+        }
+      ]
+    }
+  ],
+
+  "approverConfiguration": {
+    "option1": {
+      "name": "固定承認者",
+      "description": "承認者のメールアドレスをフローに直接設定",
+      "example": "approver@company.com"
+    },
+    "option2": {
+      "name": "動的承認者",
+      "description": "ExpenseRequestsリストに「承認者」列（Person型）を追加し、申請時に選択させる",
+      "formula": "@{triggerOutputs()?['body/承認者/Email']}"
+    },
+    "option3": {
+      "name": "承認者マスター",
+      "description": "部署ごとの承認者をマスターリストで管理",
+      "lookup": "LookUp(Approvers, Department = 申請の部署).ApproverEmail"
+    }
   }
 }
