@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M365 経費申請アプリ構築手順書</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        header {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        .content {
+            padding: 40px;
+        }
+        .overview {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #0078d4;
+        }
+        .overview h2 {
+            color: #0078d4;
+            margin-bottom: 15px;
+        }
+        .migration-flow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        .migration-box {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px 25px;
+            text-align: center;
+        }
+        .migration-box.old {
+            border-color: #6c757d;
+        }
+        .migration-box.new {
+            border-color: #0078d4;
+            background: #e7f3ff;
+        }
+        .arrow {
+            font-size: 2em;
+            color: #28a745;
+        }
+        .step {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .step-header {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 20px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .step-number {
+            background: white;
+            color: #0078d4;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.3em;
+            flex-shrink: 0;
+        }
+        .step-title {
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+        .step-content {
+            padding: 25px;
+        }
+        .substep {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #28a745;
+        }
+        .substep h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .substep ol, .substep ul {
+            margin-left: 25px;
+        }
+        .substep li {
+            margin-bottom: 8px;
+        }
+        .highlight {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .highlight-title {
+            color: #856404;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #0078d4;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info-box-title {
+            color: #0078d4;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .csv-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 0.9em;
+        }
+        .csv-table th {
+            background: #0078d4;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .csv-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        .csv-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .checklist {
+            background: #d4edda;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .checklist h4 {
+            color: #155724;
+            margin-bottom: 15px;
+        }
+        .checklist label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .checklist input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning-title {
+            color: #721c24;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .success-title {
+            color: #155724;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        .progress-bar {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 30px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .progress {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+            }
+            header {
+                padding: 25px;
+            }
+            .content {
+                padding: 20px;
+            }
+            .step-header {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>M365 経費申請アプリ構築手順書</h1>
+            <p>Python版 expense-app から Microsoft 365 環境への移行ガイド</p>
+        </header>
+
+        <div class="content">
+            <!-- 概要セクション -->
+            <div class="overview">
+                <h2>この手順書について</h2>
+                <p>この手順書では、従来のPython製デスクトップアプリ（expense-app）から、Microsoft 365環境で動作するクラウドベースの経費申請システム（ms-expense-app）への移行手順を、誰にでもわかるように1つずつ解説します。</p>
+
+                <div class="migration-flow">
+                    <div class="migration-box old">
+                        <strong>旧システム</strong><br>
+                        Python + Tkinter<br>
+                        ローカルCSV保存
+                    </div>
+                    <div class="arrow">→</div>
+                    <div class="migration-box new">
+                        <strong>新システム</strong><br>
+                        Power Apps + SharePoint<br>
+                        クラウド保存・承認フロー
+                    </div>
+                </div>
+            </div>
+
+            <!-- 準備済みファイルの確認 -->
+            <div class="info-box">
+                <div class="info-box-title">準備済みファイル</div>
+                <p>以下の2つのCSVファイルが作成済みです：</p>
+                <ul>
+                    <li><strong>ExpenseRequests.csv</strong> - 経費申請データ用（ヘッダー定義済み）</li>
+                    <li><strong>TaxRates.csv</strong> - 税区分マスター（8パターンの税率データ入力済み）</li>
+                </ul>
+            </div>
+
+            <!-- ステップ0：前提条件 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">0</div>
+                    <div class="step-title">前提条件の確認</div>
+                </div>
+                <div class="step-content">
+                    <div class="checklist">
+                        <h4>以下の項目を確認してください</h4>
+                        <label><input type="checkbox"> Microsoft 365 Business Basic 以上のライセンスを持っている</label>
+                        <label><input type="checkbox"> Power Apps へのアクセス権限がある</label>
+                        <label><input type="checkbox"> Power Automate へのアクセス権限がある</label>
+                        <label><input type="checkbox"> SharePoint サイト作成権限がある</label>
+                        <label><input type="checkbox"> Microsoft Teams の利用権限がある</label>
+                    </div>
+
+                    <div class="highlight">
+                        <div class="highlight-title">必要なURLを控えておく</div>
+                        <ul>
+                            <li>Power Apps: <a href="https://make.powerapps.com" target="_blank">https://make.powerapps.com</a></li>
+                            <li>Power Automate: <a href="https://make.powerautomate.com" target="_blank">https://make.powerautomate.com</a></li>
+                            <li>SharePoint 管理センター: <a href="https://admin.microsoft.com" target="_blank">https://admin.microsoft.com</a> → 管理センター → SharePoint</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ1：SharePointサイトの作成 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">1</div>
+                    <div class="step-title">SharePoint サイトの作成</div>
+                </div>
+                <div class="step-content">
+                    <p>まず、経費管理システム用のSharePointサイトを作成します。</p>
+
+                    <div class="substep">
+                        <h4>1-1. SharePointにアクセス</h4>
+                        <ol>
+                            <li>ブラウザで <a href="https://www.office.com" target="_blank">https://www.office.com</a> にアクセス</li>
+                            <li>Microsoft 365 アカウントでサインイン</li>
+                            <li>左側のアプリ一覧から「SharePoint」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>1-2. 新しいサイトを作成</h4>
+                        <ol>
+                            <li>画面上部の「+ サイトの作成」をクリック</li>
+                            <li>「チーム サイト」を選択</li>
+                            <li>以下の情報を入力：
+                                <ul>
+                                    <li><strong>サイト名：</strong>経費管理</li>
+                                    <li><strong>サイトの説明：</strong>経費申請・承認管理システム</li>
+                                    <li><strong>プライバシー設定：</strong>プライベート（推奨）</li>
+                                </ul>
+                            </li>
+                            <li>「次へ」をクリック</li>
+                            <li>メンバーを追加（後から追加も可能）</li>
+                            <li>「完了」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="success">
+                        <div class="success-title">完了確認</div>
+                        <p>サイトが作成されると、自動的に新しいサイトに移動します。URLをメモしておいてください。</p>
+                        <p>例：<code>https://あなたの組織名.sharepoint.com/sites/経費管理</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ2：SharePointリストの作成 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">2</div>
+                    <div class="step-title">SharePoint リストの作成</div>
+                </div>
+                <div class="step-content">
+                    <p>経費データを保存するためのリストを作成します。準備済みのCSVファイルをインポートします。</p>
+
+                    <div class="substep">
+                        <h4>2-1. TaxRates（税区分マスター）リストの作成</h4>
+                        <ol>
+                            <li>作成したSharePointサイトで「+ 新規」→「リスト」をクリック</li>
+                            <li>「Excel から」を選択</li>
+                            <li>「ファイルのアップロード」をクリック</li>
+                            <li><strong>TaxRates.csv</strong> を選択してアップロード</li>
+                            <li>プレビューで列が正しく認識されているか確認</li>
+                            <li>リスト名を「TaxRates」に設定</li>
+                            <li>「作成」をクリック</li>
+                        </ol>
+
+                        <div class="info-box">
+                            <div class="info-box-title">TaxRates リストに含まれるデータ</div>
+                            <table class="csv-table">
+                                <tr>
+                                    <th>税区分</th>
+                                    <th>税率</th>
+                                    <th>控除割合</th>
+                                </tr>
+                                <tr>
+                                    <td>10%・適格（インボイス）</td>
+                                    <td>10.00%</td>
+                                    <td>100.00%</td>
+                                </tr>
+                                <tr>
+                                    <td>10%・区分記載（経過措置80%）</td>
+                                    <td>10.00%</td>
+                                    <td>80.00%</td>
+                                </tr>
+                                <tr>
+                                    <td>8%（軽減税率）・適格（インボイス）</td>
+                                    <td>8.00%</td>
+                                    <td>100.00%</td>
+                                </tr>
+                                <tr>
+                                    <td>非課税</td>
+                                    <td>0.00%</td>
+                                    <td>-</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h4>2-2. ExpenseRequests（経費申請）リストの作成</h4>
+                        <ol>
+                            <li>「+ 新規」→「リスト」をクリック</li>
+                            <li>「Excel から」を選択</li>
+                            <li><strong>ExpenseRequests.csv</strong> を選択してアップロード</li>
+                            <li>リスト名を「ExpenseRequests」に設定</li>
+                            <li>「作成」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>2-3. ExpenseRequests リストの列設定を調整</h4>
+                        <p>CSVインポート後、列のデータ型を適切に設定します。</p>
+                        <ol>
+                            <li>リストの設定（歯車アイコン）→「リストの設定」をクリック</li>
+                            <li>各列をクリックして以下のように設定：</li>
+                        </ol>
+                        <table class="csv-table">
+                            <tr>
+                                <th>列名</th>
+                                <th>データ型</th>
+                                <th>設定</th>
+                            </tr>
+                            <tr>
+                                <td>経費日付</td>
+                                <td>日付と時刻</td>
+                                <td>日付のみ、必須</td>
+                            </tr>
+                            <tr>
+                                <td>申請者</td>
+                                <td>ユーザーまたはグループ</td>
+                                <td>必須</td>
+                            </tr>
+                            <tr>
+                                <td>部署</td>
+                                <td>1行テキスト</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>勘定科目</td>
+                                <td>選択肢</td>
+                                <td>交通費/通信費/消耗品費/接待費 など</td>
+                            </tr>
+                            <tr>
+                                <td>税込金額</td>
+                                <td>通貨</td>
+                                <td>必須</td>
+                            </tr>
+                            <tr>
+                                <td>税区分</td>
+                                <td>参照（TaxRatesリスト）</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>税額</td>
+                                <td>通貨</td>
+                                <td>計算フィールド</td>
+                            </tr>
+                            <tr>
+                                <td>税抜金額</td>
+                                <td>通貨</td>
+                                <td>計算フィールド</td>
+                            </tr>
+                            <tr>
+                                <td>承認ステータス</td>
+                                <td>選択肢</td>
+                                <td>下書き/申請中/承認済み/差戻し/却下</td>
+                            </tr>
+                            <tr>
+                                <td>承認者</td>
+                                <td>ユーザーまたはグループ</td>
+                                <td>-</td>
+                            </tr>
+                            <tr>
+                                <td>承認日時</td>
+                                <td>日付と時刻</td>
+                                <td>-</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="substep">
+                        <h4>2-4. Approvers（承認者マスター）リストの作成</h4>
+                        <ol>
+                            <li>「+ 新規」→「リスト」→「空白のリスト」を選択</li>
+                            <li>リスト名：「Approvers」</li>
+                            <li>以下の列を追加：
+                                <ul>
+                                    <li><strong>Department（部署）</strong>：1行テキスト</li>
+                                    <li><strong>PrimaryApprover（主承認者）</strong>：ユーザーまたはグループ</li>
+                                    <li><strong>SecondaryApprover（副承認者）</strong>：ユーザーまたはグループ</li>
+                                    <li><strong>ThresholdAmount（承認限度額）</strong>：通貨（既定値：50000）</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ3：Power Appsでアプリを作成 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">3</div>
+                    <div class="step-title">Power Apps でアプリを作成</div>
+                </div>
+                <div class="step-content">
+                    <div class="substep">
+                        <h4>3-1. Power Apps にアクセス</h4>
+                        <ol>
+                            <li><a href="https://make.powerapps.com" target="_blank">https://make.powerapps.com</a> にアクセス</li>
+                            <li>Microsoft 365 アカウントでサインイン</li>
+                            <li>正しい環境が選択されていることを確認（右上）</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>3-2. 新しいキャンバスアプリを作成</h4>
+                        <ol>
+                            <li>「+ 作成」をクリック</li>
+                            <li>「空のアプリ」→「空のキャンバスアプリ」を選択</li>
+                            <li>以下を入力：
+                                <ul>
+                                    <li><strong>アプリ名：</strong>経費申請アプリ</li>
+                                    <li><strong>形式：</strong>タブレット（PC向け）または電話（モバイル向け）</li>
+                                </ul>
+                            </li>
+                            <li>「作成」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>3-3. SharePoint リストへの接続</h4>
+                        <ol>
+                            <li>左側メニューの「データ」アイコンをクリック</li>
+                            <li>「+ データの追加」をクリック</li>
+                            <li>「SharePoint」を検索して選択</li>
+                            <li>「直接接続」を選択</li>
+                            <li>作成したSharePointサイトのURLを入力</li>
+                            <li>以下の3つのリストを選択：
+                                <ul>
+                                    <li>ExpenseRequests</li>
+                                    <li>TaxRates</li>
+                                    <li>Approvers</li>
+                                </ul>
+                            </li>
+                            <li>「接続」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>3-4. 画面の作成</h4>
+                        <p>以下の4つの画面を作成します：</p>
+
+                        <div class="info-box">
+                            <div class="info-box-title">画面1：HomeScreen（ホーム画面）</div>
+                            <ol>
+                                <li>「+ 新しい画面」→「空白」を選択</li>
+                                <li>画面名を「HomeScreen」に変更</li>
+                                <li>以下のコントロールを追加：
+                                    <ul>
+                                        <li>ラベル：「経費申請システム」（タイトル）</li>
+                                        <li>ボタン：「新規申請」→ Navigate(ExpenseFormScreen)</li>
+                                        <li>ボタン：「申請一覧」→ Navigate(ExpenseListScreen)</li>
+                                        <li>ボタン：「承認管理」→ Navigate(ApprovalScreen)</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+
+                        <div class="info-box">
+                            <div class="info-box-title">画面2：ExpenseFormScreen（申請フォーム）</div>
+                            <ol>
+                                <li>「+ 新しい画面」→「フォーム」を選択</li>
+                                <li>画面名を「ExpenseFormScreen」に変更</li>
+                                <li>フォームのデータソースを「ExpenseRequests」に設定</li>
+                                <li>必要なフィールドを配置</li>
+                                <li>税額計算の数式を設定（Power Fxで記述）</li>
+                            </ol>
+                            <div class="code-block">
+// 税額の計算式例（Power Fx）
+Set(varTaxRate, LookUp(TaxRates, 税区分 = Dropdown_TaxCategory.Selected.税区分, 税率));
+Set(varTaxAmount, Value(TextInput_Amount.Text) * varTaxRate / (1 + varTaxRate))
+                            </div>
+                        </div>
+
+                        <div class="info-box">
+                            <div class="info-box-title">画面3：ExpenseListScreen（一覧画面）</div>
+                            <ol>
+                                <li>「+ 新しい画面」→「リスト」を選択</li>
+                                <li>ギャラリーのデータソースを「ExpenseRequests」に設定</li>
+                                <li>フィルター機能を追加（申請者、期間、ステータスなど）</li>
+                            </ol>
+                        </div>
+
+                        <div class="info-box">
+                            <div class="info-box-title">画面4：ApprovalScreen（承認画面）</div>
+                            <ol>
+                                <li>承認待ちの申請を一覧表示</li>
+                                <li>「承認」「差戻し」「却下」ボタンを配置</li>
+                                <li>コメント入力フィールドを追加</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h4>3-5. アプリを保存・公開</h4>
+                        <ol>
+                            <li>画面右上の「保存」アイコンをクリック</li>
+                            <li>「公開」をクリックしてアプリを公開</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ4：Power Automateでフローを作成 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">4</div>
+                    <div class="step-title">Power Automate で承認フローを作成</div>
+                </div>
+                <div class="step-content">
+                    <div class="substep">
+                        <h4>4-1. Power Automate にアクセス</h4>
+                        <ol>
+                            <li><a href="https://make.powerautomate.com" target="_blank">https://make.powerautomate.com</a> にアクセス</li>
+                            <li>Microsoft 365 アカウントでサインイン</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-2. 承認フローの作成</h4>
+                        <ol>
+                            <li>「+ 作成」→「自動化したクラウドフロー」を選択</li>
+                            <li>フロー名：「経費申請承認フロー」</li>
+                            <li>トリガー：「SharePoint - 項目が作成または変更されたとき」を選択</li>
+                            <li>「作成」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-3. トリガーの設定</h4>
+                        <ol>
+                            <li>サイトのアドレス：作成したSharePointサイトを選択</li>
+                            <li>リスト名：「ExpenseRequests」を選択</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-4. 条件分岐の追加</h4>
+                        <ol>
+                            <li>「+ 新しいステップ」→「条件」を追加</li>
+                            <li>条件：承認ステータス が 申請中 に等しい</li>
+                            <li>「はい」の分岐に承認アクションを追加</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-5. 承認アクションの設定</h4>
+                        <ol>
+                            <li>「+ 新しいステップ」→「承認」→「開始して承認を待機」を選択</li>
+                            <li>以下を設定：
+                                <ul>
+                                    <li><strong>承認の種類：</strong>承認/却下 - 最初に応答</li>
+                                    <li><strong>タイトル：</strong>経費申請の承認依頼</li>
+                                    <li><strong>担当者：</strong>承認者のメールアドレス（動的コンテンツから選択）</li>
+                                    <li><strong>詳細：</strong>申請内容の詳細（動的コンテンツを使用）</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="code-block">
+// 詳細フィールドの例
+申請者: @{triggerOutputs()?['body/申請者/DisplayName']}
+経費日付: @{triggerOutputs()?['body/経費日付']}
+勘定科目: @{triggerOutputs()?['body/勘定科目/Value']}
+金額: @{triggerOutputs()?['body/税込金額']} 円
+内容: @{triggerOutputs()?['body/内容']}
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-6. 承認結果の処理</h4>
+                        <ol>
+                            <li>承認アクションの後に「条件」を追加</li>
+                            <li>条件：応答の結果 が Approve に等しい</li>
+                            <li>「はい」の場合：
+                                <ul>
+                                    <li>「SharePoint - 項目の更新」アクション追加</li>
+                                    <li>承認ステータスを「承認済み」に更新</li>
+                                    <li>承認者、承認日時を記録</li>
+                                </ul>
+                            </li>
+                            <li>「いいえ」の場合：
+                                <ul>
+                                    <li>承認ステータスを「却下」または「差戻し」に更新</li>
+                                    <li>コメントを記録</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-7. Teams通知の追加（オプション）</h4>
+                        <ol>
+                            <li>「+ 新しいステップ」→「Microsoft Teams」を選択</li>
+                            <li>「チャットまたはチャネルにメッセージを投稿する」を選択</li>
+                            <li>投稿先チャネルを設定</li>
+                            <li>メッセージ内容を設定（承認結果の通知）</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>4-8. フローを保存・有効化</h4>
+                        <ol>
+                            <li>「保存」をクリック</li>
+                            <li>フローが「オン」になっていることを確認</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ5：Teamsへの統合 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">5</div>
+                    <div class="step-title">Microsoft Teams への統合</div>
+                </div>
+                <div class="step-content">
+                    <div class="substep">
+                        <h4>5-1. 経費管理チームの作成</h4>
+                        <ol>
+                            <li>Microsoft Teams を開く</li>
+                            <li>「チームに参加、またはチームを作成」をクリック</li>
+                            <li>「チームを作成」→「最初から」を選択</li>
+                            <li>チーム名：「経費管理」</li>
+                            <li>プライバシー：プライベート（推奨）</li>
+                            <li>メンバーを追加</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>5-2. チャネルの作成</h4>
+                        <ol>
+                            <li>チーム名の横の「...」→「チャネルを追加」をクリック</li>
+                            <li>チャネル名：「経費申請」</li>
+                            <li>「追加」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>5-3. Power Apps タブの追加</h4>
+                        <ol>
+                            <li>「経費申請」チャネルを開く</li>
+                            <li>タブバーの「+」をクリック</li>
+                            <li>「Power Apps」を検索して選択</li>
+                            <li>作成した「経費申請アプリ」を選択</li>
+                            <li>「保存」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="success">
+                        <div class="success-title">Teams統合の完了</div>
+                        <p>これで、Teamsから直接経費申請アプリにアクセスできるようになりました。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ステップ6：テストと運用開始 -->
+            <div class="step">
+                <div class="step-header">
+                    <div class="step-number">6</div>
+                    <div class="step-title">テストと運用開始</div>
+                </div>
+                <div class="step-content">
+                    <div class="substep">
+                        <h4>6-1. テスト実施</h4>
+                        <div class="checklist">
+                            <h4>テストチェックリスト</h4>
+                            <label><input type="checkbox"> テストユーザーで新規経費申請を作成できる</label>
+                            <label><input type="checkbox"> 税区分を選択すると税額が自動計算される</label>
+                            <label><input type="checkbox"> 申請を提出すると承認フローが開始される</label>
+                            <label><input type="checkbox"> 承認者にメール/Teams通知が届く</label>
+                            <label><input type="checkbox"> 承認者が承認/却下できる</label>
+                            <label><input type="checkbox"> 承認結果がSharePointリストに反映される</label>
+                            <label><input type="checkbox"> 申請者に結果通知が届く</label>
+                            <label><input type="checkbox"> TeamsからPower Appsにアクセスできる</label>
+                        </div>
+                    </div>
+
+                    <div class="substep">
+                        <h4>6-2. ユーザーへのアプリ共有</h4>
+                        <ol>
+                            <li>Power Apps で作成したアプリを開く</li>
+                            <li>「共有」をクリック</li>
+                            <li>ユーザーまたはセキュリティグループを追加</li>
+                            <li>適切なアクセス権限を設定</li>
+                        </ol>
+                    </div>
+
+                    <div class="substep">
+                        <h4>6-3. SharePoint 権限の設定</h4>
+                        <ol>
+                            <li>SharePointサイトの設定を開く</li>
+                            <li>「サイトの権限」→「権限の設定」</li>
+                            <li>ユーザーグループに適切な権限を付与
+                                <ul>
+                                    <li><strong>申請者：</strong>投稿（自分の項目の追加・編集）</li>
+                                    <li><strong>承認者：</strong>編集（全項目の編集）</li>
+                                    <li><strong>管理者：</strong>フルコントロール</li>
+                                </ul>
+                            </li>
+                        </ol>
+                    </div>
+
+                    <div class="warning">
+                        <div class="warning-title">運用開始前の確認事項</div>
+                        <ul>
+                            <li>本番データを投入する前に、必ずテストを完了させてください</li>
+                            <li>承認者マスター（Approversリスト）に正しい承認者情報を登録してください</li>
+                            <li>バックアップ方法を確認してください（SharePointの自動バージョン管理が有効）</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- まとめ -->
+            <div class="overview" style="border-left-color: #28a745;">
+                <h2 style="color: #28a745;">構築完了後の構成</h2>
+                <table class="csv-table">
+                    <tr>
+                        <th>コンポーネント</th>
+                        <th>役割</th>
+                        <th>場所</th>
+                    </tr>
+                    <tr>
+                        <td>SharePoint Lists</td>
+                        <td>データ保存（経費申請、税区分、承認者）</td>
+                        <td>SharePointサイト「経費管理」</td>
+                    </tr>
+                    <tr>
+                        <td>Power Apps</td>
+                        <td>ユーザーインターフェース</td>
+                        <td>make.powerapps.com</td>
+                    </tr>
+                    <tr>
+                        <td>Power Automate</td>
+                        <td>承認ワークフロー・通知</td>
+                        <td>make.powerautomate.com</td>
+                    </tr>
+                    <tr>
+                        <td>Microsoft Teams</td>
+                        <td>アプリへのアクセス・通知受信</td>
+                        <td>Teamsアプリ</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">参考リンク</div>
+                <ul>
+                    <li><a href="https://github.com/Ezark213/business-application/tree/main/ms-expense-app" target="_blank">ms-expense-app リポジトリ（新システム）</a></li>
+                    <li><a href="https://github.com/Ezark213/expense-app" target="_blank">expense-app リポジトリ（旧システム）</a></li>
+                    <li><a href="https://learn.microsoft.com/ja-jp/power-apps/" target="_blank">Power Apps ドキュメント</a></li>
+                    <li><a href="https://learn.microsoft.com/ja-jp/power-automate/" target="_blank">Power Automate ドキュメント</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <footer>
+            <p>この手順書は ms-expense-app への移行を支援するために作成されました</p>
+            <p>作成日: 2026年1月19日</p>
+        </footer>
+    </div>
+</body>
+</html>
