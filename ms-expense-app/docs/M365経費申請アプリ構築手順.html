@@ -245,10 +245,16 @@
                                 <div class="form-group">
                                     <label>勘定科目 *</label>
                                     <select>
-                                        <option>交通費</option>
+                                        <option>会議費</option>
+                                        <option>交際費</option>
+                                        <option>旅費交通費</option>
                                         <option>通信費</option>
                                         <option>消耗品費</option>
-                                        <option>接待交際費</option>
+                                        <option>諸会費</option>
+                                        <option>保険料</option>
+                                        <option>租税公課</option>
+                                        <option>支払手数料</option>
+                                        <option>新聞図書費</option>
                                     </select>
                                 </div>
                             </div>
@@ -443,7 +449,7 @@
                             <tr><th>列名</th><th>データ型</th><th>説明</th></tr>
                             <tr><td>申請ID</td><td>参照（ExpenseRequests）</td><td>★重要：リンク設定</td></tr>
                             <tr><td>経費日付</td><td>日付</td><td>必須</td></tr>
-                            <tr><td>勘定科目</td><td>選択肢</td><td>交通費/通信費/消耗品費/接待費など</td></tr>
+                            <tr><td>勘定科目</td><td>選択肢</td><td>会議費/交際費/旅費交通費/通信費/消耗品費/諸会費/保険料/租税公課/支払手数料/新聞図書費</td></tr>
                             <tr><td>内容</td><td>1行テキスト</td><td>必須</td></tr>
                             <tr><td>税込金額</td><td>通貨</td><td>必須</td></tr>
                             <tr><td>税区分</td><td>参照（TaxRates）</td><td>-</td></tr>

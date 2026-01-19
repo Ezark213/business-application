@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Apps 経費申請アプリ 詳細構築ガイド</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif; line-height: 1.8; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
+        header { background: linear-gradient(135deg, #742774 0%, #0078d4 100%); color: white; padding: 40px; text-align: center; }
+        header h1 { font-size: 1.8em; margin-bottom: 10px; }
+        header p { opacity: 0.9; }
+        .content { padding: 30px; }
+
+        .toc { background: #f8f9fa; border-radius: 10px; padding: 20px; margin-bottom: 30px; }
+        .toc h3 { color: #742774; margin-bottom: 15px; }
+        .toc ul { list-style: none; }
+        .toc li { margin-bottom: 8px; }
+        .toc a { color: #0078d4; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+
+        .section { margin-bottom: 40px; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; }
+        .section-header { background: linear-gradient(135deg, #742774 0%, #0078d4 100%); color: white; padding: 15px 20px; }
+        .section-header h2 { font-size: 1.3em; }
+        .section-content { padding: 25px; }
+
+        .subsection { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #742774; }
+        .subsection h3 { color: #742774; margin-bottom: 15px; font-size: 1.1em; }
+        .subsection h4 { color: #0078d4; margin: 15px 0 10px; font-size: 1em; }
+
+        .step-list { margin-left: 20px; }
+        .step-list li { margin-bottom: 10px; }
+
+        .control-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9em; }
+        .control-table th { background: #742774; color: white; padding: 10px; text-align: left; }
+        .control-table td { border: 1px solid #ddd; padding: 8px; vertical-align: top; }
+        .control-table tr:nth-child(even) { background: #f8f9fa; }
+        .control-table code { background: #e7e7e7; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+        .property-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.85em; }
+        .property-table th { background: #0078d4; color: white; padding: 8px; text-align: left; }
+        .property-table td { border: 1px solid #ddd; padding: 6px 8px; }
+        .property-table tr:nth-child(even) { background: #f0f8ff; }
+
+        .code-block { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 8px; overflow-x: auto; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85em; margin: 10px 0; white-space: pre-wrap; }
+        .code-block .comment { color: #6a9955; }
+        .code-block .keyword { color: #569cd6; }
+        .code-block .function { color: #dcdcaa; }
+        .code-block .string { color: #ce9178; }
+
+        .info-box { background: #e7f3ff; border: 1px solid #0078d4; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .info-box-title { color: #0078d4; font-weight: bold; margin-bottom: 8px; }
+
+        .warning-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .warning-box-title { color: #856404; font-weight: bold; margin-bottom: 8px; }
+
+        .tip-box { background: #d4edda; border: 1px solid #28a745; border-radius: 8px; padding: 15px; margin: 15px 0; }
+        .tip-box-title { color: #155724; font-weight: bold; margin-bottom: 8px; }
+
+        .screen-layout { background: #f3f2f1; border: 2px solid #742774; border-radius: 12px; margin: 20px 0; overflow: hidden; }
+        .screen-title { background: #742774; color: white; padding: 10px 15px; font-weight: bold; }
+        .screen-body { padding: 20px; min-height: 300px; position: relative; }
+        .screen-element { border: 2px dashed #0078d4; background: rgba(0,120,212,0.1); padding: 10px; margin: 5px 0; border-radius: 6px; font-size: 0.85em; }
+        .screen-element.header { background: rgba(116,39,116,0.2); border-color: #742774; }
+        .screen-element.gallery { background: rgba(40,167,69,0.1); border-color: #28a745; min-height: 150px; }
+        .screen-element.button { background: rgba(0,120,212,0.3); border-style: solid; display: inline-block; padding: 8px 15px; }
+        .screen-element.form { background: rgba(255,193,7,0.1); border-color: #ffc107; }
+
+        .element-label { font-weight: bold; color: #333; }
+        .element-name { color: #742774; font-family: monospace; }
+
+        .nav-diagram { display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap; margin: 20px 0; }
+        .nav-box { background: white; border: 2px solid #742774; border-radius: 10px; padding: 15px 20px; text-align: center; min-width: 150px; }
+        .nav-box.active { background: #742774; color: white; }
+        .nav-arrow { font-size: 1.5em; color: #742774; }
+
+        img { max-width: 100%; height: auto; }
+
+        @media (max-width: 768px) {
+            .content { padding: 15px; }
+            .control-table, .property-table { font-size: 0.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Power Apps 経費申請アプリ</h1>
+            <p>詳細構築ガイド - コントロール配置とプロパティ設定</p>
+        </header>
+
+        <div class="content">
+            <!-- 目次 -->
+            <div class="toc">
+                <h3>目次</h3>
+                <ul>
+                    <li><a href="#overview">1. 全体構成</a></li>
+                    <li><a href="#setup">2. 初期設定</a></li>
+                    <li><a href="#screen1">3. HomeScreen（ホーム画面）</a></li>
+                    <li><a href="#screen2">4. RequestListScreen（申請一覧画面）</a></li>
+                    <li><a href="#screen3">5. RequestFormScreen（申請作成画面）</a></li>
+                    <li><a href="#screen4">6. DetailFormScreen（経費明細入力画面）</a></li>
+                    <li><a href="#screen5">7. ApprovalScreen（承認画面）</a></li>
+                    <li><a href="#variables">8. 変数一覧</a></li>
+                    <li><a href="#formulas">9. 主要な数式集</a></li>
+                </ul>
+            </div>
+
+            <!-- 1. 全体構成 -->
+            <div class="section" id="overview">
+                <div class="section-header">
+                    <h2>1. 全体構成</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>画面遷移図</h3>
+                        <div class="nav-diagram">
+                            <div class="nav-box active">HomeScreen<br><small>ホーム</small></div>
+                            <div class="nav-arrow">→</div>
+                            <div class="nav-box">RequestListScreen<br><small>申請一覧</small></div>
+                            <div class="nav-arrow">→</div>
+                            <div class="nav-box">RequestFormScreen<br><small>申請作成</small></div>
+                            <div class="nav-arrow">→</div>
+                            <div class="nav-box">DetailFormScreen<br><small>明細入力</small></div>
+                        </div>
+                        <div class="nav-diagram">
+                            <div class="nav-box active">HomeScreen</div>
+                            <div class="nav-arrow">→</div>
+                            <div class="nav-box">ApprovalScreen<br><small>承認管理</small></div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>データソース（SharePoint Lists）</h3>
+                        <table class="control-table">
+                            <tr><th>リスト名</th><th>用途</th><th>主要列</th></tr>
+                            <tr>
+                                <td><code>ExpenseRequests</code></td>
+                                <td>申請ヘッダー</td>
+                                <td>申請者, 申請日, 部署, 明細件数, 合計金額, 承認ステータス</td>
+                            </tr>
+                            <tr>
+                                <td><code>ExpenseDetails</code></td>
+                                <td>経費明細</td>
+                                <td>申請ID, 経費日付, 勘定科目, 内容, 税込金額, 税区分</td>
+                            </tr>
+                            <tr>
+                                <td><code>TaxRates</code></td>
+                                <td>税区分マスター</td>
+                                <td>税区分, 税率, 控除割合</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. 初期設定 -->
+            <div class="section" id="setup">
+                <div class="section-header">
+                    <h2>2. 初期設定</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>2-1. アプリの作成</h3>
+                        <ol class="step-list">
+                            <li><a href="https://make.powerapps.com" target="_blank">make.powerapps.com</a> にアクセス</li>
+                            <li>左メニュー「作成」をクリック</li>
+                            <li>「空のアプリ」→「空のキャンバスアプリ」を選択</li>
+                            <li>アプリ名: <strong>経費申請アプリ</strong></li>
+                            <li>形式: <strong>タブレット</strong>（推奨）または電話</li>
+                            <li>「作成」ボタンをクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>2-2. データソースの接続</h3>
+                        <ol class="step-list">
+                            <li>左側パネルの「データ」アイコン（円柱）をクリック</li>
+                            <li>「+ データの追加」をクリック</li>
+                            <li>「SharePoint」を検索して選択</li>
+                            <li>SharePointサイトURL（経費管理サイト）を入力</li>
+                            <li>以下の3つのリストにチェック:
+                                <ul>
+                                    <li>ExpenseRequests</li>
+                                    <li>ExpenseDetails</li>
+                                    <li>TaxRates</li>
+                                </ul>
+                            </li>
+                            <li>「接続」をクリック</li>
+                        </ol>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>2-3. App.OnStart の設定</h3>
+                        <p>左側のツリービューで「App」を選択し、<strong>OnStart</strong>プロパティに以下を設定:</p>
+                        <div class="code-block"><span class="comment">// 現在のユーザー情報を取得</span>
+<span class="function">Set</span>(varCurrentUser, <span class="function">User</span>());
+
+<span class="comment">// 税率マスターをキャッシュ</span>
+<span class="function">ClearCollect</span>(colTaxRates, <span class="function">TaxRates</span>);
+
+<span class="comment">// 勘定科目の選択肢</span>
+<span class="function">ClearCollect</span>(
+    colAccountItems,
+    {Value: <span class="string">"会議費"</span>},
+    {Value: <span class="string">"交際費"</span>},
+    {Value: <span class="string">"旅費交通費"</span>},
+    {Value: <span class="string">"通信費"</span>},
+    {Value: <span class="string">"消耗品費"</span>},
+    {Value: <span class="string">"諸会費"</span>},
+    {Value: <span class="string">"保険料"</span>},
+    {Value: <span class="string">"租税公課"</span>},
+    {Value: <span class="string">"支払手数料"</span>},
+    {Value: <span class="string">"新聞図書費"</span>}
+);</div>
+                        <div class="tip-box">
+                            <div class="tip-box-title">ヒント: OnStartの実行</div>
+                            <p>設定後、メニューの「...」→「OnStartを実行」でテスト実行できます。</p>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>2-4. 画面の作成</h3>
+                        <p>左側「ツリービュー」の「画面」セクションで、以下の5画面を作成:</p>
+                        <ol class="step-list">
+                            <li>「+ 新しい画面」→「空」を選択</li>
+                            <li>画面名を右クリック→「名前の変更」で以下の名前に変更:
+                                <table class="property-table">
+                                    <tr><th>画面名</th><th>役割</th></tr>
+                                    <tr><td>HomeScreen</td><td>ホーム画面</td></tr>
+                                    <tr><td>RequestListScreen</td><td>申請一覧</td></tr>
+                                    <tr><td>RequestFormScreen</td><td>申請作成・編集</td></tr>
+                                    <tr><td>DetailFormScreen</td><td>経費明細入力</td></tr>
+                                    <tr><td>ApprovalScreen</td><td>承認管理（承認者用）</td></tr>
+                                </table>
+                            </li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. HomeScreen -->
+            <div class="section" id="screen1">
+                <div class="section-header">
+                    <h2>3. HomeScreen（ホーム画面）</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>画面レイアウト</h3>
+                        <div class="screen-layout">
+                            <div class="screen-title">HomeScreen</div>
+                            <div class="screen-body">
+                                <div class="screen-element header">
+                                    <span class="element-label">ヘッダー:</span> <span class="element-name">rectHeader</span> + <span class="element-name">lblTitle</span> + <span class="element-name">lblUserName</span>
+                                </div>
+                                <div style="display: flex; gap: 20px; margin-top: 30px; justify-content: center; flex-wrap: wrap;">
+                                    <div class="screen-element button" style="width: 200px; height: 120px; text-align: center;">
+                                        <span class="element-name">btnNewRequest</span><br>
+                                        <strong>新規申請</strong>
+                                    </div>
+                                    <div class="screen-element button" style="width: 200px; height: 120px; text-align: center;">
+                                        <span class="element-name">btnMyRequests</span><br>
+                                        <strong>申請一覧</strong>
+                                    </div>
+                                    <div class="screen-element button" style="width: 200px; height: 120px; text-align: center;">
+                                        <span class="element-name">btnApproval</span><br>
+                                        <strong>承認管理</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>コントロール一覧と設定</h3>
+
+                        <h4>3-1. ヘッダー背景（Rectangle）</h4>
+                        <p>挿入 → 図形 → 四角形</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>rectHeader</code></td></tr>
+                            <tr><td>X</td><td><code>0</code></td></tr>
+                            <tr><td>Y</td><td><code>0</code></td></tr>
+                            <tr><td>Width</td><td><code>Parent.Width</code></td></tr>
+                            <tr><td>Height</td><td><code>80</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(0, 120, 212, 1)</code></td></tr>
+                        </table>
+
+                        <h4>3-2. タイトルラベル（Label）</h4>
+                        <p>挿入 → テキスト → ラベル</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>lblTitle</code></td></tr>
+                            <tr><td>Text</td><td><code>"経費申請システム"</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>20</code></td></tr>
+                            <tr><td>Width</td><td><code>400</code></td></tr>
+                            <tr><td>Height</td><td><code>40</code></td></tr>
+                            <tr><td>Size</td><td><code>24</code></td></tr>
+                            <tr><td>FontWeight</td><td><code>FontWeight.Bold</code></td></tr>
+                            <tr><td>Color</td><td><code>White</code></td></tr>
+                        </table>
+
+                        <h4>3-3. ユーザー名ラベル（Label）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>lblUserName</code></td></tr>
+                            <tr><td>Text</td><td><code>varCurrentUser.FullName</code></td></tr>
+                            <tr><td>X</td><td><code>Parent.Width - 220</code></td></tr>
+                            <tr><td>Y</td><td><code>25</code></td></tr>
+                            <tr><td>Width</td><td><code>200</code></td></tr>
+                            <tr><td>Height</td><td><code>30</code></td></tr>
+                            <tr><td>Align</td><td><code>Align.Right</code></td></tr>
+                            <tr><td>Color</td><td><code>White</code></td></tr>
+                        </table>
+
+                        <h4>3-4. 新規申請ボタン（Button）</h4>
+                        <p>挿入 → ボタン</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnNewRequest</code></td></tr>
+                            <tr><td>Text</td><td><code>"新規申請"</code></td></tr>
+                            <tr><td>X</td><td><code>(Parent.Width - 660) / 2</code></td></tr>
+                            <tr><td>Y</td><td><code>150</code></td></tr>
+                            <tr><td>Width</td><td><code>200</code></td></tr>
+                            <tr><td>Height</td><td><code>120</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(0, 120, 212, 1)</code></td></tr>
+                            <tr><td>Size</td><td><code>18</code></td></tr>
+                            <tr><td>RadiusTopLeft, etc.</td><td><code>10</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="comment">// 新規申請レコードを作成</span>
+<span class="function">Set</span>(
+    varNewRequest,
+    <span class="function">Patch</span>(
+        ExpenseRequests,
+        <span class="function">Defaults</span>(ExpenseRequests),
+        {
+            Title: <span class="string">"申請_"</span> & <span class="function">Text</span>(<span class="function">Now</span>(), <span class="string">"yyyymmddhhmmss"</span>),
+            '申請者': {
+                '@odata.type': <span class="string">"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser"</span>,
+                Claims: <span class="string">"i:0#.f|membership|"</span> & varCurrentUser.Email,
+                DisplayName: varCurrentUser.FullName,
+                Email: varCurrentUser.Email
+            },
+            '申請日': <span class="function">Today</span>(),
+            '承認ステータス': {Value: <span class="string">"下書き"</span>}
+        }
+    )
+);
+
+<span class="comment">// 現在の申請IDを保存</span>
+<span class="function">Set</span>(varCurrentRequestID, varNewRequest.ID);
+
+<span class="comment">// 申請作成画面へ移動</span>
+<span class="function">Navigate</span>(RequestFormScreen, ScreenTransition.Fade);</div>
+
+                        <h4>3-5. 申請一覧ボタン（Button）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnMyRequests</code></td></tr>
+                            <tr><td>Text</td><td><code>"申請一覧"</code></td></tr>
+                            <tr><td>X</td><td><code>(Parent.Width - 660) / 2 + 220</code></td></tr>
+                            <tr><td>Y</td><td><code>150</code></td></tr>
+                            <tr><td>Width</td><td><code>200</code></td></tr>
+                            <tr><td>Height</td><td><code>120</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(40, 167, 69, 1)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Navigate</span>(RequestListScreen, ScreenTransition.Fade);</div>
+
+                        <h4>3-6. 承認管理ボタン（Button）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnApproval</code></td></tr>
+                            <tr><td>Text</td><td><code>"承認管理"</code></td></tr>
+                            <tr><td>X</td><td><code>(Parent.Width - 660) / 2 + 440</code></td></tr>
+                            <tr><td>Y</td><td><code>150</code></td></tr>
+                            <tr><td>Width</td><td><code>200</code></td></tr>
+                            <tr><td>Height</td><td><code>120</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(108, 117, 125, 1)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Navigate</span>(ApprovalScreen, ScreenTransition.Fade);</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. RequestListScreen -->
+            <div class="section" id="screen2">
+                <div class="section-header">
+                    <h2>4. RequestListScreen（申請一覧画面）</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>画面レイアウト</h3>
+                        <div class="screen-layout">
+                            <div class="screen-title">RequestListScreen</div>
+                            <div class="screen-body">
+                                <div class="screen-element header">
+                                    <span class="element-name">rectHeader2</span> + <span class="element-name">lblTitle2</span> + <span class="element-name">iconBack</span>
+                                </div>
+                                <div style="margin: 15px 0;">
+                                    <div class="screen-element button">
+                                        <span class="element-name">btnNewRequest2</span> 新規申請
+                                    </div>
+                                </div>
+                                <div class="screen-element gallery">
+                                    <span class="element-label">ギャラリー:</span> <span class="element-name">galRequests</span><br><br>
+                                    各行の内容:<br>
+                                    - 申請日 | 部署 | 件数 | 合計金額 | ステータス
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>コントロール一覧と設定</h3>
+
+                        <h4>4-1. 戻るアイコン（Icon）</h4>
+                        <p>挿入 → アイコン → 戻る矢印</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>iconBack</code></td></tr>
+                            <tr><td>Icon</td><td><code>Icon.BackArrow</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>20</code></td></tr>
+                            <tr><td>Width</td><td><code>40</code></td></tr>
+                            <tr><td>Height</td><td><code>40</code></td></tr>
+                            <tr><td>Color</td><td><code>White</code></td></tr>
+                            <tr><td>OnSelect</td><td><code>Navigate(HomeScreen, ScreenTransition.Fade)</code></td></tr>
+                        </table>
+
+                        <h4>4-2. 申請一覧ギャラリー（Gallery）</h4>
+                        <p>挿入 → ギャラリー → 縦方向（空）</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>galRequests</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>140</code></td></tr>
+                            <tr><td>Width</td><td><code>Parent.Width - 40</code></td></tr>
+                            <tr><td>Height</td><td><code>Parent.Height - 160</code></td></tr>
+                            <tr><td>TemplateSize</td><td><code>80</code></td></tr>
+                            <tr><td>TemplatePadding</td><td><code>5</code></td></tr>
+                        </table>
+                        <p><strong>Items:</strong></p>
+                        <div class="code-block"><span class="function">SortByColumns</span>(
+    <span class="function">Filter</span>(
+        ExpenseRequests,
+        <span class="comment">// 自分の申請のみ表示</span>
+        '申請者'.Email = varCurrentUser.Email
+    ),
+    <span class="string">"申請日"</span>,
+    SortOrder.Descending
+)</div>
+
+                        <h4>4-3. ギャラリー内のコントロール</h4>
+                        <p>ギャラリーを選択した状態で、以下のコントロールを追加:</p>
+
+                        <div class="info-box">
+                            <div class="info-box-title">ギャラリー内に追加するラベル</div>
+                            <table class="property-table">
+                                <tr><th>名前</th><th>Text</th><th>X</th><th>Width</th></tr>
+                                <tr><td>lblDate</td><td><code>Text(ThisItem.'申請日', "yyyy/mm/dd")</code></td><td>10</td><td>100</td></tr>
+                                <tr><td>lblDept</td><td><code>ThisItem.'部署'</code></td><td>120</td><td>100</td></tr>
+                                <tr><td>lblCount</td><td><code>ThisItem.'明細件数' & "件"</code></td><td>230</td><td>60</td></tr>
+                                <tr><td>lblTotal</td><td><code>Text(ThisItem.'合計金額（税込）', "￥#,##0")</code></td><td>300</td><td>120</td></tr>
+                                <tr><td>lblStatus</td><td><code>ThisItem.'承認ステータス'.Value</code></td><td>430</td><td>100</td></tr>
+                            </table>
+                        </div>
+
+                        <p><strong>ステータスラベルの色分け（Fill）:</strong></p>
+                        <div class="code-block"><span class="function">Switch</span>(
+    ThisItem.'承認ステータス'.Value,
+    <span class="string">"下書き"</span>, RGBA(108, 117, 125, 0.2),
+    <span class="string">"申請中"</span>, RGBA(255, 193, 7, 0.3),
+    <span class="string">"承認済み"</span>, RGBA(40, 167, 69, 0.2),
+    <span class="string">"差戻し"</span>, RGBA(220, 53, 69, 0.2),
+    <span class="string">"却下"</span>, RGBA(220, 53, 69, 0.3),
+    Transparent
+)</div>
+
+                        <p><strong>ギャラリー行選択時（OnSelect）:</strong></p>
+                        <div class="code-block"><span class="function">Set</span>(varCurrentRequestID, ThisItem.ID);
+<span class="function">Set</span>(varEditMode, <span class="keyword">true</span>);
+<span class="function">Navigate</span>(RequestFormScreen, ScreenTransition.Fade);</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. RequestFormScreen -->
+            <div class="section" id="screen3">
+                <div class="section-header">
+                    <h2>5. RequestFormScreen（申請作成画面）</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>画面レイアウト</h3>
+                        <div class="screen-layout">
+                            <div class="screen-title">RequestFormScreen</div>
+                            <div class="screen-body">
+                                <div class="screen-element header">
+                                    <span class="element-name">rectHeader3</span> + <span class="element-name">lblTitle3</span> + <span class="element-name">iconBack3</span>
+                                </div>
+                                <div class="screen-element form" style="margin: 10px 0;">
+                                    <strong>申請情報</strong><br>
+                                    <span class="element-name">dpRequestDate</span> 申請日 | <span class="element-name">txtDepartment</span> 部署
+                                </div>
+                                <div class="screen-element gallery" style="margin: 10px 0;">
+                                    <span class="element-label">経費明細一覧:</span> <span class="element-name">galDetails</span><br>
+                                    日付 | 内容 | 勘定科目 | 金額 | 削除ボタン
+                                </div>
+                                <div style="background: #e7f3ff; padding: 10px; border-radius: 6px; margin: 10px 0;">
+                                    <strong>合計:</strong> <span class="element-name">lblTotalCount</span> 件 / <span class="element-name">lblTotalAmount</span> 円
+                                </div>
+                                <div style="margin-top: 10px;">
+                                    <span class="screen-element button"><span class="element-name">btnAddDetail</span> + 経費を追加</span>
+                                </div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <span class="screen-element button" style="background: #6c757d;"><span class="element-name">btnSaveDraft</span> 下書き保存</span>
+                                    <span class="screen-element button"><span class="element-name">btnSubmit</span> 申請する</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>コントロール一覧と設定</h3>
+
+                        <h4>5-1. 申請日（DatePicker）</h4>
+                        <p>挿入 → 入力 → 日付の選択</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>dpRequestDate</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>100</code></td></tr>
+                            <tr><td>Width</td><td><code>200</code></td></tr>
+                            <tr><td>DefaultDate</td><td><code>LookUp(ExpenseRequests, ID = varCurrentRequestID).'申請日'</code></td></tr>
+                        </table>
+
+                        <h4>5-2. 部署（TextInput）</h4>
+                        <p>挿入 → 入力 → テキスト入力</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>txtDepartment</code></td></tr>
+                            <tr><td>X</td><td><code>240</code></td></tr>
+                            <tr><td>Y</td><td><code>100</code></td></tr>
+                            <tr><td>Width</td><td><code>200</code></td></tr>
+                            <tr><td>Default</td><td><code>LookUp(ExpenseRequests, ID = varCurrentRequestID).'部署'</code></td></tr>
+                            <tr><td>HintText</td><td><code>"例: 営業部"</code></td></tr>
+                        </table>
+
+                        <h4>5-3. 経費明細ギャラリー（Gallery）</h4>
+                        <p>挿入 → ギャラリー → 縦方向（空）</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>galDetails</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>160</code></td></tr>
+                            <tr><td>Width</td><td><code>Parent.Width - 40</code></td></tr>
+                            <tr><td>Height</td><td><code>300</code></td></tr>
+                            <tr><td>TemplateSize</td><td><code>60</code></td></tr>
+                        </table>
+                        <p><strong>Items:</strong></p>
+                        <div class="code-block"><span class="function">Filter</span>(
+    ExpenseDetails,
+    '申請ID'.Id = varCurrentRequestID
+)</div>
+
+                        <h4>ギャラリー内のコントロール</h4>
+                        <table class="property-table">
+                            <tr><th>名前</th><th>Text</th><th>X</th><th>Width</th></tr>
+                            <tr><td>lblDetailDate</td><td><code>Text(ThisItem.'経費日付', "mm/dd")</code></td><td>10</td><td>60</td></tr>
+                            <tr><td>lblDetailContent</td><td><code>ThisItem.'内容'</code></td><td>80</td><td>200</td></tr>
+                            <tr><td>lblDetailAccount</td><td><code>ThisItem.'勘定科目'.Value</code></td><td>290</td><td>100</td></tr>
+                            <tr><td>lblDetailAmount</td><td><code>Text(ThisItem.'税込金額', "￥#,##0")</code></td><td>400</td><td>100</td></tr>
+                        </table>
+
+                        <p><strong>削除アイコン（ギャラリー内）:</strong></p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>iconDelete</code></td></tr>
+                            <tr><td>Icon</td><td><code>Icon.Trash</code></td></tr>
+                            <tr><td>X</td><td><code>Parent.TemplateWidth - 50</code></td></tr>
+                            <tr><td>Color</td><td><code>RGBA(220, 53, 69, 1)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Remove</span>(ExpenseDetails, ThisItem);
+<span class="comment">// 合計を再計算</span>
+<span class="function">Set</span>(varRefresh, !varRefresh);</div>
+
+                        <h4>5-4. 合計表示ラベル</h4>
+                        <table class="property-table">
+                            <tr><th>名前</th><th>Text</th></tr>
+                            <tr><td>lblTotalCount</td><td><code>"合計: " & CountRows(galDetails.AllItems) & " 件"</code></td></tr>
+                            <tr><td>lblTotalAmount</td><td><code>Text(Sum(galDetails.AllItems, '税込金額'), "￥#,##0")</code></td></tr>
+                        </table>
+
+                        <h4>5-5. 経費追加ボタン（Button）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnAddDetail</code></td></tr>
+                            <tr><td>Text</td><td><code>"+ 経費を追加"</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(255, 193, 7, 1)</code></td></tr>
+                            <tr><td>Color</td><td><code>RGBA(51, 51, 51, 1)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Navigate</span>(DetailFormScreen, ScreenTransition.Fade);</div>
+
+                        <h4>5-6. 下書き保存ボタン（Button）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnSaveDraft</code></td></tr>
+                            <tr><td>Text</td><td><code>"下書き保存"</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(108, 117, 125, 1)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Patch</span>(
+    ExpenseRequests,
+    <span class="function">LookUp</span>(ExpenseRequests, ID = varCurrentRequestID),
+    {
+        '申請日': dpRequestDate.SelectedDate,
+        '部署': txtDepartment.Text,
+        '明細件数': <span class="function">CountRows</span>(galDetails.AllItems),
+        '合計金額（税込）': <span class="function">Sum</span>(galDetails.AllItems, '税込金額'),
+        '合計税額': <span class="function">Sum</span>(galDetails.AllItems, '税額'),
+        '合計金額（税抜）': <span class="function">Sum</span>(galDetails.AllItems, '税抜金額'),
+        '承認ステータス': {Value: <span class="string">"下書き"</span>}
+    }
+);
+<span class="function">Notify</span>(<span class="string">"下書きを保存しました"</span>, NotificationType.Success);
+<span class="function">Navigate</span>(HomeScreen, ScreenTransition.Fade);</div>
+
+                        <h4>5-7. 申請ボタン（Button）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnSubmit</code></td></tr>
+                            <tr><td>Text</td><td><code>"申請する"</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(0, 120, 212, 1)</code></td></tr>
+                            <tr><td>DisplayMode</td><td><code>If(CountRows(galDetails.AllItems) > 0, DisplayMode.Edit, DisplayMode.Disabled)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Patch</span>(
+    ExpenseRequests,
+    <span class="function">LookUp</span>(ExpenseRequests, ID = varCurrentRequestID),
+    {
+        '申請日': dpRequestDate.SelectedDate,
+        '部署': txtDepartment.Text,
+        '明細件数': <span class="function">CountRows</span>(galDetails.AllItems),
+        '合計金額（税込）': <span class="function">Sum</span>(galDetails.AllItems, '税込金額'),
+        '合計税額': <span class="function">Sum</span>(galDetails.AllItems, '税額'),
+        '合計金額（税抜）': <span class="function">Sum</span>(galDetails.AllItems, '税抜金額'),
+        '承認ステータス': {Value: <span class="string">"申請中"</span>}
+    }
+);
+<span class="function">Notify</span>(<span class="string">"申請が完了しました"</span>, NotificationType.Success);
+<span class="function">Navigate</span>(HomeScreen, ScreenTransition.Fade);</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. DetailFormScreen -->
+            <div class="section" id="screen4">
+                <div class="section-header">
+                    <h2>6. DetailFormScreen（経費明細入力画面）</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>画面レイアウト</h3>
+                        <div class="screen-layout">
+                            <div class="screen-title">DetailFormScreen</div>
+                            <div class="screen-body">
+                                <div class="screen-element header">
+                                    <span class="element-name">rectHeader4</span> + <span class="element-name">lblTitle4</span> 経費を追加
+                                </div>
+                                <div class="screen-element form">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                        <div><span class="element-name">dpExpenseDate</span> 経費日付 *</div>
+                                        <div><span class="element-name">ddAccountItem</span> 勘定科目 *</div>
+                                    </div>
+                                    <div style="margin-top: 10px;"><span class="element-name">txtContent</span> 内容 *</div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+                                        <div><span class="element-name">txtAmount</span> 税込金額 *</div>
+                                        <div><span class="element-name">ddTaxCategory</span> 税区分 *</div>
+                                    </div>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; background: #e7f3ff; padding: 10px; border-radius: 6px;">
+                                        <div><span class="element-name">lblCalcTax</span> 税額（自動）</div>
+                                        <div><span class="element-name">lblCalcNet</span> 税抜金額（自動）</div>
+                                    </div>
+                                    <div style="margin-top: 10px;"><span class="element-name">txtInvoiceNo</span> インボイス番号</div>
+                                </div>
+                                <div style="margin-top: 20px; text-align: right;">
+                                    <span class="screen-element button" style="background: #6c757d;"><span class="element-name">btnCancel</span> キャンセル</span>
+                                    <span class="screen-element button"><span class="element-name">btnAddExpense</span> 追加</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>コントロール一覧と設定</h3>
+
+                        <h4>6-1. 経費日付（DatePicker）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>dpExpenseDate</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>120</code></td></tr>
+                            <tr><td>Width</td><td><code>(Parent.Width - 60) / 2</code></td></tr>
+                            <tr><td>DefaultDate</td><td><code>Today()</code></td></tr>
+                        </table>
+
+                        <h4>6-2. 勘定科目（Dropdown）</h4>
+                        <p>挿入 → 入力 → ドロップダウン</p>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>ddAccountItem</code></td></tr>
+                            <tr><td>X</td><td><code>Parent.Width / 2 + 10</code></td></tr>
+                            <tr><td>Y</td><td><code>120</code></td></tr>
+                            <tr><td>Width</td><td><code>(Parent.Width - 60) / 2</code></td></tr>
+                            <tr><td>Items</td><td><code>colAccountItems</code></td></tr>
+                        </table>
+
+                        <h4>6-3. 内容（TextInput）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>txtContent</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>190</code></td></tr>
+                            <tr><td>Width</td><td><code>Parent.Width - 40</code></td></tr>
+                            <tr><td>HintText</td><td><code>"例: 東京-大阪 新幹線往復"</code></td></tr>
+                        </table>
+
+                        <h4>6-4. 税込金額（TextInput）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>txtAmount</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>260</code></td></tr>
+                            <tr><td>Width</td><td><code>(Parent.Width - 60) / 2</code></td></tr>
+                            <tr><td>Format</td><td><code>TextFormat.Number</code></td></tr>
+                            <tr><td>HintText</td><td><code>"例: 3300"</code></td></tr>
+                        </table>
+
+                        <h4>6-5. 税区分（Dropdown）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>ddTaxCategory</code></td></tr>
+                            <tr><td>X</td><td><code>Parent.Width / 2 + 10</code></td></tr>
+                            <tr><td>Y</td><td><code>260</code></td></tr>
+                            <tr><td>Width</td><td><code>(Parent.Width - 60) / 2</code></td></tr>
+                            <tr><td>Items</td><td><code>TaxRates</code></td></tr>
+                        </table>
+
+                        <h4>6-6. 税額（自動計算ラベル）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>lblCalcTax</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>330</code></td></tr>
+                        </table>
+                        <p><strong>Text:</strong></p>
+                        <div class="code-block"><span class="keyword">With</span>(
+    {
+        taxRate: <span class="function">Value</span>(
+            <span class="function">Substitute</span>(
+                <span class="function">Substitute</span>(ddTaxCategory.Selected.'税率', <span class="string">"%"</span>, <span class="string">""</span>),
+                <span class="string">","</span>,
+                <span class="string">""</span>
+            )
+        ) / 100
+    },
+    <span class="function">Text</span>(
+        <span class="function">RoundDown</span>(
+            <span class="function">Value</span>(txtAmount.Text) * taxRate / (1 + taxRate),
+            0
+        ),
+        <span class="string">"税額: ￥#,##0"</span>
+    )
+)</div>
+
+                        <h4>6-7. 税抜金額（自動計算ラベル）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>lblCalcNet</code></td></tr>
+                            <tr><td>X</td><td><code>Parent.Width / 2 + 10</code></td></tr>
+                            <tr><td>Y</td><td><code>330</code></td></tr>
+                        </table>
+                        <p><strong>Text:</strong></p>
+                        <div class="code-block"><span class="keyword">With</span>(
+    {
+        taxRate: <span class="function">Value</span>(
+            <span class="function">Substitute</span>(
+                <span class="function">Substitute</span>(ddTaxCategory.Selected.'税率', <span class="string">"%"</span>, <span class="string">""</span>),
+                <span class="string">","</span>,
+                <span class="string">""</span>
+            )
+        ) / 100
+    },
+    <span class="function">Text</span>(
+        <span class="function">Value</span>(txtAmount.Text) - <span class="function">RoundDown</span>(
+            <span class="function">Value</span>(txtAmount.Text) * taxRate / (1 + taxRate),
+            0
+        ),
+        <span class="string">"税抜: ￥#,##0"</span>
+    )
+)</div>
+
+                        <h4>6-8. インボイス番号（TextInput）</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>txtInvoiceNo</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>400</code></td></tr>
+                            <tr><td>Width</td><td><code>Parent.Width - 40</code></td></tr>
+                            <tr><td>HintText</td><td><code>"例: T1234567890123"</code></td></tr>
+                        </table>
+
+                        <h4>6-9. キャンセルボタン</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnCancel</code></td></tr>
+                            <tr><td>Text</td><td><code>"キャンセル"</code></td></tr>
+                            <tr><td>OnSelect</td><td><code>Back()</code></td></tr>
+                        </table>
+
+                        <h4>6-10. 追加ボタン</h4>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>btnAddExpense</code></td></tr>
+                            <tr><td>Text</td><td><code>"追加"</code></td></tr>
+                            <tr><td>Fill</td><td><code>RGBA(0, 120, 212, 1)</code></td></tr>
+                        </table>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="keyword">With</span>(
+    {
+        taxRate: <span class="function">Value</span>(
+            <span class="function">Substitute</span>(
+                <span class="function">Substitute</span>(ddTaxCategory.Selected.'税率', <span class="string">"%"</span>, <span class="string">""</span>),
+                <span class="string">","</span>,
+                <span class="string">""</span>
+            )
+        ) / 100,
+        amount: <span class="function">Value</span>(txtAmount.Text)
+    },
+    <span class="function">Patch</span>(
+        ExpenseDetails,
+        <span class="function">Defaults</span>(ExpenseDetails),
+        {
+            Title: <span class="string">"明細_"</span> & <span class="function">Text</span>(<span class="function">Now</span>(), <span class="string">"yyyymmddhhmmss"</span>),
+            '申請ID': {
+                Id: varCurrentRequestID,
+                Value: <span class="function">LookUp</span>(ExpenseRequests, ID = varCurrentRequestID).Title
+            },
+            '経費日付': dpExpenseDate.SelectedDate,
+            '勘定科目': {Value: ddAccountItem.Selected.Value},
+            '内容': txtContent.Text,
+            '税込金額': amount,
+            '税区分': {
+                Id: ddTaxCategory.Selected.ID,
+                Value: ddTaxCategory.Selected.Title
+            },
+            '税額': <span class="function">RoundDown</span>(amount * taxRate / (1 + taxRate), 0),
+            '税抜金額': amount - <span class="function">RoundDown</span>(amount * taxRate / (1 + taxRate), 0),
+            'インボイス番号': txtInvoiceNo.Text
+        }
+    )
+);
+
+<span class="comment">// フォームをリセット</span>
+<span class="function">Reset</span>(txtContent);
+<span class="function">Reset</span>(txtAmount);
+<span class="function">Reset</span>(txtInvoiceNo);
+
+<span class="comment">// 前の画面に戻る</span>
+<span class="function">Back</span>();</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. ApprovalScreen -->
+            <div class="section" id="screen5">
+                <div class="section-header">
+                    <h2>7. ApprovalScreen（承認画面）</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>画面レイアウト</h3>
+                        <div class="screen-layout">
+                            <div class="screen-title">ApprovalScreen</div>
+                            <div class="screen-body">
+                                <div class="screen-element header">
+                                    <span class="element-name">rectHeader5</span> + <span class="element-name">lblTitle5</span> 承認管理
+                                </div>
+                                <div class="screen-element gallery">
+                                    <span class="element-label">承認待ち一覧:</span> <span class="element-name">galApproval</span><br>
+                                    申請日 | 申請者 | 件数 | 合計金額 | 承認/却下ボタン
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>承認一覧ギャラリー</h3>
+                        <table class="property-table">
+                            <tr><th>プロパティ</th><th>値</th></tr>
+                            <tr><td>名前</td><td><code>galApproval</code></td></tr>
+                            <tr><td>X</td><td><code>20</code></td></tr>
+                            <tr><td>Y</td><td><code>100</code></td></tr>
+                            <tr><td>Width</td><td><code>Parent.Width - 40</code></td></tr>
+                            <tr><td>Height</td><td><code>Parent.Height - 120</code></td></tr>
+                            <tr><td>TemplateSize</td><td><code>100</code></td></tr>
+                        </table>
+                        <p><strong>Items（承認待ちのみ表示）:</strong></p>
+                        <div class="code-block"><span class="function">Filter</span>(
+    ExpenseRequests,
+    '承認ステータス'.Value = <span class="string">"申請中"</span>
+)</div>
+
+                        <h4>ギャラリー内の承認ボタン</h4>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Patch</span>(
+    ExpenseRequests,
+    ThisItem,
+    {
+        '承認ステータス': {Value: <span class="string">"承認済み"</span>},
+        '承認者': {
+            '@odata.type': <span class="string">"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser"</span>,
+            Claims: <span class="string">"i:0#.f|membership|"</span> & varCurrentUser.Email,
+            DisplayName: varCurrentUser.FullName,
+            Email: varCurrentUser.Email
+        },
+        '承認日時': <span class="function">Now</span>()
+    }
+);
+<span class="function">Notify</span>(<span class="string">"承認しました"</span>, NotificationType.Success);</div>
+
+                        <h4>ギャラリー内の却下ボタン</h4>
+                        <p><strong>OnSelect:</strong></p>
+                        <div class="code-block"><span class="function">Patch</span>(
+    ExpenseRequests,
+    ThisItem,
+    {
+        '承認ステータス': {Value: <span class="string">"却下"</span>},
+        '承認者': {
+            '@odata.type': <span class="string">"#Microsoft.Azure.Connectors.SharePoint.SPListExpandedUser"</span>,
+            Claims: <span class="string">"i:0#.f|membership|"</span> & varCurrentUser.Email,
+            DisplayName: varCurrentUser.FullName,
+            Email: varCurrentUser.Email
+        },
+        '承認日時': <span class="function">Now</span>()
+    }
+);
+<span class="function">Notify</span>(<span class="string">"却下しました"</span>, NotificationType.Warning);</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 8. 変数一覧 -->
+            <div class="section" id="variables">
+                <div class="section-header">
+                    <h2>8. 変数一覧</h2>
+                </div>
+                <div class="section-content">
+                    <table class="control-table">
+                        <tr><th>変数名</th><th>型</th><th>用途</th><th>設定箇所</th></tr>
+                        <tr>
+                            <td><code>varCurrentUser</code></td>
+                            <td>Record</td>
+                            <td>ログインユーザー情報</td>
+                            <td>App.OnStart</td>
+                        </tr>
+                        <tr>
+                            <td><code>varCurrentRequestID</code></td>
+                            <td>Number</td>
+                            <td>編集中の申請ID</td>
+                            <td>新規作成時/一覧選択時</td>
+                        </tr>
+                        <tr>
+                            <td><code>varEditMode</code></td>
+                            <td>Boolean</td>
+                            <td>編集モードフラグ</td>
+                            <td>一覧から選択時にtrue</td>
+                        </tr>
+                        <tr>
+                            <td><code>varRefresh</code></td>
+                            <td>Boolean</td>
+                            <td>画面更新用トグル</td>
+                            <td>データ更新後</td>
+                        </tr>
+                        <tr>
+                            <td><code>colTaxRates</code></td>
+                            <td>Collection</td>
+                            <td>税率マスターのキャッシュ</td>
+                            <td>App.OnStart</td>
+                        </tr>
+                        <tr>
+                            <td><code>colAccountItems</code></td>
+                            <td>Collection</td>
+                            <td>勘定科目の選択肢</td>
+                            <td>App.OnStart</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 9. 主要な数式集 -->
+            <div class="section" id="formulas">
+                <div class="section-header">
+                    <h2>9. 主要な数式集</h2>
+                </div>
+                <div class="section-content">
+                    <div class="subsection">
+                        <h3>税額計算（税込金額から）</h3>
+                        <div class="code-block"><span class="comment">// 税率10%の場合: 税込金額 × 10 ÷ 110</span>
+<span class="function">RoundDown</span>(
+    税込金額 * 税率 / (1 + 税率),
+    0
+)</div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>申請ヘッダーの合計更新</h3>
+                        <div class="code-block"><span class="function">Patch</span>(
+    ExpenseRequests,
+    <span class="function">LookUp</span>(ExpenseRequests, ID = varCurrentRequestID),
+    {
+        '明細件数': <span class="function">CountRows</span>(
+            <span class="function">Filter</span>(ExpenseDetails, '申請ID'.Id = varCurrentRequestID)
+        ),
+        '合計金額（税込）': <span class="function">Sum</span>(
+            <span class="function">Filter</span>(ExpenseDetails, '申請ID'.Id = varCurrentRequestID),
+            '税込金額'
+        ),
+        '合計税額': <span class="function">Sum</span>(
+            <span class="function">Filter</span>(ExpenseDetails, '申請ID'.Id = varCurrentRequestID),
+            '税額'
+        ),
+        '合計金額（税抜）': <span class="function">Sum</span>(
+            <span class="function">Filter</span>(ExpenseDetails, '申請ID'.Id = varCurrentRequestID),
+            '税抜金額'
+        )
+    }
+)</div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>ステータスによる色分け</h3>
+                        <div class="code-block"><span class="function">Switch</span>(
+    ThisItem.'承認ステータス'.Value,
+    <span class="string">"下書き"</span>,   RGBA(108, 117, 125, 1), <span class="comment">// グレー</span>
+    <span class="string">"申請中"</span>,   RGBA(255, 193, 7, 1),   <span class="comment">// 黄色</span>
+    <span class="string">"承認済み"</span>, RGBA(40, 167, 69, 1),   <span class="comment">// 緑</span>
+    <span class="string">"差戻し"</span>,   RGBA(255, 152, 0, 1),   <span class="comment">// オレンジ</span>
+    <span class="string">"却下"</span>,     RGBA(220, 53, 69, 1),   <span class="comment">// 赤</span>
+    RGBA(0, 0, 0, 1)
+)</div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3>入力バリデーション（必須チェック）</h3>
+                        <div class="code-block"><span class="comment">// ボタンのDisplayMode</span>
+<span class="function">If</span>(
+    <span class="function">IsBlank</span>(txtContent.Text) ||
+    <span class="function">IsBlank</span>(txtAmount.Text) ||
+    <span class="function">Value</span>(txtAmount.Text) <= 0,
+    DisplayMode.Disabled,
+    DisplayMode.Edit
+)</div>
+                    </div>
+
+                    <div class="tip-box">
+                        <div class="tip-box-title">Power Appsのテスト実行</div>
+                        <p>右上の「▷」ボタンでプレビューモードに切り替えて動作確認ができます。<br>
+                        F5キーでもプレビューモードに入れます。</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <div class="info-box-title">次のステップ</div>
+                <ul>
+                    <li>Power Automateで承認フローを作成（承認ステータスが「申請中」に変わったとき自動起動）</li>
+                    <li>Teamsへの通知連携</li>
+                    <li>添付ファイル機能の追加（SharePointリストの添付ファイル機能を有効化）</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>
