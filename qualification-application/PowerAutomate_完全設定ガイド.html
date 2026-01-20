@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Automate 完全設定ガイド - 資格取得申請フロー</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            max-width: 950px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        h2 {
+            background: #0078d4;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 50px;
+        }
+        h3 {
+            background: #e1f5fe;
+            padding: 12px 15px;
+            border-left: 5px solid #0078d4;
+            border-radius: 0 5px 5px 0;
+            margin-top: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .step {
+            background: white;
+            border: 2px solid #0078d4;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            position: relative;
+        }
+        .step-header {
+            background: #0078d4;
+            color: white;
+            padding: 10px 15px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .action-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .action-title {
+            background: #6c757d;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .action-title.trigger { background: #28a745; }
+        .action-title.action { background: #007bff; }
+        .action-title.condition { background: #fd7e14; }
+        .action-title.teams { background: #6264a7; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #e9ecef;
+            width: 35%;
+        }
+        .input-value {
+            background: #fff3cd;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            display: inline-block;
+            margin: 2px 0;
+        }
+        .dynamic {
+            background: #d4edda;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            display: inline-block;
+            margin: 2px 0;
+        }
+        .formula {
+            background: #1e1e1e;
+            color: #9cdcfe;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 5px solid #17a2b8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .flow-structure {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+        .checklist {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 8px;
+        }
+        .checklist label {
+            display: block;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        .checklist input {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .copy-box {
+            position: relative;
+            margin: 15px 0;
+        }
+        .copy-label {
+            background: #28a745;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px 5px 0 0;
+            font-size: 12px;
+            display: inline-block;
+        }
+        .copy-content {
+            background: #1e1e1e;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 0 5px 5px 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .nav {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        .nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .nav li a {
+            display: block;
+            padding: 8px 15px;
+            background: #e3f2fd;
+            color: #0078d4;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .nav li a:hover {
+            background: #0078d4;
+            color: white;
+        }
+        hr {
+            border: none;
+            border-top: 2px dashed #ddd;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Power Automate 完全設定ガイド<br><small>資格取得申請 承認フロー</small></h1>
+
+<div class="nav">
+    <strong>目次</strong>
+    <ul>
+        <li><a href="#overview">概要</a></li>
+        <li><a href="#step1">Step1: フロー作成</a></li>
+        <li><a href="#step2">Step2: トリガー</a></li>
+        <li><a href="#step3">Step3: 遅延</a></li>
+        <li><a href="#step4">Step4: 項目の取得</a></li>
+        <li><a href="#step5">Step5: 作成</a></li>
+        <li><a href="#step6">Step6: 承認</a></li>
+        <li><a href="#step7">Step7: 条件分岐</a></li>
+        <li><a href="#step8">Step8: 承認時処理</a></li>
+        <li><a href="#step9">Step9: 却下時処理</a></li>
+    </ul>
+</div>
+
+<!-- ========== 概要 ========== -->
+<section id="overview">
+<h2>フローの概要</h2>
+
+<div class="card">
+    <h3>仕様</h3>
+    <table>
+        <tr>
+            <th>申請種別</th>
+            <th>報奨金</th>
+            <th>事前ボーナス</th>
+            <th>Teams通知</th>
+        </tr>
+        <tr>
+            <td>資格取得宣言届</td>
+            <td>表示しない</td>
+            <td>0円</td>
+            <td>「資格取得後に届出してください」</td>
+        </tr>
+        <tr>
+            <td>資格取得届（宣言届あり）</td>
+            <td>マスタから取得</td>
+            <td>5,000円</td>
+            <td>報奨金 + ボーナス表示</td>
+        </tr>
+        <tr>
+            <td>資格取得届（宣言届なし）</td>
+            <td>マスタから取得</td>
+            <td>0円</td>
+            <td>報奨金のみ表示</td>
+        </tr>
+    </table>
+</div>
+
+<div class="card">
+    <h3>フロー構成図</h3>
+    <div class="flow-structure">
+1. 項目が作成されたとき（トリガー）
+   │
+2. └─ 遅延（10秒）
+      │
+3.    └─ 項目の取得
+         │
+4.       └─ 作成（報奨金表示テキスト生成）
+            │
+5.          └─ 開始して承認を待機
+               │
+6.             └─ 条件（承認/却下）
+                  │
+                  ├─ True（承認）
+                  │   │
+7.                │   └─ 項目の更新（ステータス→承認済）
+                  │       │
+8.                │       └─ 条件1（宣言届 or 取得届）
+                  │           │
+                  │           ├─ True（宣言届）
+9.                │           │   └─ Teams通知（パターン1）
+                  │           │
+                  │           └─ False（取得届）
+                  │               │
+10.               │               └─ 条件2（ボーナス有無）
+                  │                   │
+                  │                   ├─ True（ボーナスあり）
+11.               │                   │   └─ Teams通知（パターン2）
+                  │                   │
+                  │                   └─ False（ボーナスなし）
+12.               │                       └─ Teams通知（パターン3）
+                  │
+                  └─ False（却下）
+                      │
+13.                   └─ 項目の更新（ステータス→却下）
+                          │
+14.                       └─ Teams通知（却下）
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 1 ========== -->
+<section id="step1">
+<h2>Step 1: 新しいフローを作成</h2>
+
+<div class="step">
+    <div class="step-header">1-1. Power Automateにアクセス</div>
+    <table>
+        <tr><th>URL</th><td><span class="input-value">https://make.powerautomate.com</span></td></tr>
+    </table>
+</div>
+
+<div class="step">
+    <div class="step-header">1-2. 新しいフローを作成</div>
+    <ol>
+        <li>左メニュー「<strong>作成</strong>」をクリック</li>
+        <li>「<strong>自動化したクラウドフロー</strong>」を選択</li>
+        <li>フロー名を入力：<span class="input-value">資格取得申請_承認フロー</span></li>
+        <li>トリガーで「SharePoint」を検索</li>
+        <li>「<strong>項目が作成されたとき</strong>」を選択</li>
+        <li>「作成」をクリック</li>
+    </ol>
+</div>
+</section>
+
+<!-- ========== Step 2 ========== -->
+<section id="step2">
+<h2>Step 2: トリガーの設定</h2>
+
+<div class="step">
+    <div class="step-header">2-1. 「項目が作成されたとき」の設定</div>
+
+    <div class="action-box">
+        <span class="action-title trigger">トリガー</span>
+        <strong>項目が作成されたとき</strong>
+
+        <table>
+            <tr>
+                <th>サイトのアドレス</th>
+                <td>ドロップダウンからSharePointサイトを選択<br>
+                    例：<span class="input-value">https://armaascojp.sharepoint.com/sites/arma-as.co.jp</span>
+                </td>
+            </tr>
+            <tr>
+                <th>リスト名</th>
+                <td><span class="input-value">資格取得申請</span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 3 ========== -->
+<section id="step3">
+<h2>Step 3: 遅延の追加</h2>
+
+<div class="step">
+    <div class="step-header">3-1. 遅延アクションを追加</div>
+
+    <ol>
+        <li>トリガーの下の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>アクションの追加</strong>」を選択</li>
+        <li>検索欄に「<strong>遅延</strong>」と入力</li>
+        <li>「<strong>遅延</strong>」（Schedule）を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title action">アクション</span>
+        <strong>遅延</strong>
+
+        <table>
+            <tr>
+                <th>カウント</th>
+                <td><span class="input-value">10</span></td>
+            </tr>
+            <tr>
+                <th>単位</th>
+                <td><span class="input-value">秒</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="info">
+        <strong>なぜ遅延が必要？</strong><br>
+        SharePointにデータが完全に保存されるまで待つため。これがないと「項目が見つかりません」エラーが発生することがあります。
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 4 ========== -->
+<section id="step4">
+<h2>Step 4: 項目の取得</h2>
+
+<div class="step">
+    <div class="step-header">4-1. 項目の取得アクションを追加</div>
+
+    <ol>
+        <li>「遅延」の下の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>アクションの追加</strong>」を選択</li>
+        <li>「<strong>SharePoint</strong>」を選択</li>
+        <li>「<strong>項目の取得</strong>」を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title action">アクション</span>
+        <strong>項目の取得</strong>
+
+        <table>
+            <tr>
+                <th>サイトのアドレス</th>
+                <td>トリガーと同じサイトを選択</td>
+            </tr>
+            <tr>
+                <th>リスト名</th>
+                <td><span class="input-value">資格取得申請</span></td>
+            </tr>
+            <tr>
+                <th>ID</th>
+                <td>
+                    動的コンテンツから選択：<br>
+                    <span class="dynamic">ID</span>（「項目が作成されたとき」セクションから）
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="warning">
+        <strong>重要</strong><br>
+        IDは必ず「項目が作成されたとき」のセクションから選択してください。
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 5 ========== -->
+<section id="step5">
+<h2>Step 5: 作成（報奨金表示テキスト）</h2>
+
+<div class="step">
+    <div class="step-header">5-1. 作成アクションを追加</div>
+
+    <ol>
+        <li>「項目の取得」の下の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>アクションの追加</strong>」を選択</li>
+        <li>検索欄に「<strong>作成</strong>」と入力</li>
+        <li>「<strong>作成</strong>」（データ操作）を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title action">アクション</span>
+        <strong>作成</strong>
+
+        <table>
+            <tr>
+                <th>入力</th>
+                <td>以下の式を入力（「式」タブで入力）</td>
+            </tr>
+        </table>
+
+        <div class="copy-box">
+            <div class="copy-label">コピーする式（報奨金表示ロジック）</div>
+            <div class="copy-content">if(
+  contains(string(outputs('項目の取得')?['body']), '宣言届'),
+  '※報奨金は資格取得後の届出時に確定します',
+  if(
+    equals(coalesce(outputs('項目の取得')?['body/OData__x5831__x5968__x91d1__x984d_'], 0), 0),
+    if(
+      greater(coalesce(outputs('項目の取得')?['body/OData__x4e8b__x524d__x30dc__x30fc__x30ca__x30b9_'], 0), 0),
+      '受験料相当額 + 5,000円（事前申請ボーナス）',
+      '受験料相当額'
+    ),
+    if(
+      greater(coalesce(outputs('項目の取得')?['body/OData__x4e8b__x524d__x30dc__x30fc__x30ca__x30b9_'], 0), 0),
+      concat(string(outputs('項目の取得')?['body/OData__x5831__x5968__x91d1__x984d_']), '円 + 5,000円（事前申請ボーナス）'),
+      concat(string(outputs('項目の取得')?['body/OData__x5831__x5968__x91d1__x984d_']), '円')
+    )
+  )
+)</div>
+        </div>
+    </div>
+
+    <div class="warning">
+        <strong>OData列名について</strong><br>
+        上記の式で使用している列名：
+        <ul>
+            <li><code>OData__x5831__x5968__x91d1__x984d_</code> = 報奨金額</li>
+            <li><code>OData__x4e8b__x524d__x30dc__x30fc__x30ca__x30b9_</code> = 事前ボーナス</li>
+        </ul>
+        環境によって異なる場合があります。エラーが出る場合は、動的コンテンツから正しい列を確認してください。
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 6 ========== -->
+<section id="step6">
+<h2>Step 6: 承認アクション</h2>
+
+<div class="step">
+    <div class="step-header">6-1. 承認アクションを追加</div>
+
+    <ol>
+        <li>「作成」の下の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>アクションの追加</strong>」を選択</li>
+        <li>検索欄に「<strong>承認</strong>」と入力</li>
+        <li>「<strong>開始して承認を待機</strong>」を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title action">アクション</span>
+        <strong>開始して承認を待機</strong>
+
+        <table>
+            <tr>
+                <th>承認の種類</th>
+                <td><span class="input-value">承認/拒否 - 最初に応答</span></td>
+            </tr>
+            <tr>
+                <th>タイトル</th>
+                <td>
+                    以下を入力：<br>
+                    <span class="input-value">資格取得申請の承認依頼: </span>
+                    <span class="dynamic">Title</span>（項目の取得から）
+                </td>
+            </tr>
+            <tr>
+                <th>担当者</th>
+                <td>
+                    承認者のメールアドレスを入力<br>
+                    例：<span class="input-value">approver@example.com</span><br>
+                    または動的コンテンツから上司のメールを選択
+                </td>
+            </tr>
+            <tr>
+                <th>詳細</th>
+                <td>
+                    以下の内容を入力：
+                    <div class="formula">申請者: @{outputs('項目の取得')?['body/申請者/DisplayName']}
+資格名: @{outputs('項目の取得')?['body/Title']}
+申請種別: @{outputs('項目の取得')?['body/申請種別/Value']}
+予定日/取得日: @{outputs('項目の取得')?['body/予定日_取得日']}
+報奨金: @{outputs('作成')}
+理由: @{outputs('項目の取得')?['body/理由_内容']}</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 7 ========== -->
+<section id="step7">
+<h2>Step 7: 条件分岐（承認/却下）</h2>
+
+<div class="step">
+    <div class="step-header">7-1. 条件アクションを追加</div>
+
+    <ol>
+        <li>「開始して承認を待機」の下の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>アクションの追加</strong>」を選択</li>
+        <li>検索欄に「<strong>条件</strong>」と入力</li>
+        <li>「<strong>条件</strong>」（コントロール）を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title condition">条件</span>
+        <strong>条件（承認/却下の判定）</strong>
+
+        <table>
+            <tr>
+                <th>左辺（値の選択）</th>
+                <td>
+                    動的コンテンツ「開始して承認を待機」から：<br>
+                    <span class="dynamic">結果</span>
+                </td>
+            </tr>
+            <tr>
+                <th>演算子</th>
+                <td><span class="input-value">次の値に等しい</span></td>
+            </tr>
+            <tr>
+                <th>右辺</th>
+                <td><span class="input-value">Approve</span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 8 ========== -->
+<section id="step8">
+<h2>Step 8: 承認時の処理（True分岐）</h2>
+
+<div class="step">
+    <div class="step-header">8-1. 項目の更新（ステータス→承認済）</div>
+
+    <ol>
+        <li>「<strong>True</strong>」分岐内の「<strong>＋</strong>」をクリック</li>
+        <li>「SharePoint」→「<strong>項目の更新</strong>」を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title action">アクション</span>
+        <strong>項目の更新</strong>
+
+        <table>
+            <tr>
+                <th>サイトのアドレス</th>
+                <td>同じSharePointサイト</td>
+            </tr>
+            <tr>
+                <th>リスト名</th>
+                <td><span class="input-value">資格取得申請</span></td>
+            </tr>
+            <tr>
+                <th>ID</th>
+                <td><span class="dynamic">ID</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td><span class="dynamic">Title</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>ステータス Value</th>
+                <td><span class="input-value">承認済</span></td>
+            </tr>
+            <tr>
+                <th>承認者 Claims</th>
+                <td><span class="dynamic">応答者 ユーザー プリンシパル名</span>（承認から）</td>
+            </tr>
+            <tr>
+                <th>承認日</th>
+                <td>
+                    式タブで入力：<br>
+                    <span class="formula">utcNow()</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-header">8-2. 条件1を追加（宣言届/取得届の判定）</div>
+
+    <ol>
+        <li>「項目の更新」の下の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>条件</strong>」を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title condition">条件</span>
+        <strong>条件1（申請種別の判定）</strong>
+
+        <table>
+            <tr>
+                <th>左辺</th>
+                <td><span class="dynamic">申請種別 Value</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>演算子</th>
+                <td><span class="input-value">次の値を含む</span></td>
+            </tr>
+            <tr>
+                <th>右辺</th>
+                <td><span class="input-value">宣言届</span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-header">8-3. 条件1のTrue（宣言届）→ Teams通知</div>
+
+    <ol>
+        <li>条件1の「<strong>True</strong>」内の「<strong>＋</strong>」をクリック</li>
+        <li>「Microsoft Teams」→「<strong>チャットまたはチャネルでメッセージを投稿する</strong>」</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title teams">Teams</span>
+        <strong>Teams通知（パターン1：宣言届）</strong>
+
+        <table>
+            <tr>
+                <th>投稿者</th>
+                <td><span class="input-value">Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>投稿先</th>
+                <td><span class="input-value">Chat with Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>Recipient</th>
+                <td><span class="dynamic">申請者 Email</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>メッセージ</th>
+                <td>
+                    <div class="copy-box">
+                        <div class="copy-label">コピーするメッセージ</div>
+                        <div class="copy-content">📋 資格取得宣言届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{outputs('項目の取得')?['body/申請者/DisplayName']}
+■ 資格名: @{outputs('項目の取得')?['body/Title']}
+■ 取得予定日: @{outputs('項目の取得')?['body/予定日_取得日']}
+━━━━━━━━━━━━━━━━━━━━━
+
+✅ 宣言届の受付が完了しました。
+
+📌 資格取得後は「資格取得届」を提出してください。
+   その際、事前申請ボーナス ¥5,000 が加算されます。</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-header">8-4. 条件1のFalse（取得届）→ 条件2を追加</div>
+
+    <ol>
+        <li>条件1の「<strong>False</strong>」内の「<strong>＋</strong>」をクリック</li>
+        <li>「<strong>条件</strong>」を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title condition">条件</span>
+        <strong>条件2（事前ボーナスの有無）</strong>
+
+        <table>
+            <tr>
+                <th>左辺</th>
+                <td><span class="dynamic">事前ボーナス</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>演算子</th>
+                <td><span class="input-value">次の値より大きい</span></td>
+            </tr>
+            <tr>
+                <th>右辺</th>
+                <td><span class="input-value">0</span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-header">8-5. 条件2のTrue（ボーナスあり）→ Teams通知</div>
+
+    <div class="action-box">
+        <span class="action-title teams">Teams</span>
+        <strong>Teams通知（パターン2：取得届＋ボーナスあり）</strong>
+
+        <table>
+            <tr>
+                <th>投稿者</th>
+                <td><span class="input-value">Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>投稿先</th>
+                <td><span class="input-value">Chat with Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>Recipient</th>
+                <td><span class="dynamic">申請者 Email</span></td>
+            </tr>
+            <tr>
+                <th>メッセージ</th>
+                <td>
+                    <div class="copy-box">
+                        <div class="copy-label">コピーするメッセージ</div>
+                        <div class="copy-content">🎉 資格取得届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{outputs('項目の取得')?['body/申請者/DisplayName']}
+■ 資格名: @{outputs('項目の取得')?['body/Title']}
+■ 取得日: @{outputs('項目の取得')?['body/予定日_取得日']}
+━━━━━━━━━━━━━━━━━━━━━
+
+【報奨金内訳】
+@{outputs('作成')}
+
+おめでとうございます！🎊</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-header">8-6. 条件2のFalse（ボーナスなし）→ Teams通知</div>
+
+    <div class="action-box">
+        <span class="action-title teams">Teams</span>
+        <strong>Teams通知（パターン3：取得届のみ）</strong>
+
+        <table>
+            <tr>
+                <th>投稿者</th>
+                <td><span class="input-value">Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>投稿先</th>
+                <td><span class="input-value">Chat with Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>Recipient</th>
+                <td><span class="dynamic">申請者 Email</span></td>
+            </tr>
+            <tr>
+                <th>メッセージ</th>
+                <td>
+                    <div class="copy-box">
+                        <div class="copy-label">コピーするメッセージ</div>
+                        <div class="copy-content">🎉 資格取得届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{outputs('項目の取得')?['body/申請者/DisplayName']}
+■ 資格名: @{outputs('項目の取得')?['body/Title']}
+■ 取得日: @{outputs('項目の取得')?['body/予定日_取得日']}
+━━━━━━━━━━━━━━━━━━━━━
+
+【報奨金】
+@{outputs('作成')}
+
+おめでとうございます！🎊
+
+💡 次回は事前に「資格取得宣言届」を提出すると
+   ¥5,000のボーナスが加算されます。</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+</section>
+
+<!-- ========== Step 9 ========== -->
+<section id="step9">
+<h2>Step 9: 却下時の処理（False分岐）</h2>
+
+<div class="step">
+    <div class="step-header">9-1. 項目の更新（ステータス→却下）</div>
+
+    <ol>
+        <li>最初の条件の「<strong>False</strong>」分岐内の「<strong>＋</strong>」をクリック</li>
+        <li>「SharePoint」→「<strong>項目の更新</strong>」を選択</li>
+    </ol>
+
+    <div class="action-box">
+        <span class="action-title action">アクション</span>
+        <strong>項目の更新（却下時）</strong>
+
+        <table>
+            <tr>
+                <th>サイトのアドレス</th>
+                <td>同じSharePointサイト</td>
+            </tr>
+            <tr>
+                <th>リスト名</th>
+                <td><span class="input-value">資格取得申請</span></td>
+            </tr>
+            <tr>
+                <th>ID</th>
+                <td><span class="dynamic">ID</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td><span class="dynamic">Title</span>（項目の取得から）</td>
+            </tr>
+            <tr>
+                <th>ステータス Value</th>
+                <td><span class="input-value">却下</span></td>
+            </tr>
+            <tr>
+                <th>承認者 Claims</th>
+                <td><span class="dynamic">応答者 ユーザー プリンシパル名</span></td>
+            </tr>
+            <tr>
+                <th>承認日</th>
+                <td>式：<span class="formula">utcNow()</span></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<div class="step">
+    <div class="step-header">9-2. Teams通知（却下）</div>
+
+    <div class="action-box">
+        <span class="action-title teams">Teams</span>
+        <strong>Teams通知（却下）</strong>
+
+        <table>
+            <tr>
+                <th>投稿者</th>
+                <td><span class="input-value">Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>投稿先</th>
+                <td><span class="input-value">Chat with Flow bot</span></td>
+            </tr>
+            <tr>
+                <th>Recipient</th>
+                <td><span class="dynamic">申請者 Email</span></td>
+            </tr>
+            <tr>
+                <th>メッセージ</th>
+                <td>
+                    <div class="copy-box">
+                        <div class="copy-label">コピーするメッセージ</div>
+                        <div class="copy-content">❌ 資格取得申請が却下されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{outputs('項目の取得')?['body/申請者/DisplayName']}
+■ 資格名: @{outputs('項目の取得')?['body/Title']}
+━━━━━━━━━━━━━━━━━━━━━
+
+申請内容をご確認の上、再度申請してください。
+
+ご不明な点がございましたら、承認者にお問い合わせください。</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+</section>
+
+<!-- ========== 保存とテスト ========== -->
+<h2>Step 10: 保存とテスト</h2>
+
+<div class="step">
+    <div class="step-header">10-1. フローを保存</div>
+    <ol>
+        <li>右上の「<strong>保存</strong>」をクリック</li>
+        <li>エラーがないことを確認</li>
+    </ol>
+</div>
+
+<div class="step">
+    <div class="step-header">10-2. テストチェックリスト</div>
+
+    <div class="checklist">
+        <label><input type="checkbox"> 宣言届を申請 → 承認 → ステータスが「承認済」になる</label>
+        <label><input type="checkbox"> 宣言届を申請 → 承認 → Teams通知（金額表示なし）が届く</label>
+        <label><input type="checkbox"> 取得届（宣言届紐づけあり）→ 承認 → ボーナス表示のTeams通知が届く</label>
+        <label><input type="checkbox"> 取得届（宣言届なし）→ 承認 → 報奨金のみのTeams通知が届く</label>
+        <label><input type="checkbox"> 申請を却下 → ステータスが「却下」になる</label>
+        <label><input type="checkbox"> SharePointリストに承認者と承認日が記録される</label>
+    </div>
+</div>
+
+<div class="success">
+    <strong>✅ 完成！</strong><br>
+    全ての設定が完了したら、Power Appsから申請をテストして動作を確認してください。
+</div>
+
+<footer style="text-align: center; margin-top: 50px; padding: 20px; color: #666; font-size: 12px; border-top: 1px solid #ddd;">
+    Power Automate 完全設定ガイド | 作成日: 2026年1月20日
+</footer>
+
+</body>
+</html>

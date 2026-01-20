@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Apps 修正後UIイメージ</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .app-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            width: 480px;
+            overflow: hidden;
+        }
+        .app-header {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .app-body {
+            padding: 20px;
+        }
+        .form-row {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+        .form-label {
+            width: 100px;
+            font-size: 13px;
+            color: #333;
+            padding-top: 8px;
+            flex-shrink: 0;
+        }
+        .form-control {
+            flex: 1;
+        }
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            padding: 5px 0;
+        }
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+        }
+        .radio-item input[type="radio"] {
+            accent-color: #1976d2;
+        }
+        .dropdown {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            background: white;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .date-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            min-height: 60px;
+            resize: vertical;
+        }
+        .info-box {
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .info-warning {
+            background: #fff8e1;
+            border: 1px solid #ffcc02;
+            color: #856404;
+        }
+        .info-success {
+            background: #e8f5e9;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+        }
+        .info-primary {
+            background: #e3f2fd;
+            border: 1px solid #1976d2;
+            color: #1565c0;
+        }
+        .reward-display {
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 0;
+        }
+        .reward-amount {
+            color: #d32f2f;
+            font-size: 16px;
+        }
+        .bonus-tag {
+            background: #ff9800;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #1565c0, #0d47a1);
+        }
+        .section-title {
+            text-align: center;
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 14px;
+            padding: 8px;
+            background: #e3f2fd;
+            border-radius: 4px;
+        }
+        .new-field {
+            position: relative;
+        }
+        .new-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .divider {
+            border-top: 1px dashed #ddd;
+            margin: 15px 0;
+        }
+        .helper-text {
+            font-size: 11px;
+            color: #666;
+            margin-top: 4px;
+        }
+        .highlight-row {
+            background: #fffde7;
+            margin: -5px -10px;
+            padding: 10px;
+            border-radius: 4px;
+            border: 2px dashed #ffc107;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Power Apps 修正後UIイメージ</h1>
+
+<div class="container">
+    <!-- パターン1: 資格取得宣言届 -->
+    <div class="app-container">
+        <div class="app-header">資格取得申請</div>
+        <div class="app-body">
+            <div class="section-title">パターン1：資格取得宣言届（事前申請）</div>
+
+            <div class="form-row">
+                <div class="form-label">申請種別</div>
+                <div class="form-control">
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="type1" checked> 資格取得宣言届
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="type1"> 資格取得届
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">分類</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>税務</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">資格名</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>税理士試験</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">詳細</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>税法科目合格</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">取得予定日</div>
+                <div class="form-control">
+                    <input type="text" class="date-input" value="2026年8月15日" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">理由・内容</div>
+                <div class="form-control">
+                    <textarea class="textarea" placeholder="資格を取得したい理由を入力してください">今年度中の合格を目指して勉強中です。</textarea>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-row">
+                <div class="form-label">報奨金</div>
+                <div class="form-control">
+                    <div class="info-warning">
+                        <strong>※この届出では報奨金は発生しません。</strong><br>
+                        資格取得後に「資格取得届」を提出してください。<br>
+                        <span style="color: #e65100;">事前申請ボーナス ¥5,000 が加算されます。</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="submit-btn">申請する</button>
+        </div>
+    </div>
+
+    <!-- パターン2: 資格取得届（宣言届あり） -->
+    <div class="app-container">
+        <div class="app-header">資格取得申請</div>
+        <div class="app-body">
+            <div class="section-title">パターン2：資格取得届（宣言届を紐づけた場合）</div>
+
+            <div class="form-row">
+                <div class="form-label">申請種別</div>
+                <div class="form-control">
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="type2"> 資格取得宣言届
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="type2" checked> 資格取得届
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">分類</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>会計</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">資格名</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>日商簿記検定</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">詳細</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>1級</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 新規追加フィールド -->
+            <div class="form-row">
+                <div class="form-label">過去の宣言届</div>
+                <div class="form-control new-field">
+                    <span class="new-badge">NEW</span>
+                    <div class="highlight-row">
+                        <select class="dropdown">
+                            <option>2025/06/01 申請 - 日商簿記検定 1級</option>
+                        </select>
+                        <div class="helper-text">※宣言届を選択すると事前申請ボーナスが加算されます</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">取得日</div>
+                <div class="form-control">
+                    <input type="text" class="date-input" value="2026年1月15日" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">理由・内容</div>
+                <div class="form-control">
+                    <textarea class="textarea">1月の試験で合格しました。</textarea>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-row">
+                <div class="form-label">報奨金</div>
+                <div class="form-control">
+                    <div class="info-success">
+                        <div class="reward-display">
+                            基本報奨金: <span class="reward-amount">¥50,000</span><br>
+                            事前申請ボーナス: <span class="reward-amount">¥5,000</span>
+                            <span class="bonus-tag">宣言届あり</span><br>
+                            <div style="border-top: 1px solid #4caf50; margin: 5px 0; padding-top: 5px;">
+                                <strong>合計: <span class="reward-amount">¥55,000</span></strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="submit-btn">申請する</button>
+        </div>
+    </div>
+</div>
+
+<div class="container" style="margin-top: 40px;">
+    <!-- パターン3: 資格取得届（宣言届なし） -->
+    <div class="app-container">
+        <div class="app-header">資格取得申請</div>
+        <div class="app-body">
+            <div class="section-title">パターン3：資格取得届（宣言届なし・直接申請）</div>
+
+            <div class="form-row">
+                <div class="form-label">申請種別</div>
+                <div class="form-control">
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="type3"> 資格取得宣言届
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="type3" checked> 資格取得届
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">分類</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>IT</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">資格名</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>基本情報技術者</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">詳細</div>
+                <div class="form-control">
+                    <select class="dropdown">
+                        <option>-</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 新規追加フィールド（該当なしの場合） -->
+            <div class="form-row">
+                <div class="form-label">過去の宣言届</div>
+                <div class="form-control new-field">
+                    <span class="new-badge">NEW</span>
+                    <div class="highlight-row">
+                        <select class="dropdown" style="color: #999;">
+                            <option>（該当する宣言届がありません）</option>
+                        </select>
+                        <div class="helper-text">※事前に宣言届を出していない場合、ボーナスは加算されません</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">取得日</div>
+                <div class="form-control">
+                    <input type="text" class="date-input" value="2026年1月10日" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">理由・内容</div>
+                <div class="form-control">
+                    <textarea class="textarea">春期試験で合格しました。</textarea>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-row">
+                <div class="form-label">報奨金</div>
+                <div class="form-control">
+                    <div class="info-primary">
+                        <div class="reward-display">
+                            報奨金: <span class="reward-amount">¥25,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="submit-btn">申請する</button>
+        </div>
+    </div>
+
+    <!-- 凡例 -->
+    <div class="app-container" style="background: #fafafa;">
+        <div class="app-header" style="background: #616161;">修正ポイント凡例</div>
+        <div class="app-body">
+            <h3 style="margin-top: 0; color: #333;">UIの変更点</h3>
+
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <span class="new-badge" style="position: static;">NEW</span>
+                    <span>新規追加フィールド</span>
+                </div>
+                <p style="font-size: 13px; color: #666; margin: 5px 0;">
+                    「過去の宣言届」ドロップダウンは、「資格取得届」選択時のみ表示されます。
+                </p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <div style="width: 20px; height: 20px; background: #fffde7; border: 2px dashed #ffc107;"></div>
+                    <span>ハイライト表示エリア</span>
+                </div>
+                <p style="font-size: 13px; color: #666; margin: 5px 0;">
+                    修正によって追加された重要な入力項目
+                </p>
+            </div>
+
+            <h3 style="color: #333;">報奨金表示の3パターン</h3>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                <tr style="background: #667eea; color: white;">
+                    <th style="padding: 8px; text-align: left;">パターン</th>
+                    <th style="padding: 8px; text-align: left;">表示内容</th>
+                </tr>
+                <tr style="background: #fff8e1;">
+                    <td style="padding: 8px; border: 1px solid #ddd;">宣言届</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">金額なし（注意メッセージ）</td>
+                </tr>
+                <tr style="background: #e8f5e9;">
+                    <td style="padding: 8px; border: 1px solid #ddd;">取得届（宣言届あり）</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">報奨金 + ¥5,000</td>
+                </tr>
+                <tr style="background: #e3f2fd;">
+                    <td style="padding: 8px; border: 1px solid #ddd;">取得届（宣言届なし）</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">報奨金のみ</td>
+                </tr>
+            </table>
+
+            <h3 style="color: #333; margin-top: 20px;">ラベルの動的変更</h3>
+            <ul style="font-size: 13px; color: #666;">
+                <li>宣言届選択時：「取得<strong>予定</strong>日」</li>
+                <li>取得届選択時：「取得日」</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<footer style="text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 12px;">
+    Power Apps 修正後UIイメージ | 作成日: 2026年1月20日
+</footer>
+
+</body>
+</html>

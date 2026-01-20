@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資格申請システム 修正ガイド</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        h2 {
+            background: #667eea;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            margin-top: 40px;
+        }
+        h3 {
+            border-left: 5px solid #667eea;
+            padding-left: 15px;
+            margin-top: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before {
+            background: #ffebee;
+            border: 2px solid #f44336;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .after {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .before h4 { color: #c62828; margin-top: 0; }
+        .after h4 { color: #2e7d32; margin-top: 0; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #667eea;
+            color: white;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        code {
+            background: #2d3748;
+            color: #68d391;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+        }
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            white-space: pre-wrap;
+        }
+        pre code {
+            background: none;
+            padding: 0;
+        }
+        .highlight { background: #fff3cd; padding: 2px 5px; }
+        .important {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .step-number {
+            background: #1976d2;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .flow-chart {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            font-family: monospace;
+        }
+        ul { padding-left: 25px; }
+        li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+
+<h1>資格申請システム 修正ガイド</h1>
+
+<div class="card">
+    <h2>修正の概要</h2>
+
+    <h3>現在の仕様（誤り）</h3>
+    <p>資格取得<strong>宣言届</strong>を出した時点で、<span class="highlight">事前申請ボーナス5,000円 + 報奨金額</span>が表示・支給対象となる</p>
+
+    <h3>正しい仕様</h3>
+    <ul>
+        <li><strong>資格取得宣言届</strong>：申請を受け付けるのみ。<span class="highlight">金銭的報酬なし</span></li>
+        <li><strong>資格取得届け出</strong>（合格後）：
+            <ul>
+                <li>事前に宣言届を出していた場合 → <strong>報奨金 + 5,000円ボーナス</strong></li>
+                <li>宣言届なしで直接申請した場合 → <strong>報奨金のみ</strong></li>
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<div class="card">
+    <h2>報奨金支給パターン比較</h2>
+
+    <div class="before-after">
+        <div class="before">
+            <h4>現在（誤り）</h4>
+            <table>
+                <tr><th>申請種別</th><th>支給額</th></tr>
+                <tr><td>宣言届</td><td>報奨金 + 5,000円</td></tr>
+                <tr><td>取得届</td><td>報奨金のみ</td></tr>
+            </table>
+        </div>
+        <div class="after">
+            <h4>正しい仕様</h4>
+            <table>
+                <tr><th>申請種別</th><th>支給額</th></tr>
+                <tr><td>宣言届</td><td><strong>なし（記録のみ）</strong></td></tr>
+                <tr><td>取得届（宣言届あり）</td><td>報奨金 + 5,000円</td></tr>
+                <tr><td>取得届（宣言届なし）</td><td>報奨金のみ</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<h2>修正箇所一覧</h2>
+
+<div class="card">
+    <table>
+        <tr>
+            <th>No.</th>
+            <th>対象</th>
+            <th>修正内容</th>
+            <th>難易度</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>SharePointリスト</td>
+            <td>「関連宣言届ID」列の追加</td>
+            <td>★☆☆</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Power Apps</td>
+            <td>報奨金表示ロジックの変更</td>
+            <td>★★☆</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Power Apps</td>
+            <td>取得届時の宣言届紐づけ機能</td>
+            <td>★★★</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Power Automate</td>
+            <td>報奨金計算ロジックの変更</td>
+            <td>★★☆</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>Power Automate</td>
+            <td>Teams通知メッセージの変更</td>
+            <td>★☆☆</td>
+        </tr>
+    </table>
+</div>
+
+<h2>1. SharePointリストの修正</h2>
+
+<div class="card">
+    <h3>修正内容</h3>
+    <p>「資格取得申請」リストに以下の列を追加・変更</p>
+
+    <table>
+        <tr>
+            <th>列名</th>
+            <th>データ型</th>
+            <th>説明</th>
+            <th>新規/変更</th>
+        </tr>
+        <tr>
+            <td><code>関連宣言届ID</code></td>
+            <td>1行テキスト</td>
+            <td>取得届から宣言届を紐づけるためのID</td>
+            <td>新規</td>
+        </tr>
+        <tr>
+            <td><code>事前ボーナス</code></td>
+            <td>数値</td>
+            <td>取得届承認時のみ計算（宣言届時は常に0）</td>
+            <td>変更</td>
+        </tr>
+        <tr>
+            <td><code>最終支給額</code></td>
+            <td>数値</td>
+            <td>取得届承認時に確定する支給額</td>
+            <td>新規</td>
+        </tr>
+    </table>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>SharePointサイトを開く</strong><br>
+        対象サイト → サイトコンテンツ → 「資格取得申請」リスト
+    </div>
+
+    <div class="step">
+        <span class="step-number">2</span>
+        <strong>列を追加</strong><br>
+        設定 → 「列の追加」 → 上記の列を順に作成
+    </div>
+</div>
+
+<h2>2. Power Appsの修正</h2>
+
+<div class="card">
+    <h3>修正A：報奨金表示ラベル（Label3）の変更</h3>
+
+    <div class="before-after">
+        <div class="before">
+            <h4>現在のコード</h4>
+<pre><code>If(
+    LookUp(...報奨金) = 0,
+    If(
+        RadioApplicationType.Selected.Value = "資格取得宣言届",
+        "報奨金: ¥5,000（事前申請ボーナス）+ 受験料相当額",
+        "報奨金: 受験料相当額"
+    ),
+    If(
+        RadioApplicationType.Selected.Value = "資格取得宣言届",
+        "報奨金: ¥" &amp; Text(...) &amp; " + ¥5,000（事前申請ボーナス）",
+        "報奨金: ¥" &amp; Text(...)
+    )
+)</code></pre>
+        </div>
+        <div class="after">
+            <h4>修正後のコード</h4>
+<pre><code>If(
+    RadioApplicationType.Selected.Value = "資格取得宣言届",
+    // 宣言届の場合：金額表示なし
+    "※この届出では報奨金は発生しません。" &amp; Char(10) &amp;
+    "資格取得後に「資格取得届」を提出してください。",
+
+    // 取得届の場合：従来通り表示
+    If(
+        LookUp(資格マスタ,
+            Title = DropdownQualification.Selected.Value &amp;&amp;
+            詳細 = DropdownDetail.Selected.Value,
+            報奨金) = 0,
+        "報奨金: 受験料相当額",
+        "報奨金: ¥" &amp; Text(
+            LookUp(資格マスタ,
+                Title = DropdownQualification.Selected.Value &amp;&amp;
+                詳細 = DropdownDetail.Selected.Value,
+                報奨金),
+            "#,##0"
+        )
+    )
+)</code></pre>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>修正B：取得届時の宣言届紐づけ機能</h3>
+
+    <p>「資格取得届」選択時に、過去の宣言届を選択できるドロップダウンを追加</p>
+
+    <div class="step">
+        <span class="step-number">1</span>
+        <strong>新規ドロップダウン追加</strong><br>
+        コントロール名：<code>DropdownRelatedDeclaration</code>
+    </div>
+
+    <h4>Items プロパティ</h4>
+<pre><code>If(
+    RadioApplicationType.Selected.Value = "資格取得届",
+    // 自分が過去に出した宣言届で、同じ資格のものをリスト表示
+    Filter(
+        資格取得申請,
+        申請者.Email = User().Email &amp;&amp;
+        申請種別.Value = "資格取得宣言届" &amp;&amp;
+        取得資格.Title = DropdownQualification.Selected.Value &amp;&amp;
+        ステータス.Value = "承認済"
+    ),
+    Blank()
+)</code></pre>
+
+    <h4>Visible プロパティ</h4>
+<pre><code>RadioApplicationType.Selected.Value = "資格取得届"</code></pre>
+
+    <div class="important">
+        <strong>ポイント</strong><br>
+        このドロップダウンで宣言届を選択すると、事前申請ボーナス5,000円が加算される仕組み
+    </div>
+</div>
+
+<div class="card">
+    <h3>修正C：取得届の報奨金表示（宣言届選択時）</h3>
+
+    <p>Label3に追加するロジック（取得届で宣言届を紐づけた場合）</p>
+
+<pre><code>If(
+    RadioApplicationType.Selected.Value = "資格取得届",
+    If(
+        // 宣言届を紐づけた場合
+        !IsBlank(DropdownRelatedDeclaration.Selected),
+        If(
+            LookUp(...報奨金) = 0,
+            "報奨金: 受験料相当額 + ¥5,000（事前申請ボーナス）",
+            "報奨金: ¥" &amp; Text(LookUp(...報奨金), "#,##0") &amp;
+            " + ¥5,000（事前申請ボーナス）"
+        ),
+        // 宣言届なしの場合
+        If(
+            LookUp(...報奨金) = 0,
+            "報奨金: 受験料相当額",
+            "報奨金: ¥" &amp; Text(LookUp(...報奨金), "#,##0")
+        )
+    ),
+    // 宣言届の場合
+    "※この届出では報奨金は発生しません。"
+)</code></pre>
+</div>
+
+<div class="card">
+    <h3>修正D：送信ボタン（ButtonSubmit.OnSelect）</h3>
+
+<pre><code>Patch(
+    資格取得申請,
+    Defaults(資格取得申請),
+    {
+        タイトル: DropdownQualification.Selected.Value,
+        申請種別: {Value: RadioApplicationType.Selected.Value},
+        申請日: Today(),
+        予定日_取得日: DatePickerAcquisition.SelectedDate,
+        理由_内容: TextInputReason.Text,
+        ステータス: {Value: "申請中"},
+
+        // 報奨金額（マスタから取得）
+        報奨金額: LookUp(
+            資格マスタ,
+            Title = DropdownQualification.Selected.Value &amp;&amp;
+            詳細 = DropdownDetail.Selected.Value,
+            報奨金
+        ),
+
+        // ★修正ポイント：宣言届時は常に0
+        事前ボーナス: If(
+            RadioApplicationType.Selected.Value = "資格取得届" &amp;&amp;
+            !IsBlank(DropdownRelatedDeclaration.Selected),
+            5000,
+            0
+        ),
+
+        // ★新規：関連宣言届ID
+        関連宣言届ID: If(
+            RadioApplicationType.Selected.Value = "資格取得届",
+            Text(DropdownRelatedDeclaration.Selected.ID),
+            ""
+        )
+    }
+);
+Navigate(Screen2, ScreenTransition.Fade)</code></pre>
+</div>
+
+<h2>3. Power Automateの修正</h2>
+
+<div class="card">
+    <h3>修正A：報奨金表示ロジック（「作成」アクション）</h3>
+
+    <div class="before-after">
+        <div class="before">
+            <h4>現在の式</h4>
+<pre><code>if(
+  equals(items('Get_item')?['報奨金額'], 0),
+  if(
+    equals(items('Get_item')?['申請種別'], '資格取得宣言届'),
+    '¥5,000（事前申請ボーナス）+ 受験料相当額',
+    '受験料相当額'
+  ),
+  if(
+    equals(items('Get_item')?['申請種別'], '資格取得宣言届'),
+    concat('¥', formatNumber(...), ' + ¥5,000'),
+    concat('¥', formatNumber(...))
+  )
+)</code></pre>
+        </div>
+        <div class="after">
+            <h4>修正後の式</h4>
+<pre><code>if(
+  equals(items('Get_item')?['申請種別'], '資格取得宣言届'),
+  // 宣言届の場合：金額表示なし
+  '※報奨金は資格取得後の届出時に確定します',
+
+  // 取得届の場合
+  if(
+    greater(items('Get_item')?['事前ボーナス'], 0),
+    // 宣言届ありの場合
+    if(
+      equals(items('Get_item')?['報奨金額'], 0),
+      '受験料相当額 + ¥5,000（事前申請ボーナス）',
+      concat(
+        '¥',
+        formatNumber(items('Get_item')?['報奨金額'], '#,##0'),
+        ' + ¥5,000（事前申請ボーナス）'
+      )
+    ),
+    // 宣言届なしの場合
+    if(
+      equals(items('Get_item')?['報奨金額'], 0),
+      '受験料相当額',
+      concat('¥', formatNumber(items('Get_item')?['報奨金額'], '#,##0'))
+    )
+  )
+)</code></pre>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>修正B：Teams通知メッセージ</h3>
+
+    <h4>宣言届承認時のメッセージ</h4>
+<pre><code>資格取得宣言届が承認されました
+
+申請者: @{items('Get_item')?['申請者']?['DisplayName']}
+資格名: @{items('Get_item')?['取得資格']?['Title']}
+取得予定日: @{items('Get_item')?['予定日_取得日']}
+
+宣言届の受付が完了しました。
+資格取得後は「資格取得届」を提出してください。
+事前申請ボーナス ¥5,000 が加算されます。</code></pre>
+
+    <h4>取得届承認時のメッセージ（宣言届あり）</h4>
+<pre><code>資格取得届が承認されました
+
+申請者: @{items('Get_item')?['申請者']?['DisplayName']}
+資格名: @{items('Get_item')?['取得資格']?['Title']}
+取得日: @{items('Get_item')?['予定日_取得日']}
+
+【報奨金内訳】
+  基本報奨金: ¥@{formatNumber(items('Get_item')?['報奨金額'], '#,##0')}
+  事前申請ボーナス: ¥5,000
+  ────────────────
+  合計: ¥@{formatNumber(add(items('Get_item')?['報奨金額'], 5000), '#,##0')}</code></pre>
+
+    <h4>取得届承認時のメッセージ（宣言届なし）</h4>
+<pre><code>資格取得届が承認されました
+
+申請者: @{items('Get_item')?['申請者']?['DisplayName']}
+資格名: @{items('Get_item')?['取得資格']?['Title']}
+取得日: @{items('Get_item')?['予定日_取得日']}
+
+【報奨金】
+  ¥@{formatNumber(items('Get_item')?['報奨金額'], '#,##0')}</code></pre>
+</div>
+
+<h2>修正フロー図</h2>
+
+<div class="card">
+    <div class="flow-chart">
+<pre>
+┌─────────────────────────────────────────────────────────────┐
+│                      申請フロー（修正後）                     │
+└─────────────────────────────────────────────────────────────┘
+
+従業員が資格試験受験を決定
+            │
+            ▼
+    ┌───────────────┐
+    │  申請種別選択   │
+    └───────┬───────┘
+            │
+    ┌───────┴───────┐
+    ▼               ▼
+┌─────────┐    ┌─────────┐
+│ 宣言届  │    │ 取得届  │
+└────┬────┘    └────┬────┘
+     │              │
+     ▼              ▼
+┌─────────────┐ ┌─────────────────┐
+│ 金額表示なし │ │ 過去の宣言届を  │
+│ 「記録のみ」 │ │  選択可能？     │
+└─────┬───────┘ └────────┬────────┘
+      │                   │
+      ▼            ┌──────┴──────┐
+┌─────────────┐    ▼             ▼
+│ 承認フロー  │  選択あり     選択なし
+│ （通知のみ）│    │             │
+└─────┬───────┘    ▼             ▼
+      │      ┌──────────┐  ┌──────────┐
+      │      │報奨金     │  │報奨金    │
+      │      │+5,000円  │  │のみ      │
+      │      └────┬─────┘  └────┬─────┘
+      │           │             │
+      │           └──────┬──────┘
+      │                  ▼
+      │           ┌─────────────┐
+      │           │  承認フロー  │
+      │           │ （金額確定） │
+      │           └─────────────┘
+      │
+      ▼
+┌─────────────────────────────┐
+│ 資格取得後「取得届」を提出  │
+│ → 宣言届と紐づけて          │
+│   ボーナス5,000円を受け取る │
+└─────────────────────────────┘
+</pre>
+    </div>
+</div>
+
+<h2>修正チェックリスト</h2>
+
+<div class="card">
+    <table>
+        <tr>
+            <th>チェック</th>
+            <th>対象</th>
+            <th>作業内容</th>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>SharePoint</td>
+            <td>「関連宣言届ID」列を追加</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>SharePoint</td>
+            <td>「最終支給額」列を追加</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>Power Apps</td>
+            <td>Label3の報奨金表示ロジックを変更</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>Power Apps</td>
+            <td>宣言届選択用ドロップダウンを追加</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>Power Apps</td>
+            <td>ButtonSubmitのOnSelectを修正</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>Power Automate</td>
+            <td>「作成」アクションの報奨金計算式を修正</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>Power Automate</td>
+            <td>Teams通知メッセージを修正（3パターン）</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>テスト</td>
+            <td>宣言届のみ申請 → 金額表示なし確認</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>テスト</td>
+            <td>取得届（宣言届紐づけあり）→ +5,000円確認</td>
+        </tr>
+        <tr>
+            <td>□</td>
+            <td>テスト</td>
+            <td>取得届（宣言届なし）→ 報奨金のみ確認</td>
+        </tr>
+    </table>
+</div>
+
+<div class="card">
+    <h2>補足：ドキュメント修正箇所</h2>
+    <p>GitHub上のドキュメントも以下を修正する必要があります：</p>
+    <ul>
+        <li><code>01_sharepoint-lists.md</code> - 新規列の追加</li>
+        <li><code>02_power-apps.md</code> - 報奨金表示ロジック、新規ドロップダウン</li>
+        <li><code>03_power-automate.md</code> - 報奨金計算ロジック、通知メッセージ</li>
+        <li><code>power-apps-improvement-guide.html</code> - 該当箇所の更新</li>
+        <li><code>power-automate-improvement-guide.html</code> - 該当箇所の更新</li>
+    </ul>
+</div>
+
+<footer style="text-align: center; margin-top: 40px; padding: 20px; color: #666;">
+    作成日: 2026年1月20日
+</footer>
+
+</body>
+</html>

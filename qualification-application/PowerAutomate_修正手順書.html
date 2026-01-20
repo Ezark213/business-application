@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Automate 修正手順書</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8f9fa;
+            color: #333;
+        }
+        h1 {
+            background: linear-gradient(135deg, #0078d4 0%, #106ebe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            background: #0078d4;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 50px;
+            counter-increment: section;
+        }
+        h2::before {
+            content: "Part " counter(section) ": ";
+        }
+        h3 {
+            background: #e3f2fd;
+            padding: 12px 15px;
+            border-radius: 5px;
+            border-left: 5px solid #0078d4;
+            margin-top: 30px;
+        }
+        .task-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .step {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px 20px;
+            margin: 15px 0;
+            position: relative;
+            padding-left: 70px;
+        }
+        .step::before {
+            content: attr(data-step);
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #0078d4;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #0078d4;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+        .step-detail {
+            color: #555;
+            font-size: 14px;
+        }
+        .click-path {
+            background: #fff3e0;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .click-path span {
+            background: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin: 0 3px;
+        }
+        code {
+            background: #263238;
+            color: #80cbc4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        pre {
+            background: #263238;
+            color: #eeffff;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.5;
+            margin: 15px 0;
+        }
+        .copy-box {
+            position: relative;
+            margin: 15px 0;
+        }
+        .copy-label {
+            background: #4caf50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 5px 5px 0 0;
+            font-size: 12px;
+            display: inline-block;
+        }
+        .copy-content {
+            background: #263238;
+            color: #eeffff;
+            padding: 15px;
+            border-radius: 0 8px 8px 8px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .warning {
+            background: #fff8e1;
+            border-left: 5px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .success {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .error {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #0078d4;
+            color: white;
+        }
+        tr:nth-child(even) { background: #f5f5f5; }
+        .checklist {
+            background: #f5f5f5;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .checklist label {
+            display: block;
+            padding: 8px 0;
+            cursor: pointer;
+        }
+        .checklist input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .nav {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .nav-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #0078d4;
+        }
+        .nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .nav li a {
+            display: block;
+            padding: 8px 15px;
+            background: #e3f2fd;
+            color: #0078d4;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .nav li a:hover {
+            background: #0078d4;
+            color: white;
+        }
+        .image-placeholder {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 15px 0;
+        }
+        .highlight {
+            background: #ffeb3b;
+            padding: 2px 5px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .badge-new { background: #e3f2fd; color: #1565c0; }
+        .badge-edit { background: #fff3e0; color: #e65100; }
+        .badge-important { background: #fce4ec; color: #c2185b; }
+    </style>
+</head>
+<body>
+
+<h1>Power Automate 修正手順書</h1>
+
+<div class="nav">
+    <div class="nav-title">目次（クリックでジャンプ）</div>
+    <ul>
+        <li><a href="#part0">準備作業</a></li>
+        <li><a href="#part1">報奨金ロジック修正</a></li>
+        <li><a href="#part2">条件分岐の追加</a></li>
+        <li><a href="#part3">Teams通知の修正</a></li>
+        <li><a href="#part4">保存とテスト</a></li>
+    </ul>
+</div>
+
+<!-- ========== 準備作業 ========== -->
+<section id="part0">
+<h2>準備作業</h2>
+
+<div class="task-box">
+    <h3>Power Automateを開く</h3>
+
+    <div class="step" data-step="1">
+        <div class="step-title">ブラウザでPower Automateにアクセス</div>
+        <div class="step-detail">
+            <div class="click-path">
+                <span>https://make.powerautomate.com</span> にアクセス
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="2">
+        <div class="step-title">マイフローを開く</div>
+        <div class="step-detail">
+            <div class="click-path">
+                左メニュー <span>マイ フロー</span> をクリック
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="3">
+        <div class="step-title">対象のフローを選択</div>
+        <div class="step-detail">
+            <div class="click-path">
+                <span>資格取得申請 - 承認フロー</span> をクリック
+            </div>
+            <p>※フロー名が異なる場合は、該当するフローを選択</p>
+        </div>
+    </div>
+
+    <div class="step" data-step="4">
+        <div class="step-title">編集モードに入る</div>
+        <div class="step-detail">
+            <div class="click-path">
+                上部メニュー <span>編集</span> ボタンをクリック
+            </div>
+        </div>
+    </div>
+
+    <div class="info">
+        <strong>現在のフロー構成を確認</strong><br>
+        以下のようなアクションがあるはずです：
+        <ul>
+            <li>トリガー：「項目が作成されたとき」</li>
+            <li>遅延：10秒待機</li>
+            <li>項目の取得 または 項目の更新</li>
+            <li>作成（報奨金表示用）</li>
+            <li>承認アクション</li>
+            <li>条件分岐（承認/却下）</li>
+            <li>Teams通知</li>
+        </ul>
+    </div>
+</div>
+</section>
+
+<!-- ========== Part 1: 報奨金ロジック修正 ========== -->
+<section id="part1">
+<h2>報奨金表示ロジックの修正</h2>
+
+<div class="task-box">
+    <h3>「作成」アクションを探す</h3>
+
+    <div class="step" data-step="1">
+        <div class="step-title">報奨金表示用の「作成」アクションを見つける</div>
+        <div class="step-detail">
+            フロー内をスクロールして、以下のような式が含まれる「作成」アクションを探します。
+            <pre>if(equals(outputs('項目の更新_2')?['body/OData__x5831__x5968...']</pre>
+            <p>※アクション名は「作成」「Compose」「報奨金計算」などの可能性があります</p>
+        </div>
+    </div>
+
+    <div class="step" data-step="2">
+        <div class="step-title">「作成」アクションをクリックして展開</div>
+        <div class="step-detail">
+            <div class="click-path">
+                <span>作成</span> アクションをクリック → 入力欄が表示される
+            </div>
+        </div>
+    </div>
+
+    <h3>式を修正する</h3>
+
+    <div class="step" data-step="3">
+        <div class="step-title">現在の式を全て選択して削除</div>
+        <div class="step-detail">
+            <div class="click-path">
+                入力欄をクリック → <span>Ctrl + A</span> で全選択 → <span>Delete</span> で削除
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="4">
+        <div class="step-title">新しい式を貼り付け</div>
+        <div class="step-detail">
+            <p><span class="badge badge-important">重要</span> 以下の式をコピーして貼り付けてください：</p>
+
+            <div class="copy-box">
+                <div class="copy-label">コピーする式（報奨金表示ロジック）</div>
+                <div class="copy-content">if(
+  equals(triggerOutputs()?['body/申請種別/Value'], '資格取得宣言届'),
+  '※報奨金は資格取得後の届出時に確定します',
+  if(
+    equals(triggerOutputs()?['body/OData__x5831__x5968__x91d1__x984d_'], 0),
+    if(
+      greater(triggerOutputs()?['body/OData__x4e8b__x524d__x30dc__x30fc__x30ca__x30b9_'], 0),
+      '受験料相当額 + 5,000円（事前申請ボーナス）',
+      '受験料相当額'
+    ),
+    if(
+      greater(triggerOutputs()?['body/OData__x4e8b__x524d__x30dc__x30fc__x30ca__x30b9_'], 0),
+      concat(string(triggerOutputs()?['body/OData__x5831__x5968__x91d1__x984d_']), '円 + 5,000円（事前申請ボーナス）'),
+      concat(string(triggerOutputs()?['body/OData__x5831__x5968__x91d1__x984d_']), '円')
+    )
+  )
+)</div>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ 注意：列名について</strong><br>
+                上記の式で使用しているOData列名は環境によって異なる場合があります。
+                <ul>
+                    <li><code>OData__x5831__x5968__x91d1__x984d_</code> = 報奨金額</li>
+                    <li><code>OData__x4e8b__x524d__x30dc__x30fc__x30ca__x30b9_</code> = 事前ボーナス</li>
+                </ul>
+                エラーが出る場合は、動的コンテンツから正しい列を選択してください。
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="5">
+        <div class="step-title">式の参照先を確認・修正</div>
+        <div class="step-detail">
+            <p>もし <code>triggerOutputs()</code> でエラーが出る場合は、以下に置き換えてください：</p>
+
+            <table>
+                <tr>
+                    <th>パターン</th>
+                    <th>使用する式</th>
+                </tr>
+                <tr>
+                    <td>トリガーから直接取得</td>
+                    <td><code>triggerOutputs()?['body/列名']</code></td>
+                </tr>
+                <tr>
+                    <td>「項目の取得」から取得</td>
+                    <td><code>outputs('項目の取得')?['body/列名']</code></td>
+                </tr>
+                <tr>
+                    <td>「項目の更新_2」から取得</td>
+                    <td><code>outputs('項目の更新_2')?['body/列名']</code></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- ========== Part 2: 条件分岐の追加 ========== -->
+<section id="part2">
+<h2>条件分岐の追加（Teams通知用）</h2>
+
+<div class="task-box">
+    <h3>承認後の処理に条件分岐を追加</h3>
+
+    <div class="info">
+        <strong>目的</strong><br>
+        宣言届と取得届で異なるTeams通知を送信するため、条件分岐を追加します。
+    </div>
+
+    <div class="step" data-step="1">
+        <div class="step-title">承認の「はい」分岐を見つける</div>
+        <div class="step-detail">
+            <div class="click-path">
+                <span>承認</span> アクションの下 → <span>条件</span> → <span>はい</span> の分岐をクリック
+            </div>
+            <p>ここに「ステータス更新」や「Teams通知」のアクションがあるはずです。</p>
+        </div>
+    </div>
+
+    <div class="step" data-step="2">
+        <div class="step-title">「アクションの追加」をクリック</div>
+        <div class="step-detail">
+            <div class="click-path">
+                「はい」分岐内の <span>＋</span> ボタン → <span>アクションの追加</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="3">
+        <div class="step-title">「条件」アクションを追加</div>
+        <div class="step-detail">
+            <div class="click-path">
+                検索欄に <span>条件</span> と入力 → <span>条件</span> を選択
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="4">
+        <div class="step-title">条件を設定（申請種別の判定）</div>
+        <div class="step-detail">
+            <table>
+                <tr>
+                    <th>設定項目</th>
+                    <th>値</th>
+                </tr>
+                <tr>
+                    <td>左辺（値の選択）</td>
+                    <td>動的コンテンツから <code>申請種別 Value</code> を選択</td>
+                </tr>
+                <tr>
+                    <td>演算子</td>
+                    <td><code>次の値に等しい</code></td>
+                </tr>
+                <tr>
+                    <td>右辺</td>
+                    <td><code>資格取得宣言届</code> と入力</td>
+                </tr>
+            </table>
+
+            <div class="image-placeholder">
+                条件設定のイメージ<br><br>
+                [ 申請種別 Value ] [ 次の値に等しい ] [ 資格取得宣言届 ]
+            </div>
+        </div>
+    </div>
+
+    <h3>さらに条件分岐を追加（事前ボーナス判定）</h3>
+
+    <div class="step" data-step="5">
+        <div class="step-title">「いいえ」分岐内にもう一つ条件を追加</div>
+        <div class="step-detail">
+            <p>「いいえ」（＝取得届の場合）の中に、事前ボーナスの有無を判定する条件を追加します。</p>
+            <div class="click-path">
+                <span>いいえ</span> 分岐 → <span>＋</span> → <span>アクションの追加</span> → <span>条件</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="6">
+        <div class="step-title">条件を設定（事前ボーナスの判定）</div>
+        <div class="step-detail">
+            <table>
+                <tr>
+                    <th>設定項目</th>
+                    <th>値</th>
+                </tr>
+                <tr>
+                    <td>左辺</td>
+                    <td>動的コンテンツから <code>事前ボーナス</code> を選択</td>
+                </tr>
+                <tr>
+                    <td>演算子</td>
+                    <td><code>次の値より大きい</code></td>
+                </tr>
+                <tr>
+                    <td>右辺</td>
+                    <td><code>0</code></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="success">
+        <strong>✅ 条件分岐の構造</strong>
+        <pre style="background: transparent; color: inherit; padding: 10px 0;">
+承認アクション
+  └─ 条件（承認/却下）
+      ├─ はい（承認）
+      │   └─ 条件1: 申請種別 = 宣言届？
+      │       ├─ はい → Teams通知（パターン1）
+      │       └─ いいえ
+      │           └─ 条件2: 事前ボーナス > 0？
+      │               ├─ はい → Teams通知（パターン2）
+      │               └─ いいえ → Teams通知（パターン3）
+      └─ いいえ（却下）
+          └─ Teams通知（却下メッセージ）
+        </pre>
+    </div>
+</div>
+</section>
+
+<!-- ========== Part 3: Teams通知の修正 ========== -->
+<section id="part3">
+<h2>Teams通知メッセージの修正</h2>
+
+<div class="task-box">
+    <h3>パターン1：宣言届承認時の通知</h3>
+
+    <div class="step" data-step="1">
+        <div class="step-title">条件1の「はい」分岐にTeams通知を追加</div>
+        <div class="step-detail">
+            <div class="click-path">
+                条件1の <span>はい</span> → <span>＋</span> → <span>アクションの追加</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="2">
+        <div class="step-title">「チャットまたはチャネルでメッセージを投稿する」を選択</div>
+        <div class="step-detail">
+            <div class="click-path">
+                検索欄に <span>Teams</span> と入力 → <span>チャットまたはチャネルでメッセージを投稿する</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="step" data-step="3">
+        <div class="step-title">通知内容を設定</div>
+        <div class="step-detail">
+            <table>
+                <tr>
+                    <th>設定項目</th>
+                    <th>値</th>
+                </tr>
+                <tr>
+                    <td>投稿者</td>
+                    <td>Flow bot</td>
+                </tr>
+                <tr>
+                    <td>投稿先</td>
+                    <td>Chat with Flow bot</td>
+                </tr>
+                <tr>
+                    <td>Recipient</td>
+                    <td>動的コンテンツ: <code>申請者 Email</code></td>
+                </tr>
+            </table>
+
+            <div class="copy-box">
+                <div class="copy-label">メッセージ内容（パターン1：宣言届）</div>
+                <div class="copy-content">📋 資格取得宣言届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{triggerOutputs()?['body/申請者/DisplayName']}
+■ 資格名: @{triggerOutputs()?['body/Title']}
+■ 取得予定日: @{triggerOutputs()?['body/予定日_取得日']}
+━━━━━━━━━━━━━━━━━━━━━
+
+✅ 宣言届の受付が完了しました。
+
+📌 資格取得後は「資格取得届」を提出してください。
+   その際、事前申請ボーナス ¥5,000 が加算されます。</div>
+            </div>
+        </div>
+    </div>
+
+    <h3>パターン2：取得届承認時（宣言届あり）の通知</h3>
+
+    <div class="step" data-step="4">
+        <div class="step-title">条件2の「はい」分岐にTeams通知を追加</div>
+        <div class="step-detail">
+            <div class="click-path">
+                条件2の <span>はい</span> → <span>＋</span> → <span>アクションの追加</span> → <span>Teams</span>
+            </div>
+
+            <div class="copy-box">
+                <div class="copy-label">メッセージ内容（パターン2：取得届＋ボーナスあり）</div>
+                <div class="copy-content">🎉 資格取得届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{triggerOutputs()?['body/申請者/DisplayName']}
+■ 資格名: @{triggerOutputs()?['body/Title']}
+■ 取得日: @{triggerOutputs()?['body/予定日_取得日']}
+━━━━━━━━━━━━━━━━━━━━━
+
+【報奨金内訳】
+  基本報奨金: @{outputs('作成')}
+  事前申請ボーナス: ¥5,000 ✨
+  ─────────────────
+  合計支給額が確定しました！
+
+おめでとうございます！🎊</div>
+            </div>
+        </div>
+    </div>
+
+    <h3>パターン3：取得届承認時（宣言届なし）の通知</h3>
+
+    <div class="step" data-step="5">
+        <div class="step-title">条件2の「いいえ」分岐にTeams通知を追加</div>
+        <div class="step-detail">
+            <div class="click-path">
+                条件2の <span>いいえ</span> → <span>＋</span> → <span>アクションの追加</span> → <span>Teams</span>
+            </div>
+
+            <div class="copy-box">
+                <div class="copy-label">メッセージ内容（パターン3：取得届のみ）</div>
+                <div class="copy-content">🎉 資格取得届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: @{triggerOutputs()?['body/申請者/DisplayName']}
+■ 資格名: @{triggerOutputs()?['body/Title']}
+■ 取得日: @{triggerOutputs()?['body/予定日_取得日']}
+━━━━━━━━━━━━━━━━━━━━━
+
+【報奨金】
+  @{outputs('作成')}
+
+おめでとうございます！🎊
+
+💡 次回は事前に「資格取得宣言届」を提出すると
+   ¥5,000のボーナスが加算されます。</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="warning">
+        <strong>⚠️ 動的コンテンツについて</strong><br>
+        <p>上記のメッセージ内の <code>@{...}</code> 部分は、実際には動的コンテンツから選択します：</p>
+        <ul>
+            <li><code>@{triggerOutputs()?['body/申請者/DisplayName']}</code> → 「申請者 DisplayName」</li>
+            <li><code>@{triggerOutputs()?['body/Title']}</code> → 「Title」または「タイトル」</li>
+            <li><code>@{outputs('作成')}</code> → 「作成」アクションの出力</li>
+        </ul>
+    </div>
+</div>
+</section>
+
+<!-- ========== Part 4: 保存とテスト ========== -->
+<section id="part4">
+<h2>保存とテスト</h2>
+
+<div class="task-box">
+    <h3>フローを保存</h3>
+
+    <div class="step" data-step="1">
+        <div class="step-title">フローを保存する</div>
+        <div class="step-detail">
+            <div class="click-path">
+                右上の <span>保存</span> ボタンをクリック
+            </div>
+            <p>エラーがある場合は赤く表示されます。エラーを修正してから保存してください。</p>
+        </div>
+    </div>
+
+    <div class="step" data-step="2">
+        <div class="step-title">フローをオンにする</div>
+        <div class="step-detail">
+            <div class="click-path">
+                フロー詳細画面 → <span>オンにする</span> ボタン（もしオフの場合）
+            </div>
+        </div>
+    </div>
+
+    <h3>テストを実行</h3>
+
+    <div class="step" data-step="3">
+        <div class="step-title">Power Appsから申請をテスト</div>
+        <div class="step-detail">
+            <p>以下の3パターンをテストしてください：</p>
+        </div>
+    </div>
+
+    <div class="checklist">
+        <strong>テストチェックリスト</strong>
+        <label><input type="checkbox"> テスト1: 宣言届を申請 → 承認 → 金額なしのTeams通知が届く</label>
+        <label><input type="checkbox"> テスト2: 取得届（宣言届を紐づけ）→ 承認 → ボーナスありのTeams通知が届く</label>
+        <label><input type="checkbox"> テスト3: 取得届（宣言届なし）→ 承認 → ボーナスなしのTeams通知が届く</label>
+        <label><input type="checkbox"> SharePointリストに資格名が正しく記録されている</label>
+    </div>
+
+    <h3>実行履歴の確認方法</h3>
+
+    <div class="step" data-step="4">
+        <div class="step-title">フローの実行履歴を確認</div>
+        <div class="step-detail">
+            <div class="click-path">
+                フロー詳細画面 → <span>実行履歴</span> タブ → 最新の実行をクリック
+            </div>
+            <p>各アクションの入力と出力を確認して、正しい値が取得できているか確認します。</p>
+        </div>
+    </div>
+
+    <div class="error">
+        <strong>❌ よくあるエラーと対処法</strong>
+        <table>
+            <tr>
+                <th>エラー</th>
+                <th>原因</th>
+                <th>対処法</th>
+            </tr>
+            <tr>
+                <td>列名が見つからない</td>
+                <td>OData列名が異なる</td>
+                <td>動的コンテンツから正しい列を選択</td>
+            </tr>
+            <tr>
+                <td>Titleが空</td>
+                <td>Power Appsで送信していない</td>
+                <td>ButtonSubmitにTitle列を追加</td>
+            </tr>
+            <tr>
+                <td>申請種別が取得できない</td>
+                <td>選択肢列の参照方法が違う</td>
+                <td><code>/Value</code> を付けて参照</td>
+            </tr>
+        </table>
+    </div>
+</div>
+</section>
+
+<!-- ========== 完了チェックリスト ========== -->
+<div class="task-box" style="background: #e8f5e9; margin-top: 50px;">
+    <h3 style="color: #2e7d32;">✅ 全体チェックリスト</h3>
+
+    <div class="checklist" style="background: white;">
+        <strong>Power Apps側</strong>
+        <label><input type="checkbox"> ButtonSubmitに <code>Title:</code> を追加した</label>
+        <label><input type="checkbox"> アプリを保存・公開した</label>
+    </div>
+
+    <div class="checklist" style="background: white;">
+        <strong>Power Automate側</strong>
+        <label><input type="checkbox"> 「作成」アクションの報奨金ロジックを修正した</label>
+        <label><input type="checkbox"> 条件分岐1（申請種別判定）を追加した</label>
+        <label><input type="checkbox"> 条件分岐2（事前ボーナス判定）を追加した</label>
+        <label><input type="checkbox"> Teams通知パターン1（宣言届）を設定した</label>
+        <label><input type="checkbox"> Teams通知パターン2（取得届＋ボーナス）を設定した</label>
+        <label><input type="checkbox"> Teams通知パターン3（取得届のみ）を設定した</label>
+        <label><input type="checkbox"> フローを保存した</label>
+    </div>
+
+    <div class="checklist" style="background: white;">
+        <strong>テスト</strong>
+        <label><input type="checkbox"> 宣言届のテストが成功した</label>
+        <label><input type="checkbox"> 取得届（ボーナスあり）のテストが成功した</label>
+        <label><input type="checkbox"> 取得届（ボーナスなし）のテストが成功した</label>
+    </div>
+</div>
+
+<footer style="text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 12px;">
+    Power Automate 修正手順書 | 作成日: 2026年1月20日
+</footer>
+
+</body>
+</html>
