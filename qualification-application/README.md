@@ -48,6 +48,7 @@
 
 ### 差分調査・修正プラン（2026-02-09 追加）
 - **[`05_gap-analysis-and-fix-plan.md`](05_gap-analysis-and-fix-plan.md)** - 差分調査・現状分析・修正プラン（Markdown版）
+- **[`06_pending-actions.md`](06_pending-actions.md)** - 保留中のアクション一覧（TODO）
 - **[`差分調査_修正プラン_完全版.html`](差分調査_修正プラン_完全版.html)** - 差分調査・現状分析・修正プラン（HTML版・スタイル付き）
 
 ### HTMLガイド（初心者向け）
