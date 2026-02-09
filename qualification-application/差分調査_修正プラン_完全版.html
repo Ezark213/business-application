@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>資格取得申請システム - 差分調査・現状分析・修正プラン</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Yu Gothic', 'Meiryo', sans-serif;
+            line-height: 1.8;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        h1 {
+            background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h1 small { display: block; font-size: 14px; margin-top: 10px; opacity: 0.8; }
+        h2 {
+            background: #1a237e;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 50px;
+        }
+        h3 {
+            border-left: 5px solid #1a237e;
+            padding: 10px 15px;
+            background: #e8eaf6;
+            border-radius: 0 8px 8px 0;
+            margin-top: 30px;
+        }
+        h4 {
+            color: #1a237e;
+            margin-top: 25px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #c5cae9;
+        }
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th { background: #e8eaf6; color: #1a237e; }
+        tr:nth-child(even) { background: #fafafa; }
+        code {
+            background: #263238;
+            color: #80cbc4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+        }
+        pre {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+        .status-ok { color: #2e7d32; font-weight: bold; }
+        .status-warn { color: #e65100; font-weight: bold; }
+        .status-ng { color: #c62828; font-weight: bold; }
+        .status-unknown { color: #6a1b9a; font-weight: bold; }
+        .badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        .badge-ok { background: #e8f5e9; color: #2e7d32; }
+        .badge-warn { background: #fff3e0; color: #e65100; }
+        .badge-ng { background: #ffebee; color: #c62828; }
+        .badge-new { background: #e3f2fd; color: #1565c0; }
+        .badge-info { background: #ede7f6; color: #4527a0; }
+        .alert-ok {
+            background: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .alert-warn {
+            background: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .alert-ng {
+            background: #ffebee;
+            border-left: 5px solid #f44336;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .alert-info {
+            background: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .flowchart {
+            background: #263238;
+            color: #eceff1;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .compare-left {
+            background: #ffebee;
+            border: 2px solid #ef9a9a;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .compare-right {
+            background: #e8f5e9;
+            border: 2px solid #a5d6a7;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .compare-left h4 { color: #c62828; border-bottom-color: #ef9a9a; }
+        .compare-right h4 { color: #2e7d32; border-bottom-color: #a5d6a7; }
+        .summary-box {
+            background: linear-gradient(135deg, #e8eaf6 0%, #c5cae9 100%);
+            border-radius: 10px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .nav {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+        }
+        .nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 5px 0 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .nav li a {
+            display: block;
+            padding: 6px 14px;
+            background: #e8eaf6;
+            color: #1a237e;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 13px;
+        }
+        .nav li a:hover { background: #1a237e; color: white; }
+        .step-box {
+            background: white;
+            border: 2px solid #c5cae9;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .step-header {
+            background: #1a237e;
+            color: white;
+            padding: 8px 15px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 8px 8px 0 0;
+            font-weight: bold;
+        }
+        .priority-high { border-left: 5px solid #f44336; }
+        .priority-mid { border-left: 5px solid #ff9800; }
+        .priority-low { border-left: 5px solid #4caf50; }
+        .tag-required {
+            background: #f44336;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .tag-optional {
+            background: #4caf50;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .tag-recommend {
+            background: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        hr { border: none; border-top: 2px dashed #ccc; margin: 30px 0; }
+    </style>
+</head>
+<body>
+
+<h1>
+    資格取得申請システム<br>差分調査・現状分析・修正プラン
+    <small>調査日: 2026年2月9日 | GitHub仕様 vs 実装済み環境の比較</small>
+</h1>
+
+<!-- ========== ナビゲーション ========== -->
+<div class="nav">
+    <strong>目次</strong>
+    <ul>
+        <li><a href="#summary">全体サマリー</a></li>
+        <li><a href="#pa-analysis">Power Apps分析</a></li>
+        <li><a href="#flow-analysis">Power Automate分析</a></li>
+        <li><a href="#sp-analysis">SharePointデータ分析</a></li>
+        <li><a href="#issues">発見された問題</a></li>
+        <li><a href="#plan">修正プラン</a></li>
+        <li><a href="#pa-fix">Power Apps修正手順</a></li>
+        <li><a href="#flow-fix">Power Automate修正手順</a></li>
+        <li><a href="#checklist">最終チェックリスト</a></li>
+    </ul>
+</div>
+
+<!-- ================================================================ -->
+<!-- セクション1: 全体サマリー -->
+<!-- ================================================================ -->
+<section id="summary">
+<h2>1. 全体サマリー</h2>
+
+<div class="summary-box">
+    <h3 style="margin-top:0; border:none; background:none; padding-left:0;">修正の背景</h3>
+    <p>「資格取得宣言届出」を単なる事前申請とし、別途「資格取得届出」を提出した際に報奨金＋事前申請ボーナス5,000円が支給される仕様に変更した。</p>
+
+    <table>
+        <tr>
+            <th>申請種別</th>
+            <th>報奨金</th>
+            <th>事前ボーナス</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>資格取得宣言届</td>
+            <td>0円（表示しない）</td>
+            <td>0円</td>
+            <td>事前の宣言のみ。報奨金は取得届提出時に確定</td>
+        </tr>
+        <tr>
+            <td>資格取得届（宣言届あり）</td>
+            <td>マスタから取得</td>
+            <td><strong>+5,000円</strong></td>
+            <td>事前に宣言届を提出していた場合ボーナス加算</td>
+        </tr>
+        <tr>
+            <td>資格取得届（宣言届なし）</td>
+            <td>マスタから取得</td>
+            <td>0円</td>
+            <td>報奨金のみ</td>
+        </tr>
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">進捗状況</h3>
+
+    <h4>Power Apps（約90%完了）</h4>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width:90%; background: linear-gradient(90deg, #4caf50, #66bb6a);">90%</div>
+    </div>
+    <p>主要ロジックは実装済み。Dropdown1のフィルター改善が残っている。</p>
+
+    <h4>Power Automate（約70%完了）</h4>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width:70%; background: linear-gradient(90deg, #ff9800, #ffa726);">70%</div>
+    </div>
+    <p>基本構造は構築済み。条件2（ボーナス有無分岐）の確認、遅延の追加、いくつかの修正が必要。</p>
+
+    <h4>SharePointリスト（100%完了）</h4>
+    <div class="progress-bar">
+        <div class="progress-fill" style="width:100%; background: linear-gradient(90deg, #4caf50, #2e7d32);">100%</div>
+    </div>
+    <p>列構成は全て完了。関連宣言届ID・最終支給額列も存在。</p>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション2: Power Apps 詳細分析 -->
+<!-- ================================================================ -->
+<section id="pa-analysis">
+<h2>2. Power Apps 詳細分析</h2>
+
+<div class="card">
+    <h3 style="margin-top:0;">コントロール一覧（ツリービュー）</h3>
+    <table>
+        <tr>
+            <th>コントロール名</th>
+            <th>種類</th>
+            <th>役割</th>
+            <th>GitHub仕様名</th>
+        </tr>
+        <tr><td>RadioApplicationType</td><td>ラジオボタン</td><td>申請種別の選択</td><td>RadioApplicationType</td></tr>
+        <tr><td>DropdownCategory</td><td>ドロップダウン</td><td>分類の選択</td><td>DropdownCategory</td></tr>
+        <tr><td>DropdownQualification</td><td>ドロップダウン</td><td>資格名の選択</td><td>DropdownQualification</td></tr>
+        <tr><td>DropdownDetail</td><td>ドロップダウン</td><td>詳細の選択</td><td>DropdownDetail</td></tr>
+        <tr><td>Dropdown1</td><td>ドロップダウン</td><td>過去の宣言届出</td><td>Dropdown1</td></tr>
+        <tr><td>DatePickerAcquisition</td><td>日付選択</td><td>取得予定日/取得日</td><td>DatePickerAcquisition</td></tr>
+        <tr><td>TextInputReason</td><td>テキスト入力</td><td>理由・内容</td><td>TextInputReason</td></tr>
+        <tr><td>ButtonSubmit</td><td>ボタン</td><td>申請するボタン</td><td>ButtonSubmit</td></tr>
+        <tr><td>lbl取得日</td><td>ラベル</td><td>「取得予定日」/「取得日」切替</td><td>（GitHub仕様にあり）</td></tr>
+        <tr><td>Label1</td><td>ラベル</td><td>タイトル（資格取得申請）</td><td>Label1</td></tr>
+        <tr><td>Label2〜Label2_7</td><td>ラベル</td><td>各フィールドのラベル</td><td>（名称未統一）</td></tr>
+        <tr><td>Label3</td><td>ラベル</td><td>報奨金表示</td><td>LabelReward</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">各プロパティの比較</h3>
+
+    <!-- RadioApplicationType -->
+    <h4>1. RadioApplicationType.Items</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>GitHub仕様</th><td><code>["資格取得宣言届", "資格取得届"]</code></td></tr>
+        <tr><th>現状</th><td><code>["資格取得宣言届", "資格取得届"]</code></td></tr>
+        <tr><th>Default</th><td><code>"資格取得宣言届"</code> （仕様通り）</td></tr>
+    </table>
+
+    <!-- DropdownCategory -->
+    <h4>2. DropdownCategory.Items</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>GitHub仕様</th><td>7カテゴリ（税務, 会計, お金, 労務社保, 給与, IT, その他）</td></tr>
+        <tr><th>現状</th><td><code>Table({Value: "税務"}, {Value: "会計"}, ...)</code> 7カテゴリ</td></tr>
+    </table>
+
+    <!-- DropdownQualification -->
+    <h4>3. DropdownQualification.Items</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>GitHub仕様</th><td>分類でフィルターしたDistinct</td></tr>
+        <tr><th>現状</th><td><code>Distinct(Filter(資格マスタ, 分類 = DropdownCategory.Selected.Value), Title)</code></td></tr>
+    </table>
+
+    <!-- DropdownDetail -->
+    <h4>4. DropdownDetail.Items</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>GitHub仕様</th><td>資格名でフィルターしたDistinct</td></tr>
+        <tr><th>現状</th><td><code>Distinct(Filter(資格マスタ, Title = DropdownQualification.Selected.Value), 詳細)</code></td></tr>
+    </table>
+
+    <!-- Dropdown1 -->
+    <h4>5. Dropdown1.Items（過去の宣言届出）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-warn">要修正</span></td></tr>
+        <tr><th>あるべき姿</th><td>同じ資格に対する承認済み宣言届のみ表示</td></tr>
+        <tr><th>現状</th><td><code>Filter(資格取得申請, 申請種別.Value = "資格取得宣言届")</code></td></tr>
+        <tr><th>問題点</th><td><strong>全ての宣言届が表示されてしまう</strong>（資格名でフィルターされていない、ステータスでフィルターされていない）</td></tr>
+    </table>
+
+    <!-- Dropdown1.Visible -->
+    <h4>6. Dropdown1.Visible</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>現状</th><td><code>RadioApplicationType.Selected.Value = "資格取得届"</code></td></tr>
+    </table>
+
+    <!-- lbl取得日 -->
+    <h4>7. lbl取得日.Text（動的ラベル切替）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>GitHub仕様</th><td>宣言届→「取得予定日」/ 取得届→「取得日」</td></tr>
+        <tr><th>現状</th><td><code>If(RadioApplicationType.Selected.Value = "資格取得宣言届", "取得予定日", "取得日")</code></td></tr>
+    </table>
+
+    <!-- Label3（報奨金表示） -->
+    <h4>8. 報奨金ラベル.Text</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>GitHub仕様</th><td>5パターン分岐（宣言届/報奨金0+ボーナスあり/なし/報奨金>0+ボーナスあり/なし）</td></tr>
+        <tr><th>現状</th><td>5パターン全て実装済み。LookUpで資格マスタから報奨金を取得し、Dropdown1の選択有無でボーナス判定</td></tr>
+    </table>
+
+    <!-- ButtonSubmit -->
+    <h4>9. ButtonSubmit.OnSelect</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">ほぼ一致</span> <span class="badge badge-warn">軽微な差異あり</span></td></tr>
+        <tr><th>GitHub仕様</th><td>Patch関数で全フィールドを送信（Title, 申請種別, 取得資格, 報奨金額, 事前ボーナス等）</td></tr>
+        <tr>
+            <th>現状の送信フィールド</th>
+            <td>
+                <span class="badge badge-ok">送信済</span> Title（資格名 + 詳細）<br>
+                <span class="badge badge-ok">送信済</span> 申請種別<br>
+                <span class="badge badge-ok">送信済</span> 申請日<br>
+                <span class="badge badge-ok">送信済</span> 予定日_取得日<br>
+                <span class="badge badge-ok">送信済</span> 理由_内容<br>
+                <span class="badge badge-ok">送信済</span> ステータス（申請中）<br>
+                <span class="badge badge-ok">送信済</span> 報奨金額（条件分岐あり）<br>
+                <span class="badge badge-ok">送信済</span> 事前ボーナス（条件分岐あり）<br>
+                <span class="badge badge-warn">未送信</span> 取得資格（Lookup参照列）<br>
+                <span class="badge badge-warn">未送信</span> 関連宣言届ID
+            </td>
+        </tr>
+    </table>
+
+    <div class="alert-warn">
+        <strong>Patch関数の差異ポイント</strong>
+        <ul>
+            <li><strong>取得資格（Lookup列）が未送信</strong> — Title文字列で代用しているが、SharePointの参照列としては正式に紐づいていない。現状の運用上は問題ないが、将来的にルックアップ機能を使う場合は要対応。</li>
+            <li><strong>関連宣言届ID が未送信</strong> — 取得届を提出する際に、紐づけた宣言届のIDが記録されない。SharePointリストに列は存在するが値が入らない状態。</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">Power Apps サマリー</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>状態</th>
+            <th>詳細</th>
+        </tr>
+        <tr>
+            <td>申請種別ラジオボタン</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+        </tr>
+        <tr>
+            <td>カスケードドロップダウン（3段）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+        </tr>
+        <tr>
+            <td>過去の宣言届出ドロップダウン表示切替</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>取得届の時のみ表示</td>
+        </tr>
+        <tr>
+            <td>過去の宣言届出フィルター</td>
+            <td><span class="status-warn">要修正</span></td>
+            <td>同じ資格＋承認済みに絞る必要あり</td>
+        </tr>
+        <tr>
+            <td>動的ラベル切替（取得予定日/取得日）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+        </tr>
+        <tr>
+            <td>報奨金表示ロジック（5パターン）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+        </tr>
+        <tr>
+            <td>Patch関数（基本フィールド）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>Title, 報奨金額, 事前ボーナスの条件分岐あり</td>
+        </tr>
+        <tr>
+            <td>Patch関数（関連宣言届ID）</td>
+            <td><span class="status-ng">未実装</span></td>
+            <td>宣言届のIDが記録されない</td>
+        </tr>
+    </table>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション3: Power Automate 詳細分析 -->
+<!-- ================================================================ -->
+<section id="flow-analysis">
+<h2>3. Power Automate 詳細分析</h2>
+
+<div class="card">
+    <h3 style="margin-top:0;">フロー構造の比較</h3>
+
+    <div class="compare-grid">
+        <div class="compare-left">
+            <h4>GitHub仕様のフロー構造</h4>
+<pre style="background:transparent; color:#333; padding:10px; font-size:12px;">
+1. 項目が作成されたとき
+2. 遅延（10秒）
+3. 項目の取得
+4. 作成（報奨金表示テキスト）
+5. 開始して承認を待機
+6. 条件（承認/却下）
+   ├─ True（承認）
+   │   ├─ 項目の更新（承認済）
+   │   └─ 条件1（宣言届?）
+   │       ├─ True → Teams通知1
+   │       └─ False
+   │           └─ 条件2（ボーナス?）
+   │               ├─ True → Teams通知2
+   │               └─ False → Teams通知3
+   └─ False（却下）
+       ├─ 項目の更新（却下）
+       └─ Teams通知4
+</pre>
+        </div>
+        <div class="compare-right">
+            <h4>現在のフロー構造</h4>
+<pre style="background:transparent; color:#333; padding:10px; font-size:12px;">
+1. 項目が作成されたとき
+   （遅延なし）
+   （項目の取得なし）
+2. 項目の更新 2（初期値セット）
+3. 作成（報奨金表示テキスト）
+4. 開始して承認を待機
+5. 条件（承認/却下）
+   ├─ True（承認）
+   │   └─ 条件1（宣言届?）
+   │       ├─ True
+   │       │   ├─ Teams通知2
+   │       │   └─ For each → 項目の更新
+   │       └─ False
+   │           └─ 1件のアクション（折畳）
+   └─ False（却下）
+       ├─ 項目の更新 1（却下）
+       ├─ Teams通知1（却下）
+       └─ For each 1 → 項目の更新 4
+</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">アクション別詳細比較</h3>
+
+    <!-- トリガー -->
+    <h4>1. トリガー: 項目が作成されたとき</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>サイト</th><td><code>https://armaascojp.sharepoint.com/sites/arma-as.co.jp</code></td></tr>
+        <tr><th>リスト名</th><td><code>資格取得申請</code></td></tr>
+    </table>
+
+    <!-- 遅延 -->
+    <h4>2. 遅延（10秒）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ng">存在しない</span></td></tr>
+        <tr><th>GitHub仕様</th><td>10秒の遅延（SharePointへの書き込み完了を待つため）</td></tr>
+        <tr><th>現状</th><td><strong>遅延アクションがない。</strong> 代わりに「項目の更新 2」が直後に配置されている</td></tr>
+        <tr><th>影響</th><td>データ書き込み完了前にフローが動き、「項目が見つかりません」エラーが発生する可能性がある（ただし項目の更新 2がwrite操作なので、タイミング問題は緩和されている可能性あり）</td></tr>
+    </table>
+
+    <!-- 項目の取得 vs 項目の更新 2 -->
+    <h4>3. 項目の取得 → 項目の更新 2（アプローチの違い）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-warn">アプローチが異なる</span></td></tr>
+        <tr><th>GitHub仕様</th><td>「項目の取得」で最新データを読み取り</td></tr>
+        <tr>
+            <th>現状</th>
+            <td>
+                「項目の更新 2」でデータを読み取りつつ初期値をセット：<br>
+                <ul>
+                    <li>ID: body/ID（トリガーから）</li>
+                    <li>タイトル: タイトル（トリガーから）</li>
+                    <li>申請者 Claims: 登録者 Email</li>
+                    <li>ステータス Value: 申請中</li>
+                    <li>報奨金額: 報奨金額（トリガーから）</li>
+                    <li>事前ボーナス: 事前ボーナス（トリガーから）</li>
+                </ul>
+                <strong>出力として更新後のデータを取得し、後続アクションで利用</strong>
+            </td>
+        </tr>
+        <tr><th>評価</th><td>機能的には問題ない。項目の更新の出力で最新データを取得できるため、「項目の取得」と同等の役割を果たしている。</td></tr>
+    </table>
+
+    <!-- 作成 -->
+    <h4>4. 作成（報奨金表示テキスト）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">実装済み</span> <span class="badge badge-warn">軽微な差異</span></td></tr>
+        <tr><th>GitHub仕様</th><td><code>outputs('項目の取得')</code> を参照</td></tr>
+        <tr><th>現状</th><td><code>outputs('項目の更新_2')</code> を参照（項目の取得がないため）</td></tr>
+        <tr>
+            <th>現状の式</th>
+            <td>
+                <pre style="font-size:11px;">if(
+    or(
+      equals(outputs('項目の更新_2')?['body/申請種別/Value'], '資格取得宣言届'),
+      equals(outputs('項目の更新_2')?['body/OData__x7533__x8acb__x7a2e__x5225_/Value'], '資格取得宣言届'),
+      contains(string(outputs('項目の更新_2')?['body']), '宣言届')
+    ),
+    '※報奨金は資格取得後の届出時に確定します',
+    ... 報奨金表示ロジック ...
+)</pre>
+            </td>
+        </tr>
+        <tr><th>評価</th><td><strong>GitHub仕様より堅牢。</strong> <code>or()</code>で3通りの宣言届判定を行っており、OData列名の不一致に対応。ロジック自体は正しい。</td></tr>
+    </table>
+
+    <!-- 承認 -->
+    <h4>5. 開始して承認を待機</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">実装済み</span> <span class="badge badge-warn">軽微な差異</span></td></tr>
+        <tr><th>承認の種類</th><td>承認/拒否 - 最初に応答 <span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>タイトル</th><td>
+            GitHub仕様: <code>資格取得申請の承認依頼: {Title}</code><br>
+            現状: <code>【資格取得申請】承認依頼</code>（資格名なし）<br>
+            <span class="badge badge-warn">差異あり</span> タイトルに資格名が含まれていない
+        </td></tr>
+        <tr><th>担当者</th><td><code>yiwao@arma-as.co.jp</code>（テスト用に自分を設定）</td></tr>
+        <tr><th>詳細</th><td>申請者DisplayName, タイトル, 予定日_取得日, 理由_内容, 報奨金額（作成の出力）<span class="badge badge-ok">OK</span></td></tr>
+    </table>
+
+    <!-- メイン条件 -->
+    <h4>6. 条件（承認/却下の判定）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>条件</th><td><code>body/outcome</code> 等しい <code>Approve</code></td></tr>
+    </table>
+
+    <!-- 条件1 -->
+    <h4>7. 条件1（宣言届/取得届の判定）— 承認True分岐内</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">実装済み</span></td></tr>
+        <tr><th>GitHub仕様</th><td>申請種別 Value が「宣言届」を含む</td></tr>
+        <tr><th>現状</th><td><code>body/OData_x...</code> 等しい <code>資格取得宣言届</code></td></tr>
+        <tr><th>評価</th><td>正しく実装されている</td></tr>
+    </table>
+
+    <!-- 承認時の項目の更新 -->
+    <h4>8. 承認時の項目の更新</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-warn">配置が異なる</span></td></tr>
+        <tr><th>GitHub仕様</th><td>条件1の<strong>前</strong>に1つの「項目の更新」（承認済）を配置</td></tr>
+        <tr>
+            <th>現状</th>
+            <td>
+                条件1のTrue分岐（宣言届）<strong>内</strong>に「For each → 項目の更新」として配置<br>
+                - ステータス Value: 承認済<br>
+                - 承認者 Claims: responder/DisplayName<br>
+                - 承認日: 承認日<br>
+                <br>
+                <strong>問題点：</strong>条件1のFalse分岐（取得届）にも同様の項目の更新があるか不明（折りたたまれている）
+            </td>
+        </tr>
+    </table>
+
+    <div class="alert-warn">
+        <strong>For eachループについて</strong><br>
+        Power Automateでは、承認アクションの応答プロパティ（responderなど）を参照すると、応答が配列であるため自動的にFor eachが生成されることがあります。「最初に応答」の承認タイプでは実質1件のみですので、動作には問題ありません。
+    </div>
+
+    <!-- 条件1 True: Teams通知 -->
+    <h4>9. Teams通知（宣言届承認）— 条件1のTrue</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">実装済み</span></td></tr>
+        <tr><th>アクション名</th><td>チャットまたはチャネルでメッセージを投稿する 2</td></tr>
+        <tr><th>投稿者</th><td>フローボット <span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>投稿先</th><td>フローボットとチャットをする <span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>Recipient</th><td>申請者 Email <span class="badge badge-ok">一致</span></td></tr>
+        <tr>
+            <th>メッセージ</th>
+            <td>
+                資格取得宣言届が承認されました<br>
+                ■ 申請者: DisplayName<br>
+                ■ 資格名: タイトル<br>
+                ■ 取得予定日: 予定日_取得日<br>
+                宣言届の受付が完了しました。<br>
+                資格取得後は「資格取得届」を提出してください。<br>
+                事前申請ボーナス ¥5,000 が加算されます。<br>
+                <span class="badge badge-ok">GitHub仕様と一致</span>
+            </td>
+        </tr>
+    </table>
+
+    <!-- 条件1 False -->
+    <h4>10. 条件1のFalse分岐（取得届の場合）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ng">未確認</span></td></tr>
+        <tr><th>GitHub仕様</th><td>
+            ここに「条件2（事前ボーナス > 0）」があり、<br>
+            True → Teams通知（報奨金＋ボーナス表示）<br>
+            False → Teams通知（報奨金のみ表示）
+        </td></tr>
+        <tr><th>現状</th><td><strong>「1件のアクション」と折りたたまれており中身が確認できない</strong></td></tr>
+    </table>
+
+    <div class="alert-ng">
+        <strong>重要：条件1のFalse分岐を展開して確認が必要</strong><br>
+        この中に「条件2（ボーナス有無の判定）」とTeams通知パターン2・3があるはずです。<br>
+        <strong>もしなければ、取得届承認時のTeams通知が送信されない可能性があります。</strong>
+    </div>
+
+    <!-- 却下時 -->
+    <h4>11. 却下時の処理（メイン条件のFalse）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">実装済み</span> <span class="badge badge-warn">追加要素あり</span></td></tr>
+        <tr>
+            <th>GitHub仕様</th>
+            <td>項目の更新（却下）→ Teams通知</td>
+        </tr>
+        <tr>
+            <th>現状</th>
+            <td>
+                1. 項目の更新 1（ステータス: 却下, 承認日: 完了日）<br>
+                2. Teams通知1（却下メッセージ）<br>
+                3. <strong>For each 1 → 項目の更新 4</strong>（ステータス: 申請中, 承認者: responder）
+            </td>
+        </tr>
+    </table>
+
+    <div class="alert-warn">
+        <strong>項目の更新 4 について</strong><br>
+        却下分岐内に「For each 1 → 項目の更新 4」があり、ステータスを「申請中」に設定しています。<br>
+        これは <strong>関連する宣言届のステータスをリセットする</strong> 目的かもしれませんが、意図を確認する必要があります。<br>
+        もし不要であれば削除すべきです。
+    </div>
+
+    <!-- Teams通知（却下） -->
+    <h4>12. Teams通知（却下）</h4>
+    <table>
+        <tr><th style="width:15%;">状態</th><td><span class="badge badge-ok">実装済み</span> <span class="badge badge-warn">軽微な差異</span></td></tr>
+        <tr><th>アクション名</th><td>チャットまたはチャネルでメッセージを投稿する 1</td></tr>
+        <tr><th>投稿者/投稿先</th><td>フローボット / フローボットとチャットをする <span class="badge badge-ok">一致</span></td></tr>
+        <tr><th>Recipient</th><td>登録者 Email（※GitHub仕様では「申請者 Email」）<span class="badge badge-warn">差異あり</span></td></tr>
+        <tr>
+            <th>メッセージ</th>
+            <td>
+                【却下されました】資格取得申請<br>
+                申し訳ありませんが、あなたの資格取得申請は却下されました。<br>
+                ■ 資格名: タイトル<br>
+                ■ 却下理由: 応答の概要 <span class="badge badge-new">仕様にない追加</span><br>
+                詳細は上長にお問い合わせください。
+            </td>
+        </tr>
+        <tr><th>評価</th><td>却下理由（応答の概要）の表示はGitHub仕様にないが、有用な追加。問題なし。</td></tr>
+    </table>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">Power Automate サマリー</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>状態</th>
+            <th>詳細</th>
+            <th>優先度</th>
+        </tr>
+        <tr>
+            <td>トリガー</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>遅延（10秒）</td>
+            <td><span class="status-ng">未実装</span></td>
+            <td>なし。タイミング問題のリスクあり</td>
+            <td><span class="tag-recommend">推奨</span></td>
+        </tr>
+        <tr>
+            <td>項目の更新 2（データ取得）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>項目の取得の代替として機能</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>作成（報奨金ロジック）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>or()で堅牢に実装</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>承認アクション</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>タイトルに資格名がないが軽微</td>
+            <td><span class="tag-optional">任意</span></td>
+        </tr>
+        <tr>
+            <td>条件（承認/却下）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>条件1（宣言届判定）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>Teams通知（宣言届承認）</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>仕様通り</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>承認時の項目の更新（承認済）</td>
+            <td><span class="status-warn">要確認</span></td>
+            <td>True分岐内にはあるが、False分岐にもあるか不明</td>
+            <td><span class="tag-required">必須</span></td>
+        </tr>
+        <tr>
+            <td>条件2（ボーナス有無判定）</td>
+            <td><span class="status-unknown">未確認</span></td>
+            <td>条件1のFalse分岐が折りたたまれており確認不可</td>
+            <td><span class="tag-required">必須</span></td>
+        </tr>
+        <tr>
+            <td>Teams通知（取得届＋ボーナスあり）</td>
+            <td><span class="status-unknown">未確認</span></td>
+            <td>同上</td>
+            <td><span class="tag-required">必須</span></td>
+        </tr>
+        <tr>
+            <td>Teams通知（取得届＋ボーナスなし）</td>
+            <td><span class="status-unknown">未確認</span></td>
+            <td>同上</td>
+            <td><span class="tag-required">必須</span></td>
+        </tr>
+        <tr>
+            <td>却下時の処理</td>
+            <td><span class="status-ok">完了</span></td>
+            <td>項目の更新 + Teams通知</td>
+            <td>-</td>
+        </tr>
+        <tr>
+            <td>項目の更新 4（却下時のFor each内）</td>
+            <td><span class="status-warn">要確認</span></td>
+            <td>ステータスを「申請中」にしている。意図を確認</td>
+            <td><span class="tag-recommend">推奨</span></td>
+        </tr>
+    </table>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション4: SharePointデータ分析 -->
+<!-- ================================================================ -->
+<section id="sp-analysis">
+<h2>4. SharePointリスト データ分析</h2>
+
+<div class="card">
+    <h3 style="margin-top:0;">CSVエクスポートデータの確認</h3>
+
+    <table>
+        <tr>
+            <th>資格名</th>
+            <th>申請種別</th>
+            <th>申請者</th>
+            <th>ステータス</th>
+            <th>報奨金額</th>
+            <th>事前ボーナス</th>
+            <th>関連宣言届ID</th>
+            <th>最終支給額</th>
+        </tr>
+        <tr>
+            <td>日商簿記検定 2級</td>
+            <td>資格取得宣言届</td>
+            <td>岩男 祐多</td>
+            <td><span class="status-warn">申請中</span></td>
+            <td>0</td>
+            <td>0</td>
+            <td>（空）</td>
+            <td>（空）</td>
+        </tr>
+        <tr>
+            <td>公認会計士試験 短答式合格</td>
+            <td>資格取得宣言届</td>
+            <td>岩男 祐多</td>
+            <td><span class="status-ok">承認済</span></td>
+            <td>0</td>
+            <td>0</td>
+            <td>（空）</td>
+            <td>（空）</td>
+        </tr>
+    </table>
+
+    <h4>分析結果</h4>
+    <table>
+        <tr><th>確認項目</th><th>結果</th><th>詳細</th></tr>
+        <tr>
+            <td>列構成</td>
+            <td><span class="status-ok">OK</span></td>
+            <td>報奨金額、事前ボーナス、関連宣言届ID、最終支給額の列が全て存在</td>
+        </tr>
+        <tr>
+            <td>宣言届の報奨金額</td>
+            <td><span class="status-ok">OK</span></td>
+            <td>宣言届の報奨金額が0で正しい（Power Appsの条件分岐が機能している）</td>
+        </tr>
+        <tr>
+            <td>宣言届の事前ボーナス</td>
+            <td><span class="status-ok">OK</span></td>
+            <td>宣言届の事前ボーナスが0で正しい</td>
+        </tr>
+        <tr>
+            <td>承認日</td>
+            <td><span class="status-warn">空</span></td>
+            <td>承認済みレコードでも承認日が空。Power Automateの項目の更新で承認日が正しくセットされていない可能性</td>
+        </tr>
+        <tr>
+            <td>承認者</td>
+            <td><span class="status-ok">OK</span></td>
+            <td>「岩男 祐多」が記録されている（CSVには表示されているが上記テーブルでは省略）</td>
+        </tr>
+        <tr>
+            <td>1件目のステータス</td>
+            <td><span class="status-warn">申請中のまま</span></td>
+            <td>最初のテスト申請が「申請中」のまま放置。承認フローが処理されていないか、フローがオフだった可能性</td>
+        </tr>
+        <tr>
+            <td>取得届のテストデータ</td>
+            <td><span class="status-ng">なし</span></td>
+            <td>取得届のテスト申請がまだ行われていない</td>
+        </tr>
+    </table>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション5: 発見された問題一覧 -->
+<!-- ================================================================ -->
+<section id="issues">
+<h2>5. 発見された問題・差異の一覧</h2>
+
+<div class="card">
+    <table>
+        <tr>
+            <th style="width:5%;">No.</th>
+            <th style="width:10%;">対象</th>
+            <th style="width:35%;">問題内容</th>
+            <th style="width:10%;">深刻度</th>
+            <th style="width:10%;">優先度</th>
+            <th style="width:30%;">対応方針</th>
+        </tr>
+        <tr>
+            <td>1</td>
+            <td>Power Apps</td>
+            <td>Dropdown1（過去の宣言届出）が全ての宣言届を表示。同じ資格＋承認済みに絞られていない</td>
+            <td><span class="badge badge-warn">中</span></td>
+            <td><span class="tag-required">必須</span></td>
+            <td>フィルター条件に資格名とステータス=承認済を追加</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Power Apps</td>
+            <td>Patch関数に「関連宣言届ID」が未送信。宣言届と取得届の紐づけがSharePoint上で追跡できない</td>
+            <td><span class="badge badge-warn">中</span></td>
+            <td><span class="tag-required">必須</span></td>
+            <td>Dropdown1.SelectedのIDをPatchに追加</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>Power Automate</td>
+            <td>条件1のFalse分岐（取得届承認時）の内容が未確認。条件2（ボーナス有無）やTeams通知が正しく設定されているか不明</td>
+            <td><span class="badge badge-ng">高</span></td>
+            <td><span class="tag-required">必須</span></td>
+            <td>折りたたみを展開して確認。なければ作成</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>Power Automate</td>
+            <td>遅延（10秒）がない。SharePointへの書き込み前にフローが動くリスク</td>
+            <td><span class="badge badge-warn">中</span></td>
+            <td><span class="tag-recommend">推奨</span></td>
+            <td>トリガー直後に10秒の遅延を追加</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td>Power Automate</td>
+            <td>承認時の項目の更新が各分岐内に分散。取得届承認時にもステータス更新されるか要確認</td>
+            <td><span class="badge badge-warn">中</span></td>
+            <td><span class="tag-required">必須</span></td>
+            <td>条件1のFalse分岐内を確認</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td>Power Automate</td>
+            <td>承認アクションのタイトルに資格名が含まれていない</td>
+            <td><span class="badge badge-ok">低</span></td>
+            <td><span class="tag-optional">任意</span></td>
+            <td>タイトルにTitleの動的コンテンツを追加</td>
+        </tr>
+        <tr>
+            <td>7</td>
+            <td>Power Automate</td>
+            <td>項目の更新 4（却下時For each内）がステータスを「申請中」にしている。意図不明</td>
+            <td><span class="badge badge-warn">中</span></td>
+            <td><span class="tag-recommend">推奨</span></td>
+            <td>意図を確認し、不要なら削除</td>
+        </tr>
+        <tr>
+            <td>8</td>
+            <td>SharePoint</td>
+            <td>承認済みレコードの承認日が空</td>
+            <td><span class="badge badge-ok">低</span></td>
+            <td><span class="tag-recommend">推奨</span></td>
+            <td>項目の更新アクションの承認日設定を確認</td>
+        </tr>
+    </table>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション6: 修正プラン -->
+<!-- ================================================================ -->
+<section id="plan">
+<h2>6. 修正プラン</h2>
+
+<div class="card">
+    <h3 style="margin-top:0;">作業の流れ</h3>
+
+    <div class="alert-info">
+        <strong>作業順序について</strong><br>
+        まず Power Automate の条件1 False分岐の中身を確認する調査を行い、その結果に基づいて修正作業を進めます。
+    </div>
+
+    <h4>Phase 0: 追加調査（最優先）</h4>
+    <div class="step-box priority-high">
+        <div class="step-header">調査0-1: 条件1のFalse分岐を展開して確認</div>
+        <p><strong>手順：</strong></p>
+        <ol>
+            <li>Power Automateのフロー編集画面を開く</li>
+            <li>条件（承認/却下）→ True → 条件1 を見つける</li>
+            <li><strong>「False」分岐の「1件のアクション」をクリック</strong>して展開する</li>
+            <li>中に何があるかスクリーンショットを撮る</li>
+        </ol>
+        <p><strong>確認ポイント：</strong></p>
+        <ul>
+            <li>「条件2」（事前ボーナス > 0 の条件分岐）はあるか？</li>
+            <li>Teams通知（取得届＋ボーナスあり）のアクションはあるか？</li>
+            <li>Teams通知（取得届＋ボーナスなし）のアクションはあるか？</li>
+            <li>項目の更新（承認済）のアクションはあるか？</li>
+        </ul>
+    </div>
+
+    <div class="step-box priority-high">
+        <div class="step-header">調査0-2: 項目の更新 4 の意図を確認</div>
+        <p><strong>手順：</strong></p>
+        <ol>
+            <li>却下分岐内の「For each 1 → 項目の更新 4」を展開</li>
+            <li>どのリストのどのIDを更新しているか確認</li>
+            <li>「項目の更新 4」の全パラメータのスクリーンショットを撮る</li>
+        </ol>
+    </div>
+
+    <h4>Phase 1: Power Apps の修正</h4>
+    <div class="step-box priority-high">
+        <div class="step-header">修正1-1: Dropdown1のフィルターを改善 <span class="tag-required">必須</span></div>
+        <p>同じ資格 + 承認済みの宣言届のみ表示されるようにフィルター条件を追加</p>
+    </div>
+
+    <div class="step-box priority-high">
+        <div class="step-header">修正1-2: Patch関数に関連宣言届IDを追加 <span class="tag-required">必須</span></div>
+        <p>取得届の提出時に、紐づけた宣言届のIDをSharePointに記録</p>
+    </div>
+
+    <h4>Phase 2: Power Automate の修正</h4>
+    <div class="step-box priority-mid">
+        <div class="step-header">修正2-1: 遅延の追加 <span class="tag-recommend">推奨</span></div>
+        <p>トリガー直後に10秒の遅延を追加</p>
+    </div>
+
+    <div class="step-box priority-high">
+        <div class="step-header">修正2-2: 条件1 False分岐の確認・修正 <span class="tag-required">必須</span></div>
+        <p>調査結果に基づき、条件2・Teams通知パターン2/3が未実装なら追加</p>
+    </div>
+
+    <div class="step-box priority-mid">
+        <div class="step-header">修正2-3: 承認タイトルに資格名を追加 <span class="tag-optional">任意</span></div>
+        <p>承認者が何の申請かわかりやすくするため</p>
+    </div>
+
+    <div class="step-box priority-mid">
+        <div class="step-header">修正2-4: 項目の更新 4 の確認・修正 <span class="tag-recommend">推奨</span></div>
+        <p>調査結果に基づき、不要なら削除</p>
+    </div>
+
+    <h4>Phase 3: テスト</h4>
+    <div class="step-box priority-high">
+        <div class="step-header">テスト3-1: 3パターンの申請テスト <span class="tag-required">必須</span></div>
+        <p>宣言届→承認、取得届（宣言届あり）→承認、取得届（宣言届なし）→承認、の3パターン</p>
+    </div>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション7: Power Apps 修正手順 -->
+<!-- ================================================================ -->
+<section id="pa-fix">
+<h2>7. Power Apps 具体的な修正手順</h2>
+
+<div class="card">
+    <h3 style="margin-top:0;">修正1-1: Dropdown1のフィルターを改善</h3>
+
+    <div class="step-box">
+        <div class="step-header">現在のDropdown1.Items</div>
+<pre>Filter(
+    資格取得申請,
+    申請種別.Value = "資格取得宣言届"
+)</pre>
+    </div>
+
+    <div class="step-box" style="border-color: #4caf50;">
+        <div class="step-header" style="background:#4caf50;">修正後のDropdown1.Items</div>
+<pre>Filter(
+    資格取得申請,
+    申請種別.Value = "資格取得宣言届"
+        && ステータス.Value = "承認済"
+        && StartsWith(Title, DropdownQualification.Selected.Value)
+)</pre>
+        <div class="alert-info">
+            <strong>変更点</strong>
+            <ul>
+                <li><code>ステータス.Value = "承認済"</code> — 承認済みの宣言届のみに絞る</li>
+                <li><code>StartsWith(Title, DropdownQualification.Selected.Value)</code> — 選択中の資格名で始まるもののみに絞る</li>
+            </ul>
+            <strong>注意：</strong> Titleが「公認会計士試験 短答式合格」のように「資格名 詳細」の形式で保存されているため、<code>StartsWith</code>で資格名部分を一致させています。
+        </div>
+    </div>
+
+    <div class="step-box">
+        <div class="step-header">手順</div>
+        <ol>
+            <li>Power Apps Studio で対象アプリを開く</li>
+            <li>左のツリービューから <code>Dropdown1</code> を選択</li>
+            <li>右のプロパティパネルで <code>Items</code> を選択（またはfx バーで確認）</li>
+            <li>既存の式を全選択（Ctrl+A）して削除</li>
+            <li>上記の修正後の式を貼り付け</li>
+        </ol>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">修正1-2: Patch関数に関連宣言届IDを追加</h3>
+
+    <div class="step-box">
+        <div class="step-header">現在のButtonSubmit.OnSelect（抜粋）</div>
+<pre>Patch(
+    資格取得申請,
+    Defaults(資格取得申請),
+    {
+        Title: ...,
+        申請種別: ...,
+        ...
+        事前ボーナス: If(
+            RadioApplicationType.Selected.Value = "資格取得届"
+                && !IsBlank(Dropdown1.Selected),
+            5000,
+            0
+        )
+    }
+);
+Navigate(Screen2, ScreenTransition.Fade)</pre>
+    </div>
+
+    <div class="step-box" style="border-color: #4caf50;">
+        <div class="step-header" style="background:#4caf50;">修正後のButtonSubmit.OnSelect（全体）</div>
+<pre>Patch(
+    資格取得申請,
+    Defaults(資格取得申請),
+    {
+        Title: DropdownQualification.Selected.Value & " "
+            & DropdownDetail.Selected.Value,
+        申請種別: RadioApplicationType.Selected,
+        申請日: Today(),
+        予定日_取得日: DatePickerAcquisition.SelectedDate,
+        理由_内容: TextInputReason.Text,
+        ステータス: {Value: "申請中"},
+        報奨金額: If(
+            RadioApplicationType.Selected.Value = "資格取得宣言届",
+            0,
+            LookUp(
+                資格マスタ,
+                Title = DropdownQualification.Selected.Value
+                    && 詳細 = DropdownDetail.Selected.Value,
+                報奨金
+            )
+        ),
+        事前ボーナス: If(
+            RadioApplicationType.Selected.Value = "資格取得届"
+                && !IsBlank(Dropdown1.Selected),
+            5000,
+            0
+        ),
+        関連宣言届ID: If(
+            RadioApplicationType.Selected.Value = "資格取得届"
+                && !IsBlank(Dropdown1.Selected),
+            Dropdown1.Selected.ID,
+            Blank()
+        )
+    }
+);
+Navigate(Screen2, ScreenTransition.Fade)</pre>
+        <div class="alert-info">
+            <strong>追加した部分</strong>
+            <ul>
+                <li><code>関連宣言届ID</code> — 取得届の時にDropdown1で選択された宣言届のIDを記録</li>
+                <li>宣言届の場合、または取得届でも宣言届を選択しなかった場合は <code>Blank()</code></li>
+            </ul>
+            <strong>注意：</strong> <code>関連宣言届ID</code> 列がSharePointリストで「数値」型であることを確認してください。「1行テキスト」型の場合は <code>Text(Dropdown1.Selected.ID)</code> に変更してください。
+        </div>
+    </div>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション8: Power Automate 修正手順 -->
+<!-- ================================================================ -->
+<section id="flow-fix">
+<h2>8. Power Automate 具体的な修正手順</h2>
+
+<div class="alert-info">
+    <strong>前提</strong><br>
+    Phase 0 の追加調査（条件1 False分岐の展開確認）を行った後に、以下の修正を進めてください。<br>
+    調査結果によって修正内容が変わります。
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">修正2-1: 遅延の追加</h3>
+
+    <div class="step-box">
+        <div class="step-header">手順</div>
+        <ol>
+            <li>フロー編集画面を開く</li>
+            <li>「項目が作成されたとき」（トリガー）と「項目の更新 2」の間の <strong>「＋」ボタン</strong> をクリック</li>
+            <li>「アクションの追加」を選択</li>
+            <li>検索欄に「遅延」と入力</li>
+            <li>「遅延」（Schedule）を選択</li>
+            <li>以下を設定：
+                <table>
+                    <tr><th>カウント</th><td><code>10</code></td></tr>
+                    <tr><th>単位</th><td><code>秒</code></td></tr>
+                </table>
+            </li>
+        </ol>
+        <div class="alert-info">
+            <strong>目的：</strong>Power AppsからSharePointへのPatch書き込みが完全に完了するのを待ちます。これがないと「項目が見つかりません」エラーが発生する可能性があります。
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">修正2-2: 条件1 False分岐の確認・修正</h3>
+
+    <div class="alert-warn">
+        <strong>Phase 0 の調査結果に応じて対応</strong>
+    </div>
+
+    <h4>パターンA：条件2が既にある場合</h4>
+    <p>→ Teams通知の内容がGitHub仕様と一致しているか確認し、必要に応じて修正</p>
+
+    <h4>パターンB：条件2がない場合 → 以下を追加</h4>
+
+    <div class="step-box">
+        <div class="step-header">Step 1: 条件1のFalse分岐内に「条件」を追加</div>
+        <ol>
+            <li>条件1の「False」分岐内の「＋」をクリック</li>
+            <li>「アクションの追加」→「条件」を選択</li>
+            <li>条件を設定：
+                <table>
+                    <tr><th>左辺</th><td>動的コンテンツから <code>事前ボーナス</code> を選択（「項目の更新 2」セクションから）</td></tr>
+                    <tr><th>演算子</th><td><code>次の値より大きい</code></td></tr>
+                    <tr><th>右辺</th><td><code>0</code></td></tr>
+                </table>
+            </li>
+        </ol>
+    </div>
+
+    <div class="step-box">
+        <div class="step-header">Step 2: 条件2のTrue（ボーナスあり）→ 項目の更新 + Teams通知</div>
+
+        <h4>項目の更新を追加（もし条件1外にない場合）</h4>
+        <table>
+            <tr><th>サイトのアドレス</th><td>同じSharePointサイト</td></tr>
+            <tr><th>リスト名</th><td><code>資格取得申請</code></td></tr>
+            <tr><th>ID</th><td>動的コンテンツ: <code>body/ID</code>（項目の更新 2から）</td></tr>
+            <tr><th>ステータス Value</th><td><code>承認済</code></td></tr>
+            <tr><th>承認者 Claims</th><td>動的コンテンツ: 応答者のユーザープリンシパル名</td></tr>
+            <tr><th>承認日</th><td>式: <code>utcNow()</code></td></tr>
+        </table>
+
+        <h4>Teams通知を追加（パターン2：取得届＋ボーナスあり）</h4>
+        <table>
+            <tr><th>投稿者</th><td><code>フローボット</code></td></tr>
+            <tr><th>投稿先</th><td><code>フローボットとチャットをする</code></td></tr>
+            <tr><th>Recipient</th><td>動的コンテンツ: <code>申請者 Email</code>（項目の更新 2から）</td></tr>
+        </table>
+
+        <div class="step-box" style="border-color: #6264a7;">
+            <div class="step-header" style="background:#6264a7;">メッセージ内容（パターン2：取得届＋ボーナスあり）</div>
+<pre style="background:#f5f5f5; color:#333;">🎉 資格取得届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: 【動的コンテンツ: 登録者 DisplayName】
+■ 資格名: 【動的コンテンツ: タイトル】
+■ 取得日: 【動的コンテンツ: 予定日_取得日】
+━━━━━━━━━━━━━━━━━━━━━
+
+【報奨金内訳】
+【動的コンテンツ: 作成 の出力（本文）】
+
+おめでとうございます！🎊</pre>
+        </div>
+    </div>
+
+    <div class="step-box">
+        <div class="step-header">Step 3: 条件2のFalse（ボーナスなし）→ 項目の更新 + Teams通知</div>
+
+        <h4>項目の更新を追加（Step 2と同じ設定）</h4>
+
+        <h4>Teams通知を追加（パターン3：取得届＋ボーナスなし）</h4>
+
+        <div class="step-box" style="border-color: #6264a7;">
+            <div class="step-header" style="background:#6264a7;">メッセージ内容（パターン3：取得届＋ボーナスなし）</div>
+<pre style="background:#f5f5f5; color:#333;">🎉 資格取得届が承認されました
+
+━━━━━━━━━━━━━━━━━━━━━
+■ 申請者: 【動的コンテンツ: 登録者 DisplayName】
+■ 資格名: 【動的コンテンツ: タイトル】
+■ 取得日: 【動的コンテンツ: 予定日_取得日】
+━━━━━━━━━━━━━━━━━━━━━
+
+【報奨金】
+【動的コンテンツ: 作成 の出力（本文）】
+
+おめでとうございます！🎊
+
+💡 次回は事前に「資格取得宣言届」を提出すると
+   ¥5,000のボーナスが加算されます。</pre>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">修正2-3: 承認タイトルに資格名を追加（任意）</h3>
+
+    <div class="step-box">
+        <div class="step-header">手順</div>
+        <ol>
+            <li>「開始して承認を待機」アクションを開く</li>
+            <li>「タイトル」フィールドを以下に変更：</li>
+        </ol>
+        <table>
+            <tr><th>現在</th><td><code>【資格取得申請】承認依頼</code></td></tr>
+            <tr><th>修正後</th><td><code>【資格取得申請】承認依頼: </code> + 動的コンテンツ「タイトル」（項目の更新 2から）</td></tr>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <h3 style="margin-top:0;">修正後のフロー構造（完成イメージ）</h3>
+
+    <div class="flowchart">
+1. 項目が作成されたとき（トリガー）
+   │
+2. └─ 遅延（10秒）  ← 追加
+      │
+3.    └─ 項目の更新 2（データセット）  ← 既存のまま
+         │
+4.       └─ 作成（報奨金表示テキスト）  ← 既存のまま
+            │
+5.          └─ 開始して承認を待機  ← タイトルに資格名追加（任意）
+               │
+6.             └─ 条件（body/outcome = Approve）
+                  │
+                  ├─ True（承認）
+                  │   │
+                  │   └─ 条件1（申請種別 = 宣言届？）
+                  │       │
+                  │       ├─ True（宣言届）
+                  │       │   ├─ Teams通知2（宣言届承認）  ← 既存のまま
+                  │       │   └─ For each → 項目の更新（承認済）  ← 既存のまま
+                  │       │
+                  │       └─ False（取得届）
+                  │           │
+                  │           └─ 条件2（事前ボーナス > 0？）  ← 要確認/追加
+                  │               │
+                  │               ├─ True（ボーナスあり）
+                  │               │   ├─ 項目の更新（承認済）  ← 要確認/追加
+                  │               │   └─ Teams通知（パターン2）  ← 要確認/追加
+                  │               │
+                  │               └─ False（ボーナスなし）
+                  │                   ├─ 項目の更新（承認済）  ← 要確認/追加
+                  │                   └─ Teams通知（パターン3）  ← 要確認/追加
+                  │
+                  └─ False（却下）
+                      ├─ 項目の更新 1（却下）  ← 既存のまま
+                      ├─ Teams通知1（却下）  ← 既存のまま
+                      └─ （For each 1 → 項目の更新 4）  ← 要確認
+    </div>
+</div>
+</section>
+
+<!-- ================================================================ -->
+<!-- セクション9: 最終チェックリスト -->
+<!-- ================================================================ -->
+<section id="checklist">
+<h2>9. 最終チェックリスト</h2>
+
+<div class="card">
+    <h3 style="margin-top:0;">Phase 0: 追加調査</h3>
+    <table>
+        <tr><th style="width:5%;">□</th><td>条件1のFalse分岐を展開し、中身を確認してスクリーンショットを撮る</td></tr>
+        <tr><th>□</th><td>項目の更新 4 の全パラメータを確認してスクリーンショットを撮る</td></tr>
+    </table>
+
+    <h3>Phase 1: Power Apps修正</h3>
+    <table>
+        <tr><th style="width:5%;">□</th><td>Dropdown1.Itemsのフィルターを改善（同じ資格 + 承認済みに絞る）</td></tr>
+        <tr><th>□</th><td>ButtonSubmit.OnSelectに「関連宣言届ID」を追加</td></tr>
+        <tr><th>□</th><td>Power Appsを保存・公開</td></tr>
+    </table>
+
+    <h3>Phase 2: Power Automate修正</h3>
+    <table>
+        <tr><th style="width:5%;">□</th><td>遅延（10秒）をトリガー直後に追加</td></tr>
+        <tr><th>□</th><td>条件1 False分岐の修正（条件2 + Teams通知パターン2/3）</td></tr>
+        <tr><th>□</th><td>承認タイトルに資格名を追加（任意）</td></tr>
+        <tr><th>□</th><td>項目の更新 4 の確認・修正</td></tr>
+        <tr><th>□</th><td>フローを保存</td></tr>
+    </table>
+
+    <h3>Phase 3: テスト</h3>
+    <table>
+        <tr><th style="width:5%;">□</th><td><strong>テスト1:</strong> 宣言届を申請 → 承認 → Teams通知に金額なし、ステータス「承認済」</td></tr>
+        <tr><th>□</th><td><strong>テスト2:</strong> 取得届（宣言届を紐づけ）→ 承認 → 報奨金 + 5,000円表示、関連宣言届IDが記録される</td></tr>
+        <tr><th>□</th><td><strong>テスト3:</strong> 取得届（宣言届なし）→ 承認 → 報奨金のみ表示、ボーナス案内メッセージ</td></tr>
+        <tr><th>□</th><td><strong>テスト4:</strong> 申請を却下 → ステータス「却下」、却下理由付きTeams通知</td></tr>
+        <tr><th>□</th><td>SharePointリストに承認者・承認日が正しく記録されていること</td></tr>
+    </table>
+</div>
+
+<div class="alert-ok" style="margin-top:30px;">
+    <strong>次のステップ</strong><br>
+    <strong>Phase 0 の追加調査</strong>（条件1 False分岐の中身の確認）を先に実施してください。<br>
+    スクリーンショットを共有いただければ、それに基づいて修正手順を具体化します。
+</div>
+</section>
+
+<footer style="text-align: center; margin-top: 50px; padding: 20px; color: #666; font-size: 12px; border-top: 1px solid #ddd;">
+    資格取得申請システム 差分調査・修正プラン | 調査日: 2026年2月9日
+</footer>
+
+</body>
+</html>
