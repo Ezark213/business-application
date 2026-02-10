@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資格取得申請システム 修正手順書（完全版）</title>
+<style>
+  :root {
+    --primary: #0078d4;
+    --success: #107c10;
+    --warning: #ff8c00;
+    --danger: #d13438;
+    --bg: #f5f5f5;
+    --card: #ffffff;
+    --text: #323130;
+    --muted: #605e5c;
+    --border: #e1dfdd;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 20px;
+  }
+  .container { max-width: 960px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0078d4, #005a9e);
+    color: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+  }
+  .header h1 { font-size: 24px; margin-bottom: 8px; }
+  .header p { opacity: 0.9; font-size: 14px; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid var(--border);
+  }
+  .card h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary);
+    color: var(--primary);
+  }
+  .card h3 {
+    font-size: 16px;
+    margin: 20px 0 10px;
+    color: #323130;
+  }
+
+  /* Progress */
+  .progress-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .progress-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #f8f8f8;
+    font-size: 14px;
+  }
+  .progress-item .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dot-done { background: var(--success); }
+  .dot-almost { background: var(--warning); }
+  .dot-partial { background: var(--danger); }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin: 12px 0;
+  }
+  th, td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    text-align: left;
+  }
+  th {
+    background: #f0f0f0;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  tr:hover { background: #fafafa; }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-must { background: #fde7e9; color: var(--danger); }
+  .badge-rec { background: #fff4ce; color: #8a6914; }
+  .badge-opt { background: #e6f2e6; color: #107c10; }
+
+  /* Steps */
+  .step {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 16px 0;
+    overflow: hidden;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    background: #f8f8f8;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  .step-header:hover { background: #f0f0f0; }
+  .step-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .step-body { padding: 20px 24px; }
+
+  /* Substeps */
+  .substep {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .substep:last-child { border-bottom: none; }
+  .substep-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #e8f0fe;
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .substep-content { flex: 1; }
+  .substep-content p { margin: 4px 0; }
+
+  /* Code */
+  .code-block {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px 20px;
+    border-radius: 8px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    margin: 10px 0;
+    position: relative;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .code-block .comment { color: #6a9955; }
+  .code-block .keyword { color: #569cd6; }
+  .code-block .string { color: #ce9178; }
+  .code-block .copy-label {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 11px;
+    color: #888;
+    background: #2d2d2d;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  /* Setting row */
+  .setting-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 4px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 14px;
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label {
+    font-weight: 600;
+    color: var(--muted);
+  }
+  .setting-value {
+    color: var(--text);
+  }
+
+  /* Alert */
+  .alert {
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin: 12px 0;
+    font-size: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-warn { background: #fff4ce; border-left: 4px solid var(--warning); }
+  .alert-info { background: #e8f0fe; border-left: 4px solid var(--primary); }
+  .alert-danger { background: #fde7e9; border-left: 4px solid var(--danger); }
+  .alert-success { background: #e6f2e6; border-left: 4px solid var(--success); }
+  .alert-icon { font-size: 18px; flex-shrink: 0; }
+
+  /* Checklist */
+  .checklist { list-style: none; padding: 0; }
+  .checklist li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 14px;
+  }
+  .checklist li::before {
+    content: '☐';
+    margin-right: 10px;
+    font-size: 16px;
+  }
+
+  /* Flow diagram */
+  .flow-diagram {
+    background: #f8f8f8;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    font-family: 'Cascadia Code', 'Consolas', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+    margin: 12px 0;
+  }
+
+  /* Section divider */
+  .section-divider {
+    text-align: center;
+    margin: 32px 0 20px;
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
+  .section-divider::before,
+  .section-divider::after {
+    content: '';
+    display: inline-block;
+    width: 60px;
+    height: 1px;
+    background: var(--border);
+    vertical-align: middle;
+    margin: 0 16px;
+  }
+
+  /* Impact label */
+  .impact {
+    display: inline-block;
+    padding: 1px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  .impact-critical { background: #d13438; color: white; }
+  .impact-high { background: #ff8c00; color: white; }
+  .impact-low { background: #e6f2e6; color: #107c10; }
+
+  @media print {
+    body { padding: 0; background: white; }
+    .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    .header { color: white; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- ===================== HEADER ===================== -->
+<div class="header">
+  <h1>資格取得申請システム 修正手順書（完全版）</h1>
+  <p>作成日: 2026年2月10日 ｜ 対象: Power Automate 6件 + Power Apps 2件 ｜ 推定作業時間: 30〜45分</p>
+</div>
+
+<!-- ===================== 現状サマリー ===================== -->
+<div class="card">
+  <h2>現状サマリー</h2>
+  <div class="progress-grid">
+    <div class="progress-item">
+      <span class="dot dot-done"></span>
+      <span><strong>SharePoint Lists</strong> — 100% 完成</span>
+    </div>
+    <div class="progress-item">
+      <span class="dot dot-almost"></span>
+      <span><strong>Power Apps</strong> — 約90%（2件修正）</span>
+    </div>
+    <div class="progress-item">
+      <span class="dot dot-partial"></span>
+      <span><strong>Power Automate</strong> — 約70%（6件修正）</span>
+    </div>
+    <div class="progress-item">
+      <span class="dot dot-partial"></span>
+      <span><strong>統合テスト</strong> — 未実施</span>
+    </div>
+  </div>
+
+  <h3>フロー全体構造（調査済み確定版）</h3>
+  <div class="flow-diagram">トリガー（SharePoint アイテム作成時）
+  │
+  │  ← <strong style="color:#d13438">【修正A-1】ここに10秒遅延を追加</strong>
+  │
+  ├─ 項目の取得
+  ├─ 作成（Compose：報奨金メッセージ生成）
+  ├─ 開始して承認を待機
+  │
+  ━━ 条件（承認 or 却下）━━━━━━━━━━━━━━━━━━━
+  │
+  ├─ <strong style="color:#107c10">True（承認）</strong>
+  │     │
+  │     │  ← <strong style="color:#d13438">【修正A-5】ここにステータス更新を追加</strong>
+  │     │
+  │     └─ 条件1（申請種別 = 宣言届？） ← <strong style="color:#ff8c00">【修正A-2】空白行を削除</strong>
+  │          │
+  │          ├─ True（宣言届）
+  │          │    ├─ Teams通知2（宣言届承認）
+  │          │    └─ For each → 1件のアクション
+  │          │
+  │          └─ False（取得届）
+  │               └─ 条件2（事前ボーナス &gt; 0？） ← <strong style="color:#ff8c00">【修正A-3】空白行を削除</strong>
+  │                    ├─ True  → Teams通知3（報奨金＋ボーナス）✅ 確認済
+  │                    └─ False → Teams通知4（報奨金のみ）     ✅ 確認済
+  │
+  └─ <strong style="color:#d13438">False（却下）</strong>
+       ├─ 項目の更新1（ステータス→却下）
+       ├─ Teams通知1（却下通知）
+       └─ For each 1
+            └─ 項目の更新4 ← <strong style="color:#d13438">【修正A-4】「申請中」→「却下」に変更</strong></div>
+</div>
+
+<!-- ===================== 修正一覧 ===================== -->
+<div class="card">
+  <h2>修正一覧（全8件）</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>対象</th>
+        <th>作業内容</th>
+        <th>優先度</th>
+        <th>所要時間</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>A-1</td>
+        <td>Power Automate</td>
+        <td>トリガー直後に10秒遅延を追加</td>
+        <td><span class="badge badge-rec">推奨</span></td>
+        <td>2分</td>
+      </tr>
+      <tr>
+        <td>A-2</td>
+        <td>Power Automate</td>
+        <td>条件1のAND空白行を削除</td>
+        <td><span class="badge badge-must">必須</span></td>
+        <td>30秒</td>
+      </tr>
+      <tr>
+        <td>A-3</td>
+        <td>Power Automate</td>
+        <td>条件2のAND空白行を削除</td>
+        <td><span class="badge badge-must">必須</span></td>
+        <td>30秒</td>
+      </tr>
+      <tr>
+        <td>A-4</td>
+        <td>Power Automate</td>
+        <td>項目の更新4: ステータスを「却下」に変更</td>
+        <td><span class="badge badge-must">必須</span></td>
+        <td>1分</td>
+      </tr>
+      <tr>
+        <td>A-5</td>
+        <td>Power Automate</td>
+        <td>承認時のステータス更新アクションを追加</td>
+        <td><span class="badge badge-must">必須</span></td>
+        <td>5分</td>
+      </tr>
+      <tr>
+        <td>A-6</td>
+        <td>Power Automate</td>
+        <td>承認依頼タイトルに資格名を追加</td>
+        <td><span class="badge badge-opt">任意</span></td>
+        <td>1分</td>
+      </tr>
+      <tr style="background: #f0f8ff;">
+        <td>B-1</td>
+        <td>Power Apps</td>
+        <td>Dropdown1のフィルター式を修正</td>
+        <td><span class="badge badge-must">必須</span></td>
+        <td>3分</td>
+      </tr>
+      <tr style="background: #f0f8ff;">
+        <td>B-2</td>
+        <td>Power Apps</td>
+        <td>Patch関数に関連宣言届IDを追加</td>
+        <td><span class="badge badge-must">必須</span></td>
+        <td>3分</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== PART A: POWER AUTOMATE ===================== -->
+<div class="section-divider">PART A — Power Automate 修正</div>
+
+<div class="alert alert-warn">
+  <span class="alert-icon">⚠️</span>
+  <div><strong>作業前にフローをエクスポート（バックアップ）してください。</strong><br>
+  フロー編集画面の右上「…」→「エクスポート」→「パッケージ (.zip)」で保存できます。万が一壊れた場合に復元できます。</div>
+</div>
+
+<!-- Step A-1 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span>A-1: トリガー直後に10秒遅延を追加</span>
+    <span class="badge badge-rec" style="margin-left:auto">推奨</span>
+  </div>
+  <div class="step-body">
+    <div class="alert alert-info">
+      <span class="alert-icon">💡</span>
+      <div>Power AppsがSharePointに書き込み完了する前にフローが発火すると、データが不完全な状態で処理される場合があります。10秒の遅延でこれを防ぎます。</div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>フロー編集画面を開き、<strong>トリガー</strong>と次のアクション（「項目の取得」または「作成」）の<strong>間にある ⊕ ボタン</strong>をクリック</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>「<strong>アクションの追加</strong>」を選択</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p>検索ボックスに「<strong>遅延</strong>」と入力 →「<strong>Schedule</strong>」カテゴリの「<strong>遅延</strong>」を選択</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">4</span>
+      <div class="substep-content">
+        <p>以下を設定：</p>
+        <div class="setting-row">
+          <span class="setting-label">カウント</span>
+          <span class="setting-value"><strong>10</strong></span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">単位</span>
+          <span class="setting-value"><strong>秒</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step A-2 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span>A-2: 条件1 の空白行を削除</span>
+    <span class="badge badge-must" style="margin-left:auto">必須</span>
+  </div>
+  <div class="step-body">
+    <div class="alert alert-danger">
+      <span class="alert-icon">🐛</span>
+      <div><strong>現在のバグ：</strong>条件1のAND条件に2行目が空白のまま残っています。空白の条件行があると予期しない動作を引き起こす可能性があります。</div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>承認分岐（True）内の「<strong>条件1</strong>」をクリックして開く</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>2行目（「値を選択します」「等しい」「値を選択します」と表示されている<strong>空白の行</strong>）を見つける</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p>その行の右端にある <strong>「…」（三点メニュー）</strong>をクリック → 「<strong>削除</strong>」を選択</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">4</span>
+      <div class="substep-content">
+        <p>残った条件が以下のみであることを確認：</p>
+        <div class="setting-row">
+          <span class="setting-label">左辺</span>
+          <span class="setting-value">body/OData_x... （申請種別の内部列名）</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">演算子</span>
+          <span class="setting-value">等しい</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">右辺</span>
+          <span class="setting-value"><strong>資格取得宣言届</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step A-3 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span>A-3: 条件2 の空白行を削除</span>
+    <span class="badge badge-must" style="margin-left:auto">必須</span>
+  </div>
+  <div class="step-body">
+    <p>A-2と同じ手順を<strong>条件2</strong>にも行います。</p>
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>条件1 の False 分岐内にある「<strong>条件2</strong>」をクリックして開く</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>2行目の<strong>空白の行</strong>の右端 <strong>「…」</strong>→「<strong>削除</strong>」</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p>残った条件が以下のみであることを確認：</p>
+        <div class="setting-row">
+          <span class="setting-label">左辺</span>
+          <span class="setting-value">body/OData_x... （事前ボーナスの内部列名）</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">演算子</span>
+          <span class="setting-value">より大きい</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">右辺</span>
+          <span class="setting-value"><strong>0</strong></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step A-4 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span>A-4: 項目の更新4 — ステータスを「却下」に変更</span>
+    <span class="badge badge-must" style="margin-left:auto">必須</span>
+  </div>
+  <div class="step-body">
+    <div class="alert alert-danger">
+      <span class="alert-icon">🐛</span>
+      <div><strong>現在のバグ：</strong>却下時にステータスが「申請中」にリセットされてしまい、却下された申請が「申請中」のまま残ります。</div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>却下分岐（条件 → False）の中にある「<strong>For each 1</strong>」を展開</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>「<strong>項目の更新4</strong>」をクリックして開く</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p><strong>「ステータス Value」</strong>の値を変更：</p>
+        <div class="setting-row">
+          <span class="setting-label">変更前</span>
+          <span class="setting-value" style="color: var(--danger); text-decoration: line-through;">申請中</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">変更後</span>
+          <span class="setting-value" style="color: var(--success); font-weight: bold;">却下</span>
+        </div>
+        <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">※ ドロップダウンから「却下」を選択してください</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Step A-5 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">5</span>
+    <span>A-5: 承認時のステータス更新アクションを追加</span>
+    <span class="badge badge-must" style="margin-left:auto">必須</span>
+    <span class="impact impact-critical">最重要</span>
+  </div>
+  <div class="step-body">
+    <div class="alert alert-danger">
+      <span class="alert-icon">🚨</span>
+      <div><strong>致命的な問題：</strong>現在、取得届が承認されてもSharePoint上のステータスが「申請中」のまま更新されません。承認日・承認者も記録されません。承認処理そのものが不完全な状態です。</div>
+    </div>
+
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>承認分岐（条件 → True）の中にある<strong>「条件1」の直前</strong>の <strong>⊕ ボタン</strong>をクリック</p>
+        <div class="alert alert-info" style="margin-top:8px">
+          <span class="alert-icon">📍</span>
+          <div>追加する場所: 「条件」Trueの先頭 → ⊕ → 「条件1」の間です。ここに追加すると、宣言届でも取得届でも共通でステータスが更新されます。</div>
+        </div>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>「<strong>アクションの追加</strong>」→ 検索で「<strong>SharePoint</strong>」→「<strong>項目の更新</strong>」を選択</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p>以下のように設定してください：</p>
+        <div class="setting-row">
+          <span class="setting-label">サイトのアドレス</span>
+          <span class="setting-value">アルマグループ - https://armaascojp.sharepoint.com/sites/arma-as.co.jp</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">リスト名</span>
+          <span class="setting-value"><strong>資格取得申請</strong></span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">ID</span>
+          <span class="setting-value">動的なコンテンツから <strong>「ID」</strong> を選択（トリガーの ID）</span>
+        </div>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">4</span>
+      <div class="substep-content">
+        <p>「<strong>すべて表示</strong>」または「<strong>詳細パラメーター</strong>」をクリックして、以下のフィールドを設定：</p>
+        <div class="setting-row">
+          <span class="setting-label">ステータス Value</span>
+          <span class="setting-value"><strong>承認済</strong>（ドロップダウンから選択）</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">承認者 Claims</span>
+          <span class="setting-value">動的なコンテンツ → 「開始して承認を待機」→ <strong>「応答者 ユーザー プリンシパル名」</strong> を選択</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">承認日</span>
+          <span class="setting-value">「式」タブに切り替えて以下を入力 → 「OK」をクリック：</span>
+        </div>
+        <div class="code-block"><span class="copy-label">コピペ用</span>utcNow()</div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn" style="margin-top: 16px;">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>確認ポイント：</strong>条件1 True分岐（宣言届）内の「For each → 1件のアクション」の中にも「項目の更新」がある場合、ステータスが2回更新されます。A-5の追加後に中身を確認し、重複していれば For each 内の更新アクションは削除しても構いません。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step A-6 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">6</span>
+    <span>A-6: 承認依頼タイトルに資格名を追加（任意）</span>
+    <span class="badge badge-opt" style="margin-left:auto">任意</span>
+  </div>
+  <div class="step-body">
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>「<strong>開始して承認を待機</strong>」アクションをクリックして開く</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>「<strong>タイトル</strong>」フィールドを以下のように変更：</p>
+        <div class="setting-row">
+          <span class="setting-label">変更前</span>
+          <span class="setting-value">【資格取得申請】承認依頼</span>
+        </div>
+        <div class="setting-row">
+          <span class="setting-label">変更後</span>
+          <span class="setting-value">【資格取得申請】承認依頼: <strong>（動的コンテンツ「タイトル」を挿入）</strong></span>
+        </div>
+        <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">「タイトル」はトリガーの動的コンテンツから選択。これにより承認通知に資格名が表示されます。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-success">
+  <span class="alert-icon">💾</span>
+  <div><strong>A-1〜A-6 完了後、フロー右上の「保存」をクリックしてください。</strong>保存時にエラーが出た場合は、条件式の空白行が残っていないか再確認してください。</div>
+</div>
+
+<!-- ===================== PART B: POWER APPS ===================== -->
+<div class="section-divider">PART B — Power Apps 修正</div>
+
+<div class="alert alert-info">
+  <span class="alert-icon">📖</span>
+  <div><strong>事前準備：</strong>Power Apps の編集画面（make.powerapps.com）でアプリを開き、左側の「ツリービュー」からコントロールを選択してプロパティを編集します。<br>
+  ※ 以下のコントロール名（Dropdown1, ButtonSubmit 等）は仕様書の名前です。実際のアプリで名前が異なる場合は、該当するコントロールを読み替えてください。</div>
+</div>
+
+<!-- Step B-1 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">7</span>
+    <span>B-1: 関連宣言届ドロップダウンのフィルターを修正</span>
+    <span class="badge badge-must" style="margin-left:auto">必須</span>
+  </div>
+  <div class="step-body">
+    <div class="alert alert-danger">
+      <span class="alert-icon">🐛</span>
+      <div><strong>現在のバグ：</strong>取得届を出す際に表示される「過去の宣言届」リストに、他人の宣言届・未承認の宣言届・別の資格の宣言届が全て混在して表示されてしまいます。</div>
+    </div>
+
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>ツリービューから「<strong>Dropdown1</strong>」（関連宣言届を選択するドロップダウン）を選択</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>右側プロパティパネルの上部で <strong>「Items」</strong> プロパティを選択（または数式バーで Items を選択）</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p>現在の数式を<strong>全て削除</strong>して、以下をコピペ：</p>
+        <div class="code-block"><span class="copy-label">コピペ用 — Dropdown1 の Items</span><span class="keyword">Filter</span>(
+    資格取得申請,
+    申請種別.Value = <span class="string">"資格取得宣言届"</span>
+    && ステータス.Value = <span class="string">"承認済"</span>
+    && Title = DropdownQualification.Selected.Value
+)</div>
+        <div class="alert alert-info" style="margin-top: 8px;">
+          <span class="alert-icon">💡</span>
+          <div><strong>この数式の意味：</strong><br>
+          ① 申請種別が「宣言届」のレコードだけに絞る<br>
+          ② さらに「承認済」のものだけに絞る<br>
+          ③ さらに、現在選択中の資格と同じ資格名のものだけに絞る<br>
+          → 結果：同じ資格の承認済み宣言届だけがドロップダウンに表示されます</div>
+        </div>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">4</span>
+      <div class="substep-content">
+        <p><strong>動作確認：</strong>プレビュー（▶ボタン）で、取得届選択時にドロップダウンに同じ資格の承認済み宣言届のみが表示されることを確認</p>
+      </div>
+    </div>
+
+    <div class="alert alert-warn" style="margin-top: 12px;">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>注意：</strong><code>DropdownQualification</code> はアプリ内の資格名選択用ドロップダウンの名前です。実際のコントロール名が異なる場合は、ツリービューで資格名ドロップダウンの名前を確認して置き換えてください。<code>Title</code> は申請リストの資格名列です。列名が異なる場合は同様に置き換えてください。</div>
+    </div>
+  </div>
+</div>
+
+<!-- Step B-2 -->
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">8</span>
+    <span>B-2: 送信時に関連宣言届IDをSharePointに記録する</span>
+    <span class="badge badge-must" style="margin-left:auto">必須</span>
+  </div>
+  <div class="step-body">
+    <div class="alert alert-danger">
+      <span class="alert-icon">🐛</span>
+      <div><strong>現在のバグ：</strong>取得届送信時に「関連宣言届ID」がSharePointに記録されないため、取得届がどの宣言届と紐づいているか追跡できません。</div>
+    </div>
+
+    <div class="substep">
+      <span class="substep-num">1</span>
+      <div class="substep-content">
+        <p>ツリービューから<strong>送信ボタン</strong>（ButtonSubmit 等）を選択</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">2</span>
+      <div class="substep-content">
+        <p>プロパティで <strong>「OnSelect」</strong> を選択して数式バーを開く</p>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">3</span>
+      <div class="substep-content">
+        <p>既存の <code>Patch(</code> 関数の中に、<strong>以下の1行を追加</strong>してください：</p>
+        <div class="code-block"><span class="copy-label">コピペ用 — Patch 内に追加する行</span><span class="comment">// 既存の Patch 関数内に、この1フィールドを追加する</span>
+関連宣言届ID: <span class="keyword">If</span>(
+    RadioApplicationType.Selected.Value = <span class="string">"資格取得届"</span>
+        && !<span class="keyword">IsBlank</span>(Dropdown1.Selected),
+    Dropdown1.Selected.ID,
+    <span class="keyword">Blank</span>()
+)</div>
+      </div>
+    </div>
+    <div class="substep">
+      <span class="substep-num">4</span>
+      <div class="substep-content">
+        <p><strong>追加位置のイメージ：</strong></p>
+        <div class="code-block"><span class="copy-label">Patch 全体の例</span><span class="keyword">Patch</span>(
+    資格取得申請,
+    <span class="keyword">Defaults</span>(資格取得申請),
+    {
+        Title: ...,
+        申請種別: ...,
+        <span class="comment">// ... 既存のフィールド ...</span>
+        予定日_取得日: ...,
+
+        <span style="color:#4ec9b0; font-weight:bold">関連宣言届ID: If(
+            RadioApplicationType.Selected.Value = "資格取得届"
+                && !IsBlank(Dropdown1.Selected),
+            Dropdown1.Selected.ID,
+            Blank()
+        )</span>
+    }
+)</div>
+        <div class="alert alert-info" style="margin-top: 8px;">
+          <span class="alert-icon">💡</span>
+          <div><strong>この数式の意味：</strong><br>
+          ① 申請種別が「取得届」かつ宣言届が選択されている場合 → 選択した宣言届のIDを記録<br>
+          ② それ以外（宣言届の申請時や、宣言届を選択していない場合）→ 空白のまま</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warn" style="margin-top: 12px;">
+      <span class="alert-icon">⚠️</span>
+      <div><strong>SharePointの列の型を確認：</strong>「関連宣言届ID」列が<strong>数値型</strong>ならそのまま使えます。<strong>テキスト型</strong>の場合は <code>Dropdown1.Selected.ID</code> を <code>Text(Dropdown1.Selected.ID)</code> に変更してください。</div>
+    </div>
+  </div>
+</div>
+
+<div class="alert alert-success">
+  <span class="alert-icon">💾</span>
+  <div><strong>B-1〜B-2 完了後、Power Apps の右上「保存」→「公開」をクリックしてください。</strong></div>
+</div>
+
+<!-- ===================== PART C: テスト ===================== -->
+<div class="section-divider">PART C — 統合テスト</div>
+
+<div class="card">
+  <h2>統合テスト（修正後の検証）</h2>
+  <p>全修正の保存後、以下の5ケースを順番に実施してください。</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:60px">テスト</th>
+        <th>操作</th>
+        <th>確認ポイント</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>① 宣言届 → 承認</strong></td>
+        <td>任意の資格で「宣言届」を申請し、承認する</td>
+        <td>
+          <ul style="margin:0;padding-left:18px;">
+            <li>SharePointのステータスが「<strong>承認済</strong>」に変わる</li>
+            <li>承認者・承認日が記録される</li>
+            <li>報奨金額 = 0円</li>
+            <li>Teams通知（通知2）が届く</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>② 取得届（宣言あり）→ 承認</strong></td>
+        <td>テスト①と同じ資格で「取得届」を申請。Dropdown1で①の宣言届を選択して承認</td>
+        <td>
+          <ul style="margin:0;padding-left:18px;">
+            <li>Dropdown1に①の宣言届<strong>だけ</strong>表示される</li>
+            <li>SharePointに「関連宣言届ID」が記録される</li>
+            <li>ステータスが「承認済」に変わる</li>
+            <li>Teams通知（通知3）に報奨金＋ボーナス¥5,000が表示される</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>③ 取得届（宣言なし）→ 承認</strong></td>
+        <td>宣言届を選択せずに「取得届」を申請して承認</td>
+        <td>
+          <ul style="margin:0;padding-left:18px;">
+            <li>ステータスが「承認済」に変わる</li>
+            <li>関連宣言届IDが空白</li>
+            <li>Teams通知（通知4）に報奨金のみ表示＋「次回は宣言届を」のメッセージ</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>④ 申請 → 却下</strong></td>
+        <td>任意の申請を提出して却下する</td>
+        <td>
+          <ul style="margin:0;padding-left:18px;">
+            <li>ステータスが「<strong>却下</strong>」に変わる（「申請中」に戻らない）</li>
+            <li>Teams通知（通知1）に却下理由が表示される</li>
+          </ul>
+        </td>
+      </tr>
+      <tr>
+        <td><strong>⑤ データ整合性</strong></td>
+        <td>SharePointリストを直接開いて全レコードを確認</td>
+        <td>
+          <ul style="margin:0;padding-left:18px;">
+            <li>①〜④の全レコードにステータス・承認者・承認日が正しく入っている</li>
+            <li>②のレコードに関連宣言届IDが入っている</li>
+            <li>③のレコードの関連宣言届IDが空白</li>
+          </ul>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===================== チェックリスト ===================== -->
+<div class="card">
+  <h2>作業チェックリスト</h2>
+  <h3>Power Automate</h3>
+  <ul class="checklist">
+    <li>A-1: 遅延アクション（10秒）を追加した</li>
+    <li>A-2: 条件1 の空白行を削除した</li>
+    <li>A-3: 条件2 の空白行を削除した</li>
+    <li>A-4: 項目の更新4 のステータスを「却下」に変更した</li>
+    <li>A-5: 承認分岐に「項目の更新」（承認済・承認者・承認日）を追加した</li>
+    <li>A-6:（任意）承認タイトルに資格名を追加した</li>
+    <li>フローを保存してエラーがないことを確認した</li>
+  </ul>
+  <h3>Power Apps</h3>
+  <ul class="checklist">
+    <li>B-1: Dropdown1 の Items を修正した（承認済＋同一資格フィルタ）</li>
+    <li>B-2: Patch 関数に関連宣言届ID フィールドを追加した</li>
+    <li>アプリを保存・公開した</li>
+  </ul>
+  <h3>統合テスト</h3>
+  <ul class="checklist">
+    <li>テスト①: 宣言届 → 承認 OK</li>
+    <li>テスト②: 取得届（宣言あり）→ 承認 OK</li>
+    <li>テスト③: 取得届（宣言なし）→ 承認 OK</li>
+    <li>テスト④: 申請 → 却下 OK</li>
+    <li>テスト⑤: SharePointデータ整合性 OK</li>
+  </ul>
+</div>
+
+<!-- ===================== 備考 ===================== -->
+<div class="card" style="border-left: 4px solid var(--warning);">
+  <h2>追加確認事項</h2>
+  <table>
+    <thead>
+      <tr><th>項目</th><th>内容</th><th>対応</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>条件1 True「For each」の中身</td>
+        <td>宣言届承認時の For each 内に「項目の更新」がある場合、A-5で追加した更新と重複する</td>
+        <td>重複していれば For each 内の更新を削除</td>
+      </tr>
+      <tr>
+        <td>Teams通知2（宣言届承認）の内容</td>
+        <td>通知3・4は確認済みだが、通知2の内容は未確認</td>
+        <td>仕様（「事前申請ボーナス¥5,000が加算されます」メッセージ）と照合</td>
+      </tr>
+      <tr>
+        <td>SharePoint「関連宣言届ID」列の型</td>
+        <td>数値型かテキスト型かでPatch数式が変わる</td>
+        <td>テキスト型の場合は <code>Text(Dropdown1.Selected.ID)</code> に変更</td>
+      </tr>
+      <tr>
+        <td>Power Apps コントロール名</td>
+        <td>実際の名前が仕様書と異なる可能性</td>
+        <td>RadioApplicationType, DropdownQualification, Dropdown1 等を実名に読み替え</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="text-align:center; padding: 24px 0; color: var(--muted); font-size: 13px;">
+  資格取得申請システム 修正手順書（完全版）— 作成日: 2026年2月10日
+</div>
+
+</div>
+</body>
+</html>
