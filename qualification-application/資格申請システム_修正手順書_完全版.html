@@ -782,14 +782,15 @@
     資格取得申請,
     申請種別.Value = <span class="string">"資格取得宣言届"</span>
     && ステータス.Value = <span class="string">"承認済"</span>
-    && Title = DropdownQualification.Selected.Value
+    && Title = DropdownQualification.Selected.Value & <span class="string">" "</span> & DropdownDetail.Selected.Value
 )</div>
         <div class="alert alert-info" style="margin-top: 8px;">
           <span class="alert-icon">💡</span>
           <div><strong>この数式の意味：</strong><br>
           ① 申請種別が「宣言届」のレコードだけに絞る<br>
           ② さらに「承認済」のものだけに絞る<br>
-          ③ さらに、現在選択中の資格と同じ資格名のものだけに絞る<br>
+          ③ さらに、現在選択中の「資格名 + 詳細（級）」と一致するものだけに絞る<br>
+          （※ Titleは「日商簿記検定 1級」のように「資格名 + 半角スペース + 詳細」で保存されるため、同じ形式で比較）<br>
           → 結果：同じ資格の承認済み宣言届だけがドロップダウンに表示されます</div>
         </div>
       </div>
@@ -803,7 +804,7 @@
 
     <div class="alert alert-warn" style="margin-top: 12px;">
       <span class="alert-icon">⚠️</span>
-      <div><strong>注意：</strong><code>DropdownQualification</code> はアプリ内の資格名選択用ドロップダウンの名前です。実際のコントロール名が異なる場合は、ツリービューで資格名ドロップダウンの名前を確認して置き換えてください。<code>Title</code> は申請リストの資格名列です。列名が異なる場合は同様に置き換えてください。</div>
+      <div><strong>注意：</strong><code>DropdownQualification</code> は資格名ドロップダウン、<code>DropdownDetail</code> は詳細（級）ドロップダウンの名前です。実際のコントロール名が異なる場合は読み替えてください。<code>Title</code> には「資格名 + 半角スペース + 詳細」の形式で保存されているため、フィルターも同じ形式で比較します。</div>
     </div>
   </div>
 </div>
@@ -850,23 +851,39 @@
       <span class="substep-num">4</span>
       <div class="substep-content">
         <p><strong>追加位置のイメージ：</strong></p>
-        <div class="code-block"><span class="copy-label">Patch 全体の例</span><span class="keyword">Patch</span>(
+        <div class="code-block"><span class="copy-label">コピペ用 — Patch 全体（完成形）</span><span class="keyword">Patch</span>(
     資格取得申請,
     <span class="keyword">Defaults</span>(資格取得申請),
     {
-        Title: ...,
-        申請種別: ...,
-        <span class="comment">// ... 既存のフィールド ...</span>
-        予定日_取得日: ...,
-
-        <span style="color:#4ec9b0; font-weight:bold">関連宣言届ID: If(
-            RadioApplicationType.Selected.Value = "資格取得届"
-                && !IsBlank(Dropdown1.Selected),
+        Title: DropdownQualification.Selected.Value & <span class="string">" "</span> & DropdownDetail.Selected.Value,
+        申請種別: RadioApplicationType.Selected,
+        申請日: <span class="keyword">Today</span>(),
+        予定日_取得日: DatePickerAcquisition.SelectedDate,
+        理由_内容: TextInputReason.Text,
+        ステータス: {Value: <span class="string">"申請中"</span>},
+        報奨金額: <span class="keyword">If</span>(
+            RadioApplicationType.Selected.Value = <span class="string">"資格取得宣言届"</span>,
+            0,
+            <span class="keyword">LookUp</span>(
+                資格マスタ,
+                Title = DropdownQualification.Selected.Value && 詳細 = DropdownDetail.Selected.Value,
+                報奨金
+            )
+        ),
+        事前ボーナス: <span class="keyword">If</span>(
+            RadioApplicationType.Selected.Value = <span class="string">"資格取得届"</span> && !<span class="keyword">IsBlank</span>(Dropdown1.Selected),
+            5000,
+            0
+        ),
+        <span style="color:#4ec9b0; font-weight:bold">関連宣言届ID: <span class="keyword">If</span>(
+            RadioApplicationType.Selected.Value = <span class="string">"資格取得届"</span>
+                && !<span class="keyword">IsBlank</span>(Dropdown1.Selected),
             Dropdown1.Selected.ID,
-            Blank()
+            <span class="keyword">Blank</span>()
         )</span>
     }
-)</div>
+);
+<span class="keyword">Navigate</span>(Screen2, ScreenTransition.Fade)</div>
         <div class="alert alert-info" style="margin-top: 8px;">
           <span class="alert-icon">💡</span>
           <div><strong>この数式の意味：</strong><br>
