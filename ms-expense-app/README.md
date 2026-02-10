@@ -14,10 +14,27 @@
 - **Microsoft Teams** への通知連携
 - **インボイス制度対応** 8パターンの税区分に対応
 
-## 最新の更新情報（2026/01/19）
+## 構築進捗（2026/02/10 更新）
 
-### 修正・改善点
+> **詳細な進捗は [PROGRESS.md](PROGRESS.md) を参照**
 
+| コンポーネント | 進捗 | 状態 |
+|---------------|------|------|
+| SharePoint Lists | ██████████ 100% | ExpenseRequests(18列), ExpenseDetails, TaxRates 完了 |
+| Power Apps 画面構成 | ████████░░ 80% | 5画面作成済み、税計算エラー修正済み、一部OnSelect・Patch未完成 |
+| Power Apps ロジック | ████░░░░░░ 40% | ギャラリー表示・Filter動作確認済み、Patch式・画面遷移の完成が残り |
+| Power Automate | ░░░░░░░░░░ 0% | 全フロー未着手 |
+| **全体** | **████░░░░░░ 45%** | **次回: タスク2-3（インボイス番号欄追加）から再開** |
+
+### 更新履歴
+
+#### 2026/02/10
+- SharePoint: ExpenseRequestsに「合計金額」「明細件数」列を追加
+- Power Apps: DetailFormScreen の税額・税抜金額ラベルエラー修正（IsBlank + IsNumeric ガード追加）
+- Power Apps: txtAmount の Default を空文字に修正
+- 現状分析を実施、全タスクの作業手順書を作成 → [docs/経費申請アプリ_作業手順書.html](docs/経費申請アプリ_作業手順書.html)
+
+#### 2026/01/19
 | 項目 | 内容 |
 |------|------|
 | ギャラリー表示 | 承認ステータス → 勘定科目に変更 |
@@ -108,8 +125,10 @@ ExpenseRequestsに新規アイテム作成時、登録者を「申請者」列�
 ```
 ms-expense-app/
 ├── README.md                                      # このファイル
+├── PROGRESS.md                                    # ★ 進捗管理（次回ここから確認）
 ├── docs/
-│   ├── PowerApps_経費申請アプリ_完全ガイド.html   # ★ 最新の構築ガイド
+│   ├── 経費申請アプリ_作業手順書.html              # ★ 全タスク詳細手順書（2/10作成）
+│   ├── PowerApps_経費申請アプリ_完全ガイド.html   # 構築ガイド（1/19版）
 │   ├── architecture.md                            # アーキテクチャ説明
 │   └── ...
 ├── sharepoint/
@@ -138,7 +157,9 @@ ms-expense-app/
 
 詳細な構築手順は以下のファイルを参照してください：
 
-- **[PowerApps_経費申請アプリ_完全ガイド.html](docs/PowerApps_経費申請アプリ_完全ガイド.html)** - 最新の完全ガイド（全修正反映済み）
+- **[経費申請アプリ_作業手順書.html](docs/経費申請アプリ_作業手順書.html)** - 残作業の詳細手順書（2/10作成・Power Apps数式付き）
+- **[PROGRESS.md](PROGRESS.md)** - 進捗管理・次回再開ポイント
+- [PowerApps_経費申請アプリ_完全ガイド.html](docs/PowerApps_経費申請アプリ_完全ガイド.html) - 構築ガイド（1/19版）
 
 ### 3. SharePointリストのインポート
 

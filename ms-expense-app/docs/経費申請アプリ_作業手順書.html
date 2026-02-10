@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>経費申請アプリ 作業手順書</title>
+<style>
+  :root {
+    --primary: #0078D4;
+    --primary-dark: #005a9e;
+    --success: #107C10;
+    --warning: #FFB900;
+    --danger: #D13438;
+    --gray-50: #FAF9F8;
+    --gray-100: #F3F2F1;
+    --gray-200: #E1DFDD;
+    --gray-600: #605E5C;
+    --gray-800: #323130;
+    --gray-900: #201F1E;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "Segoe UI", "Meiryo UI", "Yu Gothic UI", sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    line-height: 1.7;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    padding: 40px 0;
+    text-align: center;
+  }
+  header h1 { font-size: 28px; font-weight: 600; }
+  header p { margin-top: 8px; opacity: 0.9; font-size: 14px; }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* Status Overview */
+  .status-overview {
+    background: white;
+    border-radius: 8px;
+    padding: 32px;
+    margin: 32px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .status-overview h2 {
+    font-size: 20px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 8px;
+    margin-bottom: 20px;
+  }
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .status-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    padding: 16px;
+    border-left: 4px solid var(--gray-200);
+  }
+  .status-card.done { border-left-color: var(--success); }
+  .status-card.partial { border-left-color: var(--warning); }
+  .status-card.todo { border-left-color: var(--danger); }
+  .status-card h4 { font-size: 14px; margin-bottom: 4px; }
+  .status-card .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 600;
+  }
+  .badge.done { background: var(--success); }
+  .badge.partial { background: var(--warning); color: var(--gray-900); }
+  .badge.todo { background: var(--danger); }
+  .status-card p { font-size: 13px; color: var(--gray-600); margin-top: 6px; }
+
+  /* Phase */
+  .phase {
+    background: white;
+    border-radius: 8px;
+    margin: 24px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+  }
+  .phase-header {
+    padding: 20px 32px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .phase-header.p1 { background: #D13438; }
+  .phase-header.p2 { background: #CA5010; }
+  .phase-header.p3 { background: #0078D4; }
+  .phase-header.p4 { background: #107C10; }
+  .phase-header .phase-num {
+    background: rgba(255,255,255,0.25);
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+  }
+  .phase-header h2 { font-size: 18px; font-weight: 600; }
+  .phase-header .est {
+    margin-left: auto;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+  .phase-body { padding: 24px 32px 32px; }
+
+  /* Task */
+  .task {
+    border: 1px solid var(--gray-200);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .task:last-child { margin-bottom: 0; }
+  .task-title {
+    background: var(--gray-50);
+    padding: 12px 20px;
+    font-weight: 600;
+    font-size: 15px;
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .task-title input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--primary);
+  }
+  .task-body { padding: 16px 20px; }
+  .task-body p { margin-bottom: 10px; font-size: 14px; }
+
+  /* Steps */
+  .steps { padding-left: 0; list-style: none; counter-reset: step; }
+  .steps li {
+    position: relative;
+    padding: 10px 0 10px 40px;
+    font-size: 14px;
+    border-bottom: 1px dashed var(--gray-200);
+    counter-increment: step;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0; top: 10px;
+    width: 26px; height: 26px;
+    background: var(--primary);
+    color: white;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Code blocks */
+  .code-block {
+    background: #1E1E1E;
+    color: #D4D4D4;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin: 10px 0;
+    font-family: "Cascadia Code", "Consolas", monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .code-block .comment { color: #6A9955; }
+  .code-block .keyword { color: #569CD6; }
+  .code-block .string { color: #CE9178; }
+  .code-block .func { color: #DCDCAA; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid var(--gray-200);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background: var(--gray-50);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  /* Info box */
+  .info-box {
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .info-box.warn {
+    background: #FFF4CE;
+    border-left: 4px solid var(--warning);
+  }
+  .info-box.tip {
+    background: #DFF6DD;
+    border-left: 4px solid var(--success);
+  }
+  .info-box.danger {
+    background: #FDE7E9;
+    border-left: 4px solid var(--danger);
+  }
+  .info-box strong { display: block; margin-bottom: 4px; }
+
+  /* Roadmap */
+  .roadmap {
+    display: flex;
+    gap: 0;
+    margin: 20px 0;
+    overflow-x: auto;
+  }
+  .roadmap-item {
+    flex: 1;
+    min-width: 180px;
+    text-align: center;
+    position: relative;
+    padding: 16px 12px;
+  }
+  .roadmap-item::after {
+    content: "→";
+    position: absolute;
+    right: -8px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: var(--gray-600);
+  }
+  .roadmap-item:last-child::after { content: ""; }
+  .roadmap-item .dot {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .roadmap-item .dot.p1 { background: #D13438; }
+  .roadmap-item .dot.p2 { background: #CA5010; }
+  .roadmap-item .dot.p3 { background: #0078D4; }
+  .roadmap-item .dot.p4 { background: #107C10; }
+  .roadmap-item span { font-size: 12px; color: var(--gray-600); }
+
+  footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--gray-600);
+    font-size: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .status-grid { grid-template-columns: 1fr; }
+    .phase-body { padding: 16px; }
+    .task-body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <h1>MS 経費申請アプリ 作業手順書</h1>
+    <p>現状分析に基づく残作業一覧 &#x2014; 2026年2月10日時点</p>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ==================== 現状サマリー ==================== -->
+<section class="status-overview">
+  <h2>現状サマリー</h2>
+  <div class="status-grid">
+    <div class="status-card partial">
+      <h4>ExpenseRequests <span class="badge partial">要修正</span></h4>
+      <p>リスト作成済み。承認ステータス・合計金額・明細件数・承認者・承認日時・承認コメント列が不足</p>
+    </div>
+    <div class="status-card partial">
+      <h4>ExpenseDetails <span class="badge partial">要修正</span></h4>
+      <p>列構造はほぼ完成。テストデータの申請IDが空のため紐付け不全</p>
+    </div>
+    <div class="status-card done">
+      <h4>TaxRates <span class="badge done">完了</span></h4>
+      <p>8行の税区分データが正しく登録済み</p>
+    </div>
+    <div class="status-card todo">
+      <h4>Approvers <span class="badge todo">未着手</span></h4>
+      <p>リスト未作成。フェーズ4で必要に応じて作成</p>
+    </div>
+    <div class="status-card partial">
+      <h4>Power Apps（5画面）<span class="badge partial">ガワ完了</span></h4>
+      <p>HomeScreen / RequestListScreen / RequestFormScreen / DetailFormScreen / ApprovalScreen が存在。DetailFormScreenに税計算エラーあり。ApprovalScreenは空</p>
+    </div>
+    <div class="status-card todo">
+      <h4>Power Automate <span class="badge todo">未着手</span></h4>
+      <p>全フロー（申請者自動設定 / 承認 / Teams通知 / 週次サマリー）が未作成</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== ロードマップ ==================== -->
+<section class="status-overview">
+  <h2>作業ロードマップ</h2>
+  <div class="roadmap">
+    <div class="roadmap-item">
+      <div class="dot p1">1</div>
+      <strong>SharePoint基盤</strong>
+      <span>列追加・データ整備</span>
+    </div>
+    <div class="roadmap-item">
+      <div class="dot p2">2</div>
+      <strong>Power Apps修正</strong>
+      <span>エラー修正・機能補完</span>
+    </div>
+    <div class="roadmap-item">
+      <div class="dot p3">3</div>
+      <strong>Power Automate</strong>
+      <span>フロー作成・通知設定</span>
+    </div>
+    <div class="roadmap-item">
+      <div class="dot p4">4</div>
+      <strong>仕上げ</strong>
+      <span>承認画面・テスト・整理</span>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================
+     フェーズ1: SharePoint基盤整備
+     ======================================================== -->
+<section class="phase">
+  <div class="phase-header p1">
+    <div class="phase-num">1</div>
+    <h2>SharePoint リストの基盤整備</h2>
+    <span class="est">最優先</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- Task 1-1 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 1-1. ExpenseRequests に不足列を追加する
+      </div>
+      <div class="task-body">
+        <p>現在の列（タイトル, 申請者, 経費日付, 部署, 勘定科目, 内容）に加えて、以下の列を追加する。</p>
+
+        <table>
+          <tr><th>列名</th><th>型</th><th>設定</th></tr>
+          <tr>
+            <td>承認ステータス</td>
+            <td>選択肢 (Choice)</td>
+            <td>選択肢: <code>下書き</code>, <code>申請中</code>, <code>承認済み</code>, <code>却下</code>, <code>差戻し</code><br>既定値: <code>下書き</code></td>
+          </tr>
+          <tr>
+            <td>合計金額</td>
+            <td>通貨</td>
+            <td>小数点以下: 0、通貨の形式: ¥123,456</td>
+          </tr>
+          <tr>
+            <td>明細件数</td>
+            <td>数値</td>
+            <td>小数点以下: 0</td>
+          </tr>
+          <tr>
+            <td>承認者</td>
+            <td>ユーザーまたはグループ</td>
+            <td>ユーザーのみ許可</td>
+          </tr>
+          <tr>
+            <td>承認日時</td>
+            <td>日付と時刻</td>
+            <td>日付と時刻を含める</td>
+          </tr>
+          <tr>
+            <td>承認コメント</td>
+            <td>複数行テキスト</td>
+            <td>プレーンテキスト</td>
+          </tr>
+        </table>
+
+        <ol class="steps">
+          <li>SharePointサイト「経費管理」を開く</li>
+          <li>左メニューから <strong>ExpenseRequests</strong> をクリック</li>
+          <li>右上の歯車アイコン → <strong>リストの設定</strong></li>
+          <li><strong>列の作成</strong> をクリック</li>
+          <li>上記の表に従い、1列ずつ作成する（特に「承認ステータス」は選択肢型で5つの値を改行区切りで入力）</li>
+          <li>作成後、リストビューで全列が表示されることを確認</li>
+        </ol>
+
+        <div class="info-box warn">
+          <strong>注意: 勘定科目・内容列について</strong>
+          現在ExpenseRequestsに「勘定科目」「内容」列がありますが、設計上これらはExpenseDetails（明細）側の列です。ヘッダー側に残しても実害はありませんが、混乱を避けるためビューから非表示にすることを推奨します。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 1-2 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 1-2. ExpenseDetails のテストデータを整備する
+      </div>
+      <div class="task-body">
+        <p>現在のExpenseDetailsデータには以下の問題がある：</p>
+        <table>
+          <tr><th>問題</th><th>該当行</th><th>対処</th></tr>
+          <tr>
+            <td>申請IDが空</td>
+            <td>3行目〜5行目（01/19のデータ）</td>
+            <td>対応するExpenseRequestsのIDを入力するか、行を削除</td>
+          </tr>
+          <tr>
+            <td>内容が空</td>
+            <td>3行目〜5行目</td>
+            <td>テストデータなので内容を入力するか、行を削除</td>
+          </tr>
+          <tr>
+            <td>税区分・税額・税抜金額が空</td>
+            <td>3行目〜7行目</td>
+            <td>DetailFormScreenのPatch修正後に正しく登録されるようになる</td>
+          </tr>
+        </table>
+
+        <ol class="steps">
+          <li>SharePointの <strong>ExpenseDetails</strong> リストを開く</li>
+          <li>申請IDが空で内容もないテスト行（01/19の3行 + 空行）を選択して削除</li>
+          <li>残したい行には正しい申請IDを入力（ExpenseRequestsのID列の値）</li>
+        </ol>
+
+        <div class="info-box tip">
+          <strong>ヒント</strong>
+          フェーズ2でPower Apps側のPatch式を修正した後に、改めてアプリ経由で正しくデータを登録し直す方が確実です。今は明らかに不要なテスト行だけ削除しておけばOKです。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 1-3 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 1-3. ExpenseDetails にレシート添付列を追加する（任意）
+      </div>
+      <div class="task-body">
+        <p>設計書ではExpenseDetailsに領収書添付（Attachment）が含まれている。SharePointリストの添付ファイル機能はデフォルトで有効なので、特別な列追加は不要。Power Apps側の対応はフェーズ4で実施。</p>
+
+        <ol class="steps">
+          <li>ExpenseDetailsリスト → 歯車 → リストの設定</li>
+          <li><strong>詳細設定</strong> → 「アイテムへの添付ファイル」が <strong>有効</strong> であることを確認</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================================================
+     フェーズ2: Power Apps エラー修正・機能補完
+     ======================================================== -->
+<section class="phase">
+  <div class="phase-header p2">
+    <div class="phase-num">2</div>
+    <h2>Power Apps のエラー修正と機能補完</h2>
+    <span class="est">メイン作業</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- Task 2-1 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-1. データソース接続を確認・追加する
+      </div>
+      <div class="task-body">
+        <p>フェーズ1で列を変更したため、Power Apps側でデータソースを更新する必要がある。</p>
+
+        <ol class="steps">
+          <li>Power Apps Studio でアプリを開く</li>
+          <li>左メニューの <strong>データ（円柱アイコン）</strong> をクリック</li>
+          <li>接続済みデータソースを確認。以下の3つが接続されているか確認：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>ExpenseRequests</li>
+              <li>ExpenseDetails</li>
+              <li>TaxRates</li>
+            </ul>
+          </li>
+          <li>接続されていないものがあれば「+ データの追加」→ SharePoint → サイトURL → リスト選択で追加</li>
+          <li>既に接続済みのリストは、<strong>「…」→「更新」</strong>をクリックして列変更を反映</li>
+        </ol>
+
+        <div class="info-box danger">
+          <strong>重要: データソース更新</strong>
+          フェーズ1でExpenseRequestsに列を追加した場合、Power Apps側で必ずデータソースの「更新」を実行すること。これをしないと新しい列（承認ステータス等）がPatch式で使えない。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 2-2 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-2. DetailFormScreen の税計算エラーを修正する
+      </div>
+      <div class="task-body">
+        <p>現在、税額・税抜金額ラベルに赤エラー（❌）が表示されている。TaxRatesの税率を参照して動的に計算させる。</p>
+
+        <p><strong>税額ラベル（現在エラー中のラベル1つ目）を選択して、Textプロパティを以下に変更：</strong></p>
+        <div class="code-block"><span class="comment">// 税額ラベルの Text プロパティ</span>
+<span class="keyword">If</span>(
+    <span class="func">IsBlank</span>(txtAmount.Text) <span class="keyword">||</span> <span class="func">Value</span>(txtAmount.Text) = 0,
+    <span class="string">"税額: ¥0"</span>,
+    <span class="string">"税額: "</span> &amp; <span class="func">Text</span>(
+        <span class="func">RoundDown</span>(
+            <span class="func">Value</span>(txtAmount.Text)
+            - <span class="func">Value</span>(txtAmount.Text) / (1 + <span class="func">Value</span>(Dropdown2.Selected.税率)),
+            0
+        ),
+        <span class="string">"¥#,##0"</span>
+    )
+)</div>
+
+        <p><strong>税抜金額ラベル（現在エラー中のラベル2つ目）を選択して、Textプロパティを以下に変更：</strong></p>
+        <div class="code-block"><span class="comment">// 税抜金額ラベルの Text プロパティ</span>
+<span class="keyword">If</span>(
+    <span class="func">IsBlank</span>(txtAmount.Text) <span class="keyword">||</span> <span class="func">Value</span>(txtAmount.Text) = 0,
+    <span class="string">"税抜: ¥0"</span>,
+    <span class="string">"税抜: "</span> &amp; <span class="func">Text</span>(
+        <span class="func">RoundDown</span>(
+            <span class="func">Value</span>(txtAmount.Text) / (1 + <span class="func">Value</span>(Dropdown2.Selected.税率)),
+            0
+        ),
+        <span class="string">"¥#,##0"</span>
+    )
+)</div>
+
+        <div class="info-box warn">
+          <strong>注意: Dropdown2 のコントロール名</strong>
+          税区分ドロップダウンのコントロール名がツリービューで <code>Dropdown2</code> であることを確認してください。名前が異なる場合はその名前に置き換えてください。また、<code>Dropdown2.Selected.税率</code> が正しくTaxRatesの税率列を参照しているか確認してください。
+        </div>
+
+        <p><strong>もし上記でまだエラーが出る場合（TaxRatesの税率が%文字列の場合）：</strong></p>
+        <div class="code-block"><span class="comment">// 税率が "10.00%" のような文字列の場合、Substituteで%を除去</span>
+<span class="keyword">With</span>(
+    {
+        rate: <span class="func">Value</span>(
+            <span class="func">Substitute</span>(Dropdown2.Selected.税率, "%", "")
+        ) / 100
+    },
+    <span class="keyword">If</span>(
+        <span class="func">IsBlank</span>(txtAmount.Text) <span class="keyword">||</span> <span class="func">Value</span>(txtAmount.Text) = 0,
+        <span class="string">"税額: ¥0"</span>,
+        <span class="string">"税額: "</span> &amp; <span class="func">Text</span>(
+            <span class="func">RoundDown</span>(
+                <span class="func">Value</span>(txtAmount.Text)
+                - <span class="func">Value</span>(txtAmount.Text) / (1 + rate),
+                0
+            ),
+            <span class="string">"¥#,##0"</span>
+        )
+    )
+)</div>
+
+        <ol class="steps">
+          <li>Power Apps Studio で <strong>DetailFormScreen</strong> を開く</li>
+          <li>ツリービューで赤エラーの付いたラベル（❌マーク）を選択</li>
+          <li>数式バーの <strong>Text</strong> プロパティを上記の数式に差し替え</li>
+          <li>エラーが消えることを確認</li>
+          <li>プレビュー（▶）で税込金額に「1100」、税区分に「10%・適格（インボイス）」を選んで「税額: ¥100」「税抜: ¥1,000」と表示されることを確認</li>
+          <li>税区分を「8%（軽減税率）・適格（インボイス）」に変更して税額が変わることを確認</li>
+          <li>税込金額を空にして「税額: ¥0」「税抜: ¥0」と表示されることを確認</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 2-3 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-3. DetailFormScreen にインボイス番号入力欄を追加する
+      </div>
+      <div class="task-body">
+        <p>設計書ではインボイス番号（T + 13桁数字）の入力欄が必要だが、現在のDetailFormScreenには存在しない。</p>
+
+        <ol class="steps">
+          <li>DetailFormScreen を選択した状態で「+ 挿入」→ <strong>テキスト入力</strong></li>
+          <li>ツリービューでコントロール名を <code>txtInvoiceNumber</code> に変更</li>
+          <li>プロパティ設定：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li><strong>HintText</strong>: <code>"例: T1234567890123"</code></li>
+              <li><strong>Format</strong>: <code>TextFormat.Text</code></li>
+            </ul>
+          </li>
+          <li>「+ 挿入」→ <strong>テキストラベル</strong> を追加し、Text を <code>"インボイス番号"</code> に設定</li>
+          <li>税区分ドロップダウンの下あたりに配置</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 2-4 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-4. DetailFormScreen の「追加」ボタンの Patch 式を完成させる
+      </div>
+      <div class="task-body">
+        <p>現在のPatch式に税区分・税額・税抜金額・インボイス番号が含まれていない可能性が高い。以下の完全版に差し替える。</p>
+
+        <p><strong>「追加」ボタン（Button1_6 と思われる）の OnSelect プロパティ：</strong></p>
+        <div class="code-block"><span class="comment">// 追加ボタンの OnSelect</span>
+<span class="keyword">With</span>(
+    {
+        rate: <span class="func">Value</span>(
+            <span class="func">Substitute</span>(Dropdown2.Selected.税率, "%", "")
+        ) / 100,
+        amt: <span class="func">Value</span>(txtAmount.Text)
+    },
+    <span class="func">Patch</span>(
+        ExpenseDetails,
+        <span class="func">Defaults</span>(ExpenseDetails),
+        {
+            Title:       txtContent.Text,
+            '経費日付':   dpExpenseDate.SelectedDate,
+            '勘定科目':   {Value: ddAccountItem.Selected.Value},
+            '内容':       txtContent.Text,
+            '税込金額':   amt,
+            '申請ID':     varCurrentRequestID,
+            '税区分':     {Value: Dropdown2.Selected.税区分},
+            '税額':       <span class="func">RoundDown</span>(amt - amt / (1 + rate), 0),
+            '税抜金額':   <span class="func">RoundDown</span>(amt / (1 + rate), 0),
+            'インボイス番号': txtInvoiceNumber.Text
+        }
+    )
+);
+<span class="func">Navigate</span>(RequestFormScreen)</div>
+
+        <ol class="steps">
+          <li>DetailFormScreen のツリービューで <strong>追加ボタン</strong>（Button1_6）を選択</li>
+          <li>数式バーのプロパティを <strong>OnSelect</strong> に切り替え</li>
+          <li>上記の数式に差し替え</li>
+          <li>エラーが出ないことを確認（赤波線がなければOK）</li>
+        </ol>
+
+        <div class="info-box warn">
+          <strong>注意: 列名の一致</strong>
+          <code>'税区分'</code>、<code>'税額'</code>、<code>'税抜金額'</code>、<code>'インボイス番号'</code> はSharePoint側の実際の列名（内部名）と一致している必要があります。エラーが出た場合は、SharePointの列設定で内部名を確認してください。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 2-5 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-5. HomeScreen のボタンに OnSelect を設定する
+      </div>
+      <div class="task-body">
+        <p>HomeScreenの3つのボタンに画面遷移の式を設定する。</p>
+
+        <table>
+          <tr><th>ボタン</th><th>コントロール名</th><th>OnSelect に設定する式</th></tr>
+          <tr>
+            <td>新規申請</td>
+            <td>Button1_2（青）</td>
+            <td><div class="code-block" style="margin:0;"><span class="func">Set</span>(
+    varNewRequest,
+    <span class="func">Patch</span>(
+        ExpenseRequests,
+        <span class="func">Defaults</span>(ExpenseRequests),
+        {
+            Title: <span class="string">"申請_"</span> &amp; <span class="func">Text</span>(<span class="func">Now</span>(), <span class="string">"yyyymmddhhmmss"</span>),
+            '承認ステータス': {Value: <span class="string">"下書き"</span>}
+        }
+    )
+);
+<span class="func">Set</span>(varCurrentRequestID, varNewRequest.ID);
+<span class="func">Navigate</span>(RequestFormScreen)</div></td>
+          </tr>
+          <tr>
+            <td>申請一覧</td>
+            <td>Button1_1（緑）</td>
+            <td><div class="code-block" style="margin:0;"><span class="func">Navigate</span>(RequestListScreen)</div></td>
+          </tr>
+          <tr>
+            <td>承認管理</td>
+            <td>Button1（灰）</td>
+            <td><div class="code-block" style="margin:0;"><span class="func">Navigate</span>(ApprovalScreen)</div></td>
+          </tr>
+        </table>
+
+        <ol class="steps">
+          <li>HomeScreen を選択</li>
+          <li>ツリービューで各ボタンを選択し、OnSelect に上記の式を設定</li>
+          <li>プレビューで各ボタンを押して正しい画面に遷移するか確認</li>
+          <li>「新規申請」を押した後、ExpenseRequestsに新しいレコードが作成されることを確認</li>
+        </ol>
+
+        <div class="info-box warn">
+          <strong>注意: 新規申請ボタンについて</strong>
+          Patch式で申請者列を含めていません。申請者はフェーズ3のPower Automateフローで自動設定します。Patch式に申請者を含めるとPerson列のエラーが発生するため、意図的に除外しています。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 2-6 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-6. RequestListScreen の「+新規申請」ボタンと行選択を確認する
+      </div>
+      <div class="task-body">
+        <p>RequestListScreenには既に「+新規申請」ボタンとgalRequestsギャラリーが存在する。OnSelectが正しいか確認・修正する。</p>
+
+        <p><strong>「+新規申請」ボタン（Button1_3）の OnSelect：</strong></p>
+        <div class="code-block"><span class="comment">// HomeScreenの新規申請と同じ式</span>
+<span class="func">Set</span>(
+    varNewRequest,
+    <span class="func">Patch</span>(
+        ExpenseRequests,
+        <span class="func">Defaults</span>(ExpenseRequests),
+        {
+            Title: <span class="string">"申請_"</span> &amp; <span class="func">Text</span>(<span class="func">Now</span>(), <span class="string">"yyyymmddhhmmss"</span>),
+            '承認ステータス': {Value: <span class="string">"下書き"</span>}
+        }
+    )
+);
+<span class="func">Set</span>(varCurrentRequestID, varNewRequest.ID);
+<span class="func">Navigate</span>(RequestFormScreen)</div>
+
+        <p><strong>galRequests ギャラリーの OnSelect：</strong></p>
+        <div class="code-block"><span class="func">Set</span>(varCurrentRequestID, ThisItem.ID);
+<span class="func">Navigate</span>(RequestFormScreen)</div>
+
+        <ol class="steps">
+          <li>RequestListScreen のツリービューで Button1_3 を選択し、OnSelect を確認・修正</li>
+          <li>galRequests を選択し、OnSelect を確認・修正</li>
+          <li>プレビューでギャラリーの行をクリックしてRequestFormScreenに遷移し、その申請の明細が表示されることを確認</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 2-7 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-7. RequestFormScreen の「申請する」ボタンを完成させる
+      </div>
+      <div class="task-body">
+        <p>「申請する」ボタンで、承認ステータスを「申請中」に変更し、合計金額と明細件数もExpenseRequestsに書き戻す。</p>
+
+        <p><strong>「申請する」ボタン（Button1_4）の OnSelect：</strong></p>
+        <div class="code-block"><span class="func">Patch</span>(
+    ExpenseRequests,
+    <span class="func">LookUp</span>(ExpenseRequests, ID = varCurrentRequestID),
+    {
+        '承認ステータス': {Value: <span class="string">"申請中"</span>},
+        '合計金額':       <span class="func">Sum</span>(galDetails.AllItems, '税込金額'),
+        '明細件数':       <span class="func">CountRows</span>(galDetails.AllItems)
+    }
+);
+<span class="func">Notify</span>(<span class="string">"申請しました"</span>, NotificationType.Success);
+<span class="func">Navigate</span>(RequestListScreen)</div>
+
+        <ol class="steps">
+          <li>RequestFormScreen のツリービューで「申請する」ボタンを選択</li>
+          <li>OnSelect を上記の式に差し替え</li>
+          <li>プレビューで明細を追加した後「申請する」を押し、RequestListScreenに戻って承認ステータスが「申請中」になっていることを確認</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 2-8 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-8. RequestFormScreen の部署入力を改善する（任意）
+      </div>
+      <div class="task-body">
+        <p>現在、部署は自由テキスト入力（HintText が「テキスト入力」）になっている。ドロップダウンに変更するとデータの統一性が向上する。</p>
+
+        <ol class="steps">
+          <li>TextInput1 を削除するか非表示にする</li>
+          <li>「+ 挿入」→ <strong>ドロップダウン</strong> を追加</li>
+          <li>コントロール名を <code>ddDepartment</code> に変更</li>
+          <li>Items プロパティを設定：
+            <div class="code-block" style="margin-top:8px;">[<span class="string">"営業部"</span>, <span class="string">"経理部"</span>, <span class="string">"総務部"</span>, <span class="string">"開発部"</span>, <span class="string">"人事部"</span>]</div>
+          </li>
+          <li>申請するボタンのPatch式で部署を含める場合は <code>'部署': ddDepartment.Selected.Value</code> を追加</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 2-9 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 2-9. コントロール名を整理する（推奨）
+      </div>
+      <div class="task-body">
+        <p>現在多くのコントロールがデフォルト名（Button1, Button1_1, Label1 等）のまま。今後の保守性のために意味のある名前にリネームする。</p>
+
+        <table>
+          <tr><th>画面</th><th>現在の名前</th><th>推奨名</th></tr>
+          <tr><td>HomeScreen</td><td>Button1_2</td><td>btnNewRequest</td></tr>
+          <tr><td>HomeScreen</td><td>Button1_1</td><td>btnRequestList</td></tr>
+          <tr><td>HomeScreen</td><td>Button1</td><td>btnApproval</td></tr>
+          <tr><td>HomeScreen</td><td>Label2</td><td>lblTitle</td></tr>
+          <tr><td>RequestListScreen</td><td>Button1_3</td><td>btnNewRequest2</td></tr>
+          <tr><td>RequestListScreen</td><td>Label3</td><td>lblScreenTitle</td></tr>
+          <tr><td>RequestFormScreen</td><td>Button1_5</td><td>btnBack</td></tr>
+          <tr><td>RequestFormScreen</td><td>Button1_4</td><td>btnSubmit</td></tr>
+          <tr><td>RequestFormScreen</td><td>TextInput1</td><td>txtDepartment</td></tr>
+          <tr><td>DetailFormScreen</td><td>Button1_6</td><td>btnAdd</td></tr>
+          <tr><td>DetailFormScreen</td><td>Dropdown2</td><td>ddTaxCategory</td></tr>
+        </table>
+
+        <ol class="steps">
+          <li>ツリービューで対象コントロールをダブルクリック</li>
+          <li>名前を編集して Enter</li>
+          <li>名前を変更したら、そのコントロールを参照している他の数式も自動更新されることを確認（通常Power Appsが自動でリネームする）</li>
+        </ol>
+
+        <div class="info-box tip">
+          <strong>ヒント</strong>
+          コントロール名を変更すると、そのコントロールを参照しているすべての数式が自動的に更新されます。ただし念のため、名前変更後にアプリチェッカー（▶の隣のチェックアイコン）でエラーがないか確認してください。
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================================================
+     フェーズ3: Power Automate フロー作成
+     ======================================================== -->
+<section class="phase">
+  <div class="phase-header p3">
+    <div class="phase-num">3</div>
+    <h2>Power Automate フローの作成</h2>
+    <span class="est">自動化</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- Task 3-1 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 3-1. 申請者自動設定フローを作成する
+      </div>
+      <div class="task-body">
+        <p>Power AppsからPerson列（申請者）を直接設定するとエラーになるため、Power Automateでレコード作成時に自動設定する。</p>
+
+        <ol class="steps">
+          <li><a href="https://make.powerautomate.com" target="_blank" style="color:var(--primary)">Power Automate</a> を開く</li>
+          <li><strong>作成</strong> → <strong>自動化したクラウドフロー</strong></li>
+          <li>フロー名: <code>経費申請_申請者自動設定</code></li>
+          <li>トリガーを検索: <strong>「SharePoint - 項目が作成されたとき」</strong> を選択</li>
+          <li>トリガーの設定:
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>サイトのアドレス: 経費管理サイトのURL</li>
+              <li>リスト名: <code>ExpenseRequests</code></li>
+            </ul>
+          </li>
+          <li><strong>+ 新しいステップ</strong> → <strong>「SharePoint - 項目の更新」</strong></li>
+          <li>項目の更新の設定:
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>サイトのアドレス: 同上</li>
+              <li>リスト名: <code>ExpenseRequests</code></li>
+              <li>ID: 動的コンテンツから <code>ID</code> を選択</li>
+              <li>Title: 動的コンテンツから <code>Title</code> を選択</li>
+              <li>申請者 Claims: 動的コンテンツから <code>登録者 Email</code> を選択</li>
+            </ul>
+          </li>
+          <li><strong>保存</strong> をクリック</li>
+          <li>テスト: Power Apps から新規申請を作成し、ExpenseRequests で申請者列に自分の名前が自動設定されることを確認</li>
+        </ol>
+
+        <div class="info-box warn">
+          <strong>注意: 「項目の更新」アクションについて</strong>
+          「項目の更新」アクションでは Title（タイトル）列が必須です。動的コンテンツからトリガーのTitleを入れないと、タイトルが空に上書きされてしまいます。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 3-2 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 3-2. Teams 承認通知フローを作成する
+      </div>
+      <div class="task-body">
+        <p>承認ステータスが「申請中」に変更されたとき、承認者にTeamsで通知を送る。</p>
+
+        <ol class="steps">
+          <li>Power Automate → <strong>作成</strong> → <strong>自動化したクラウドフロー</strong></li>
+          <li>フロー名: <code>経費申請_承認者通知</code></li>
+          <li>トリガー: <strong>「SharePoint - 項目が作成または変更されたとき」</strong>
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>サイトのアドレス: 経費管理サイトURL</li>
+              <li>リスト名: <code>ExpenseRequests</code></li>
+            </ul>
+          </li>
+          <li><strong>+ 新しいステップ</strong> → <strong>「条件」</strong>
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>左辺: 動的コンテンツ → <code>承認ステータス Value</code></li>
+              <li>演算子: <code>次の値に等しい</code></li>
+              <li>右辺: <code>申請中</code></li>
+            </ul>
+          </li>
+          <li><strong>「はいの場合」</strong> に <strong>「Microsoft Teams - チャットまたはチャネルでメッセージを投稿する」</strong> を追加
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>投稿者: <code>フローボット</code></li>
+              <li>投稿先: <code>Chat with Flow bot</code></li>
+              <li>受信者: 承認者のメールアドレス（まず固定値で設定）</li>
+              <li>メッセージ:
+                <div class="code-block" style="margin-top:8px;">【経費申請の承認依頼】
+
+申請者: @{triggerOutputs()?['body/申請者/DisplayName']}
+申請タイトル: @{triggerOutputs()?['body/Title']}
+申請日: @{formatDateTime(triggerOutputs()?['body/経費日付'], 'yyyy/MM/dd')}
+合計金額: @{triggerOutputs()?['body/合計金額']}
+
+以下のリンクから確認してください：
+@{triggerOutputs()?['body/{Link}']}</div>
+              </li>
+            </ul>
+          </li>
+          <li><strong>保存</strong> → テスト実行</li>
+        </ol>
+
+        <div class="info-box tip">
+          <strong>ヒント: まず固定メールで動作確認</strong>
+          承認者メールアドレスをまず自分のアドレスに設定してテストしてください。動作確認後に、Approversリスト連携や動的な承認者取得に拡張できます。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 3-3 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 3-3. 承認フロー（承認アクション付き）を作成する
+      </div>
+      <div class="task-body">
+        <p>手順3-2の通知フローが動作した後、本格的な承認ワークフローに拡張する。</p>
+
+        <ol class="steps">
+          <li>手順3-2のフローを編集するか、新しいフローを作成</li>
+          <li>条件の「はいの場合」のTeamsメッセージの代わりに（または後に）：<br>
+            <strong>「承認 - 承認を開始して待機」</strong> アクションを追加</li>
+          <li>承認アクションの設定：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>承認の種類: <code>承認/拒否 - 最初に応答</code></li>
+              <li>タイトル: <code>経費申請の承認依頼: </code> + 動的コンテンツ Title</li>
+              <li>担当者: 承認者のメールアドレス</li>
+              <li>詳細: 申請者名、金額、内容等を動的コンテンツで構成</li>
+            </ul>
+          </li>
+          <li>承認アクションの後に <strong>「条件」</strong> を追加：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>左辺: <code>結果</code>（承認アクションの出力）</li>
+              <li>演算子: <code>次の値に等しい</code></li>
+              <li>右辺: <code>Approve</code></li>
+            </ul>
+          </li>
+          <li><strong>「はいの場合」</strong>（承認された場合）：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>SharePoint 項目の更新: 承認ステータス → <code>承認済み</code>、承認日時 → <code>utcNow()</code></li>
+              <li>Teams メッセージ: 申請者へ承認通知</li>
+            </ul>
+          </li>
+          <li><strong>「いいえの場合」</strong>（却下された場合）：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>SharePoint 項目の更新: 承認ステータス → <code>却下</code></li>
+              <li>Teams メッセージ: 申請者へ却下通知（コメント付き）</li>
+            </ul>
+          </li>
+          <li><strong>保存</strong> → テスト実行</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================================================
+     フェーズ4: 仕上げ
+     ======================================================== -->
+<section class="phase">
+  <div class="phase-header p4">
+    <div class="phase-num">4</div>
+    <h2>仕上げ・追加機能・テスト</h2>
+    <span class="est">最終段階</span>
+  </div>
+  <div class="phase-body">
+
+    <!-- Task 4-1 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 4-1. ApprovalScreen（承認管理画面）を実装する
+      </div>
+      <div class="task-body">
+        <p>現在空のApprovalScreenに、承認者が自分宛の申請を一覧表示し、承認/却下できるUIを構築する。</p>
+
+        <ol class="steps">
+          <li>ApprovalScreen にヘッダーバー（Rectangle + ラベル「承認管理」）を追加</li>
+          <li>「← 戻る」ラベルを追加（OnSelect: <code>Navigate(HomeScreen)</code>）</li>
+          <li><strong>ギャラリー</strong>を挿入（名前: <code>galApprovals</code>）</li>
+          <li>Items プロパティ:
+            <div class="code-block" style="margin-top:8px;"><span class="func">Filter</span>(
+    ExpenseRequests,
+    '承認ステータス'.Value = <span class="string">"申請中"</span>
+)</div>
+          </li>
+          <li>ギャラリーのテンプレートに以下のラベルを追加：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>申請者名: <code>ThisItem.'申請者'.DisplayName</code></li>
+              <li>申請日: <code>Text(ThisItem.'経費日付', "yyyy/mm/dd")</code></li>
+              <li>合計金額: <code>Text(ThisItem.'合計金額', "¥#,##0")</code></li>
+            </ul>
+          </li>
+          <li>ギャラリー内に「承認」ボタンと「却下」ボタンを追加：
+            <div class="code-block" style="margin-top:8px;"><span class="comment">// 承認ボタンの OnSelect</span>
+<span class="func">Patch</span>(
+    ExpenseRequests,
+    ThisItem,
+    {'承認ステータス': {Value: <span class="string">"承認済み"</span>}}
+);
+<span class="func">Notify</span>(<span class="string">"承認しました"</span>, NotificationType.Success)</div>
+            <div class="code-block" style="margin-top:8px;"><span class="comment">// 却下ボタンの OnSelect</span>
+<span class="func">Patch</span>(
+    ExpenseRequests,
+    ThisItem,
+    {'承認ステータス': {Value: <span class="string">"却下"</span>}}
+);
+<span class="func">Notify</span>(<span class="string">"却下しました"</span>, NotificationType.Warning)</div>
+          </li>
+        </ol>
+
+        <div class="info-box tip">
+          <strong>ヒント: 将来的な改善</strong>
+          フェーズ3の承認フロー（Power Automate）が完成すれば、承認/却下はTeamsのAdaptive Card上でも行えるようになります。ApprovalScreenはバックアップ的なUIとして残しておくと便利です。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 4-2 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 4-2. Approvers リストを作成する（動的承認者ルーティング）
+      </div>
+      <div class="task-body">
+        <p>部署ごとの承認者を管理するマスターリスト。固定承認者で運用する場合は後回しでOK。</p>
+
+        <table>
+          <tr><th>列名</th><th>型</th><th>説明</th></tr>
+          <tr><td>Title（部署名）</td><td>1行テキスト</td><td>例: 営業部</td></tr>
+          <tr><td>PrimaryApprover</td><td>ユーザーまたはグループ</td><td>第一承認者</td></tr>
+          <tr><td>SecondaryApprover</td><td>ユーザーまたはグループ</td><td>第二承認者（高額時）</td></tr>
+          <tr><td>ThresholdAmount</td><td>通貨</td><td>第二承認者が必要な閾値金額（例: 50,000）</td></tr>
+          <tr><td>IsActive</td><td>はい/いいえ</td><td>有効フラグ</td></tr>
+        </table>
+
+        <ol class="steps">
+          <li>SharePoint「経費管理」サイト → <strong>新規</strong> → <strong>リスト</strong></li>
+          <li>リスト名: <code>Approvers</code></li>
+          <li>上記の列を追加</li>
+          <li>各部署のデータを登録</li>
+          <li>Power Automateの承認フローで、部署からApproversリストをLookUpして承認者を動的に取得するよう変更</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 4-3 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 4-3. 領収書添付機能を実装する（任意）
+      </div>
+      <div class="task-body">
+        <p>DetailFormScreenに添付ファイルコントロールを追加し、領収書画像をSharePointに保存する。</p>
+
+        <ol class="steps">
+          <li>DetailFormScreen で「+ 挿入」→ <strong>添付ファイル</strong>（Edit Form内で使用する場合）</li>
+          <li>または、直接SharePointの添付ファイル機能を利用：
+            <ul style="margin:8px 0 0 20px; font-size:13px;">
+              <li>Patch後に別途添付ファイルを更新するアプローチ</li>
+              <li>SharePointのREST APIやPower Automateを利用</li>
+            </ul>
+          </li>
+          <li>実装難易度が高いため、MVP（最小限の製品）では後回しにして構わない</li>
+        </ol>
+
+        <div class="info-box warn">
+          <strong>注意: Canvas Appでの添付ファイル</strong>
+          Canvas AppのPatch関数では添付ファイルを直接操作できません。Edit Form + SharePoint Formを使うか、Power Automateでファイルを別途アップロードする方式が必要です。複雑なので最後に回すことを推奨します。
+        </div>
+      </div>
+    </div>
+
+    <!-- Task 4-4 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 4-4. テストデータの削除と全体テスト
+      </div>
+      <div class="task-body">
+        <p>全機能が実装できたら、テストデータを削除して正式なテストを行う。</p>
+
+        <ol class="steps">
+          <li>ExpenseDetails の不要なテストデータをSharePoint上で削除</li>
+          <li>ExpenseRequests の不要なテストデータを削除</li>
+          <li>以下の全体フローをテスト：
+            <table style="margin-top:8px;">
+              <tr><th>#</th><th>テスト項目</th><th>期待結果</th><th>確認</th></tr>
+              <tr><td>1</td><td>HomeScreen → 新規申請ボタン</td><td>ExpenseRequestsに「下書き」ステータスで新規レコード作成、RequestFormScreenに遷移</td><td>□</td></tr>
+              <tr><td>2</td><td>RequestFormScreen → +経費を追加</td><td>DetailFormScreenに遷移</td><td>□</td></tr>
+              <tr><td>3</td><td>DetailFormScreen → 各フィールド入力 → 追加</td><td>ExpenseDetailsにレコード作成（税区分・税額・税抜金額・インボイス番号含む）、RequestFormScreenに戻る</td><td>□</td></tr>
+              <tr><td>4</td><td>RequestFormScreen → galDetailsに明細表示</td><td>追加した経費が一覧に表示、合計金額・件数が正しい</td><td>□</td></tr>
+              <tr><td>5</td><td>RequestFormScreen → 申請するボタン</td><td>承認ステータスが「申請中」に変更、合計金額・明細件数がExpenseRequestsに反映</td><td>□</td></tr>
+              <tr><td>6</td><td>Power Automate: 申請者自動設定</td><td>ExpenseRequestsの申請者列に作成者が自動設定される</td><td>□</td></tr>
+              <tr><td>7</td><td>Power Automate: Teams通知</td><td>承認者にTeamsメッセージが届く</td><td>□</td></tr>
+              <tr><td>8</td><td>RequestListScreen → 申請一覧表示</td><td>全申請がギャラリーに表示、行クリックで詳細画面に遷移</td><td>□</td></tr>
+              <tr><td>9</td><td>ApprovalScreen → 承認/却下</td><td>ステータスが正しく変更される</td><td>□</td></tr>
+              <tr><td>10</td><td>DetailFormScreen → 税計算</td><td>10%/8%/非課税で税額・税抜金額が正しく計算される</td><td>□</td></tr>
+            </table>
+          </li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Task 4-5 -->
+    <div class="task">
+      <div class="task-title">
+        <input type="checkbox"> 4-5. アプリの公開と共有
+      </div>
+      <div class="task-body">
+        <ol class="steps">
+          <li>Power Apps Studio → <strong>ファイル</strong> → <strong>保存</strong></li>
+          <li><strong>公開</strong> をクリック</li>
+          <li><strong>共有</strong> → 利用するユーザー/グループを追加</li>
+          <li>SharePointリストの権限も確認：利用者に「投稿」以上の権限があること</li>
+          <li>Power Automateフローの接続が共有ユーザーでも動作するか確認</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <p>MS経費申請アプリ 作業手順書 | 2026年2月10日作成</p>
+  <p>リポジトリ: github.com/Ezark213/business-application/tree/main/ms-expense-app</p>
+</footer>
+
+</body>
+</html>
