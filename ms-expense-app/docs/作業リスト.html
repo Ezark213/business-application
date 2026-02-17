@@ -396,10 +396,7 @@
             '勘定科目': {Value: ddAccountItem.Selected.Value},
             '内容':     txtContent.Text,
             '税込金額': amt,
-            '申請ID':  {
-                Id:    varCurrentRequestID,
-                Value: varCurrentRequestID
-            },
+            '申請ID':  {Id: varCurrentRequestID},
             '税区分':  {
                 Id:    Dropdown2.Selected.ID,
                 Value: Dropdown2.Selected.税区分
@@ -414,7 +411,8 @@ Navigate(RequestFormScreen)</div>
             <strong>コードの読み方（初心者向け）</strong>
             <code>With({...}, ...)</code>：先に rate（税率）と amt（金額）を計算してから Patch を実行<br>
             <code>Substitute(税率, "%", "") / 100</code>：「10.00%」という文字から % を除いて 0.10 に変換<br>
-            <code>Dropdown2.Selected.ID</code>：Lookup 型の参照には ID が必要<br>
+            <code>'申請ID': {Id: varCurrentRequestID}</code>：Lookup列のID部分は <code>{Id: 数値}</code> の形で渡す（<code>Value</code> は不要）<br>
+            <code>Dropdown2.Selected.ID</code>：税区分（Lookup型）の参照も同様に ID が必要<br>
             <code>RoundDown(..., 0)</code>：税額・税抜金額を1円未満切り捨て
           </div>
         </div>
