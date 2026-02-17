@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>経費申請アプリ 作業リスト</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Meiryo", "Yu Gothic", sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      padding: 20px;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 6px;
+      color: #1e3a5f;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 24px;
+    }
+
+    /* 全体進捗 */
+    .overall-progress {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .overall-progress h2 { font-size: 16px; margin-bottom: 12px; color: #1e3a5f; }
+    .progress-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .progress-label-text { font-size: 13px; color: #555; min-width: 180px; }
+    .progress-bar-bg {
+      flex: 1;
+      background: #e2e8f0;
+      border-radius: 999px;
+      height: 14px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .bar-done { background: #22c55e; }
+    .bar-mid  { background: #3b82f6; }
+    .bar-zero { background: #cbd5e1; width: 2px !important; }
+    .progress-pct { font-size: 13px; font-weight: bold; min-width: 36px; text-align: right; }
+
+    /* フェーズ */
+    .phase { margin-bottom: 24px; }
+
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 20px;
+      border-radius: 10px 10px 0 0;
+      cursor: pointer;
+      user-select: none;
+    }
+    .phase-header:hover { filter: brightness(0.97); }
+    .phase-icon { font-size: 20px; }
+    .phase-title { font-size: 17px; font-weight: bold; flex: 1; }
+    .phase-status {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+    .phase-toggle { font-size: 18px; transition: transform 0.3s; }
+    .phase-toggle.closed { transform: rotate(-90deg); }
+
+    .phase-body {
+      background: #fff;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+      overflow: hidden;
+    }
+    .phase-body.collapsed { display: none; }
+
+    .phase-1 .phase-header { background: #dcfce7; color: #166534; }
+    .phase-1 .phase-status { background: #166534; color: #fff; }
+    .phase-2 .phase-header { background: #dbeafe; color: #1e3a5f; }
+    .phase-2 .phase-status { background: #3b82f6; color: #fff; }
+    .phase-3 .phase-header { background: #fef9c3; color: #713f12; }
+    .phase-3 .phase-status { background: #f59e0b; color: #fff; }
+    .phase-4 .phase-header { background: #f3f4f6; color: #374151; }
+    .phase-4 .phase-status { background: #9ca3af; color: #fff; }
+
+    /* タスク行 */
+    .task {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.2s;
+    }
+    .task:last-child { border-bottom: none; }
+    .task:hover { background: #f8fafc; }
+    .task.completed { background: #f0fdf4; }
+    .task.optional { opacity: 0.75; }
+
+    .task-checkbox {
+      width: 20px; height: 20px;
+      cursor: pointer;
+      accent-color: #22c55e;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .task-num {
+      font-size: 12px; font-weight: bold;
+      color: #3b82f6;
+      min-width: 36px;
+      padding-top: 2px;
+    }
+    .task-body { flex: 1; }
+    .task-title {
+      font-size: 15px; font-weight: bold;
+      margin-bottom: 4px;
+    }
+    .completed .task-title { text-decoration: line-through; color: #999; }
+    .task-desc { font-size: 13px; color: #666; line-height: 1.7; }
+
+    .task-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .badge-done     { background: #dcfce7; color: #166534; }
+    .badge-todo     { background: #dbeafe; color: #1e3a5f; }
+    .badge-optional { background: #f3f4f6; color: #6b7280; }
+    .badge-low      { background: #fef9c3; color: #92400e; }
+
+    /* コードブロック */
+    .code-block {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-family: "Consolas", monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      margin: 8px 0 4px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    code {
+      background: #e2e8f0;
+      color: #1e293b;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: "Consolas", monospace;
+      font-size: 12px;
+    }
+
+    .notice {
+      background: #fff7ed;
+      border-left: 3px solid #f97316;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #7c3522;
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+    .notice strong { display: block; margin-bottom: 2px; }
+
+    .info {
+      background: #eff6ff;
+      border-left: 3px solid #3b82f6;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: #1e3a5f;
+      margin: 8px 0;
+      line-height: 1.7;
+    }
+    .info strong { display: block; margin-bottom: 2px; }
+
+    .action-bar { text-align: right; margin-bottom: 8px; }
+    .reset-btn {
+      padding: 6px 16px;
+      background: #e2e8f0;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      color: #555;
+    }
+    .reset-btn:hover { background: #cbd5e1; }
+
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+  </style>
+</head>
+<body>
+
+<h1>経費申請アプリ 作業リスト</h1>
+<p class="subtitle">最終更新: 2026年2月17日 ／ 全体進捗 約45%</p>
+
+<!-- 全体進捗 -->
+<div class="overall-progress">
+  <h2>全体進捗</h2>
+  <div class="progress-row">
+    <span class="progress-label-text">フェーズ1 SharePoint基盤</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill bar-done" style="width:100%"></div></div>
+    <span class="progress-pct" style="color:#22c55e">100%</span>
+  </div>
+  <div class="progress-row">
+    <span class="progress-label-text">フェーズ2 Power Apps修正</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill bar-mid" id="phase2-bar" style="width:17%"></div></div>
+    <span class="progress-pct" id="phase2-pct" style="color:#3b82f6">17%</span>
+  </div>
+  <div class="progress-row">
+    <span class="progress-label-text">フェーズ3 Power Automate</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill bar-zero"></div></div>
+    <span class="progress-pct" style="color:#9ca3af">0%</span>
+  </div>
+  <div class="progress-row">
+    <span class="progress-label-text">フェーズ4 仕上げ</span>
+    <div class="progress-bar-bg"><div class="progress-bar-fill bar-zero"></div></div>
+    <span class="progress-pct" style="color:#9ca3af">0%</span>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="task-badge badge-done">完了</span> 作業済み</span>
+  <span><span class="task-badge badge-todo">次にやる</span> 次の作業</span>
+  <span><span class="task-badge badge-low">推奨</span> やるとよい</span>
+  <span><span class="task-badge badge-optional">任意</span> 余裕があれば</span>
+</div>
+
+<div class="action-bar">
+  <button class="reset-btn" onclick="resetAll()">全チェックをリセット</button>
+</div>
+
+<!-- ===== フェーズ1 ===== -->
+<div class="phase phase-1">
+  <div class="phase-header" onclick="togglePhase('phase1-body', this)">
+    <span class="phase-icon">🗃️</span>
+    <span class="phase-title">フェーズ1：SharePoint基盤</span>
+    <span class="phase-status">完了</span>
+    <span class="phase-toggle">▼</span>
+  </div>
+  <div class="phase-body collapsed" id="phase1-body">
+
+    <div class="task completed" id="t1-1">
+      <input type="checkbox" class="task-checkbox" checked onchange="onCheck(this,'t1-1')">
+      <span class="task-num">1-1</span>
+      <div class="task-body">
+        <div class="task-title">ExpenseRequests リストの作成</div>
+        <div class="task-desc">
+          申請ヘッダー用のSharePointリスト。以下の列がすべて作成済み。<br>
+          申請者（Person）・部署・合計金額・明細件数・承認ステータス・承認者・承認日時・承認コメントなど。<br>
+          <strong>※ 税区分列は「参照（Lookup）」型 → TaxRatesリストの「税区分」列を参照する設定済み。</strong>
+        </div>
+      </div>
+      <span class="task-badge badge-done">完了</span>
+    </div>
+
+    <div class="task completed" id="t1-2">
+      <input type="checkbox" class="task-checkbox" checked onchange="onCheck(this,'t1-2')">
+      <span class="task-num">1-2</span>
+      <div class="task-body">
+        <div class="task-title">ExpenseDetails リストの作成</div>
+        <div class="task-desc">
+          経費明細用のSharePointリスト。経費日付・勘定科目・内容・税込金額・税区分・税額・税抜金額の列が作成済み。<br>
+          <strong>※ 「申請ID」列はリストに存在しない。タスク 2-3 で追加が必要。</strong>
+        </div>
+      </div>
+      <span class="task-badge badge-done">完了</span>
+    </div>
+
+    <div class="task completed" id="t1-3">
+      <input type="checkbox" class="task-checkbox" checked onchange="onCheck(this,'t1-3')">
+      <span class="task-num">1-3</span>
+      <div class="task-body">
+        <div class="task-title">TaxRates リストの作成（税区分マスター）</div>
+        <div class="task-desc">
+          8種類の税区分データを登録済み（10%/8%の適格・経過措置80%/50%、非課税、不課税）。<br>
+          ExpenseRequests の「税区分」列がこのリストを参照（Lookup）している。
+        </div>
+      </div>
+      <span class="task-badge badge-done">完了</span>
+    </div>
+
+    <div class="task completed" id="t1-4">
+      <input type="checkbox" class="task-checkbox" checked onchange="onCheck(this,'t1-4')">
+      <span class="task-num">1-4</span>
+      <div class="task-body">
+        <div class="task-title">Power Apps からデータソース接続（タスク2-1）</div>
+        <div class="task-desc">ExpenseRequests・ExpenseDetails・TaxRates の3リストをPower Appsに接続済み。</div>
+      </div>
+      <span class="task-badge badge-done">完了</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== フェーズ2 ===== -->
+<div class="phase phase-2">
+  <div class="phase-header" onclick="togglePhase('phase2-body', this)">
+    <span class="phase-icon">📱</span>
+    <span class="phase-title">フェーズ2：Power Apps 画面修正</span>
+    <span class="phase-status">作業中</span>
+    <span class="phase-toggle">▼</span>
+  </div>
+  <div class="phase-body" id="phase2-body">
+
+    <div class="task completed" id="t2-2">
+      <input type="checkbox" class="task-checkbox" checked onchange="onCheck(this,'t2-2')">
+      <span class="task-num">2-2</span>
+      <div class="task-body">
+        <div class="task-title">DetailFormScreen：税計算エラーを修正</div>
+        <div class="task-desc">
+          税額ラベル(Label9_1)と税抜金額ラベル(Label8)のエラーを修正済み。金額欄(txtAmount)が空のときにクラッシュしていた問題を IsBlank + IsNumeric のガードで解消した。
+        </div>
+      </div>
+      <span class="task-badge badge-done">完了</span>
+    </div>
+
+    <!-- 新タスク2-3：申請IDのLookup列追加 -->
+    <div class="task" id="t2-3">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-3')">
+      <span class="task-num">2-3</span>
+      <div class="task-body">
+        <div class="task-title">ExpenseDetails に「申請ID」Lookup列を追加する</div>
+        <div class="task-desc">
+          経費明細を申請ヘッダーに紐付けるための列が現在ない。SharePointで以下の手順を行う。
+          <div class="info" style="margin-top:8px;">
+            <strong>操作手順（SharePoint）</strong>
+            1. ExpenseDetails リストを開く<br>
+            2. 右上の「＋列を追加」→「参照」を選択<br>
+            3. 名前：<code>申請ID</code><br>
+            4. ソースリスト：<code>ExpenseRequests</code><br>
+            5. 参照する列：<code>ID</code>（または「タイトル」）<br>
+            6. 「保存」をクリック
+          </div>
+          <div class="notice" style="margin-top:8px;">
+            <strong>なぜ必要？</strong>
+            1つの申請（ヘッダー）に複数の経費明細を紐付けるため。この列がないと「どの申請の明細か」が判別できない。
+          </div>
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <!-- タスク2-4：Patch式完成 -->
+    <div class="task" id="t2-4">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-4')">
+      <span class="task-num">2-4</span>
+      <div class="task-body">
+        <div class="task-title">DetailFormScreen：「追加」ボタンの保存式を完成させる</div>
+        <div class="task-desc">
+          「追加」ボタン（Button1_6）の OnSelect に下記の完成版の式を貼り付ける。
+          <div class="notice" style="margin-top:8px;">
+            <strong>前提：タスク2-3 で申請ID列を追加してから作業すること。</strong>
+          </div>
+          <div class="info" style="margin-top:8px;">
+            <strong>税区分について（重要）</strong>
+            ExpenseRequests の税区分は「参照（Lookup）型」で TaxRates を参照している。<br>
+            Patch するときは <code>{Id: Dropdown2.Selected.ID, Value: Dropdown2.Selected.税区分}</code> の形式で書く必要がある（<code>.Value</code> だけでは保存できない）。
+          </div>
+          <div class="code-block">With(
+    {
+        rate: Value(Substitute(Dropdown2.Selected.税率, "%", "")) / 100,
+        amt:  Value(txtAmount.Text)
+    },
+    Patch(
+        ExpenseDetails,
+        Defaults(ExpenseDetails),
+        {
+            Title:     txtContent.Text,
+            '経費日付': dpExpenseDate.SelectedDate,
+            '勘定科目': {Value: ddAccountItem.Selected.Value},
+            '内容':     txtContent.Text,
+            '税込金額': amt,
+            '申請ID':  {
+                Id:    varCurrentRequestID,
+                Value: varCurrentRequestID
+            },
+            '税区分':  {
+                Id:    Dropdown2.Selected.ID,
+                Value: Dropdown2.Selected.税区分
+            },
+            '税額':    RoundDown(amt - amt / (1 + rate), 0),
+            '税抜金額': RoundDown(amt / (1 + rate), 0)
+        }
+    )
+);
+Navigate(RequestFormScreen)</div>
+          <div class="info" style="margin-top:8px;">
+            <strong>コードの読み方（初心者向け）</strong>
+            <code>With({...}, ...)</code>：先に rate（税率）と amt（金額）を計算してから Patch を実行<br>
+            <code>Substitute(税率, "%", "") / 100</code>：「10.00%」という文字から % を除いて 0.10 に変換<br>
+            <code>Dropdown2.Selected.ID</code>：Lookup 型の参照には ID が必要<br>
+            <code>RoundDown(..., 0)</code>：税額・税抜金額を1円未満切り捨て
+          </div>
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <!-- タスク2-5 -->
+    <div class="task" id="t2-5">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-5')">
+      <span class="task-num">2-5</span>
+      <div class="task-body">
+        <div class="task-title">HomeScreen：3つのボタンに動作を設定する</div>
+        <div class="task-desc">
+          ホーム画面のボタンに OnSelect を設定する。現在は押しても何も起きない状態。
+          <div class="info" style="margin-top:8px;">
+            <strong>各ボタンの OnSelect 設定内容</strong>
+            ・新規申請ボタン（Button1_2）：Patch で申請ヘッダーを新規作成 → RequestFormScreen へ移動<br>
+            ・申請一覧ボタン（Button1_1）：<code>Navigate(RequestListScreen)</code><br>
+            ・承認管理ボタン（Button1）：<code>Navigate(ApprovalScreen)</code>
+          </div>
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <!-- タスク2-6 -->
+    <div class="task" id="t2-6">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-6')">
+      <span class="task-num">2-6</span>
+      <div class="task-body">
+        <div class="task-title">RequestListScreen：新規申請ボタン・行タップの動作を確認する</div>
+        <div class="task-desc">
+          申請一覧画面の「＋新規申請」ボタン（Button1_3）と、ギャラリーの行をタップしたときの動作を確認・修正する。
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <!-- タスク2-7 -->
+    <div class="task" id="t2-7">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-7')">
+      <span class="task-num">2-7</span>
+      <div class="task-body">
+        <div class="task-title">RequestFormScreen：「申請する」ボタンを完成させる</div>
+        <div class="task-desc">
+          「申請する」ボタン（Button1_4）の OnSelect を設定する。押すと承認ステータスが「申請中」に変わり、合計金額・明細件数がヘッダーに書き戻される。
+          <div class="notice" style="margin-top:8px;">
+            <strong>このボタンが完成するとPower Automateフロー（フェーズ3）が起動できるようになる。</strong>
+          </div>
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <!-- タスク2-8（任意） -->
+    <div class="task optional" id="t2-8">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-8')">
+      <span class="task-num">2-8</span>
+      <div class="task-body">
+        <div class="task-title">部署入力をドロップダウンに変更する</div>
+        <div class="task-desc">RequestFormScreen の部署欄（TextInput1）を、自由入力からドロップダウンに変更する。入力ミスを防げる。優先度低。</div>
+      </div>
+      <span class="task-badge badge-optional">任意</span>
+    </div>
+
+    <!-- タスク2-9（推奨） -->
+    <div class="task optional" id="t2-9">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t2-9')">
+      <span class="task-num">2-9</span>
+      <div class="task-body">
+        <div class="task-title">コントロール名を整理する</div>
+        <div class="task-desc">Button1・Label2 などのデフォルト名を btnHome・lblTitle などわかりやすい名前に変更する。後のメンテナンスが楽になる。</div>
+      </div>
+      <span class="task-badge badge-low">推奨</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== フェーズ3 ===== -->
+<div class="phase phase-3">
+  <div class="phase-header" onclick="togglePhase('phase3-body', this)">
+    <span class="phase-icon">⚡</span>
+    <span class="phase-title">フェーズ3：Power Automate フロー作成</span>
+    <span class="phase-status">未着手</span>
+    <span class="phase-toggle">▼</span>
+  </div>
+  <div class="phase-body collapsed" id="phase3-body">
+
+    <div class="task" id="t3-1">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t3-1')">
+      <span class="task-num">3-1</span>
+      <div class="task-body">
+        <div class="task-title">申請者を自動設定するフローを作る</div>
+        <div class="task-desc">
+          Power Apps から Person 列（申請者）を直接書き込むとエラーになりやすいため、フローで自動設定する。
+          <div class="info" style="margin-top:8px;">
+            <strong>フローの仕組み</strong>
+            トリガー：ExpenseRequests に新規アイテムが作られたとき<br>
+            アクション：「項目の更新」で 申請者 ← 登録者のEmail を自動セット
+          </div>
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <div class="task" id="t3-2">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t3-2')">
+      <span class="task-num">3-2</span>
+      <div class="task-body">
+        <div class="task-title">承認者へのTeams通知フローを作る</div>
+        <div class="task-desc">
+          承認ステータスが「申請中」になったとき、承認者のTeamsにメッセージを送るフロー。
+          <div class="info" style="margin-top:8px;">
+            <strong>フローの仕組み</strong>
+            トリガー：ExpenseRequests のアイテムが作成または変更されたとき<br>
+            条件：承認ステータス = "申請中" のときだけ通知する<br>
+            アクション：「チャットでメッセージを投稿」で承認者に申請内容を送信
+          </div>
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <div class="task" id="t3-3">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t3-3')">
+      <span class="task-num">3-3</span>
+      <div class="task-body">
+        <div class="task-title">承認フロー（承認アクション付き）を作る</div>
+        <div class="task-desc">
+          承認者が「承認」「却下」をクリックすると、ステータスが自動更新され申請者に結果が通知されるフロー。Power Automate の「承認の開始と待機」アクションを使う。
+        </div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== フェーズ4 ===== -->
+<div class="phase phase-4">
+  <div class="phase-header" onclick="togglePhase('phase4-body', this)">
+    <span class="phase-icon">🏁</span>
+    <span class="phase-title">フェーズ4：仕上げ・公開</span>
+    <span class="phase-status">未着手</span>
+    <span class="phase-toggle">▼</span>
+  </div>
+  <div class="phase-body collapsed" id="phase4-body">
+
+    <div class="task" id="t4-1">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t4-1')">
+      <span class="task-num">4-1</span>
+      <div class="task-body">
+        <div class="task-title">ApprovalScreen（承認画面）を実装する</div>
+        <div class="task-desc">現在は空の画面。承認者が申請を一覧で確認し、承認・却下できる画面を作る。</div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <div class="task" id="t4-2">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t4-2')">
+      <span class="task-num">4-2</span>
+      <div class="task-body">
+        <div class="task-title">Approvers リストを作成する</div>
+        <div class="task-desc">承認者の一覧を管理するSharePointリスト。当面は固定承認者での運用でもOK。承認フローを柔軟にしたい場合に必要。</div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <div class="task optional" id="t4-3">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t4-3')">
+      <span class="task-num">4-3</span>
+      <div class="task-body">
+        <div class="task-title">領収書の添付機能を追加する</div>
+        <div class="task-desc">経費明細に領収書画像・PDFを添付できるようにする。SharePointまたはOneDriveに保存する想定。余裕があれば対応。</div>
+      </div>
+      <span class="task-badge badge-optional">任意</span>
+    </div>
+
+    <div class="task" id="t4-4">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t4-4')">
+      <span class="task-num">4-4</span>
+      <div class="task-body">
+        <div class="task-title">テストデータの削除と全体テストを行う</div>
+        <div class="task-desc">ExpenseDetails にある6件のテストデータ（申請IDが空で紐付け不全）を削除する。その後、申請→承認→通知の一連の流れを実際に操作して確認する。</div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+    <div class="task" id="t4-5">
+      <input type="checkbox" class="task-checkbox" onchange="onCheck(this,'t4-5')">
+      <span class="task-num">4-5</span>
+      <div class="task-body">
+        <div class="task-title">アプリを公開・メンバーに共有する</div>
+        <div class="task-desc">Power Apps Studio から「公開」し、利用メンバーにアプリを共有する。SharePointリストのアクセス権限も確認すること。</div>
+      </div>
+      <span class="task-badge badge-todo">次にやる</span>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function togglePhase(bodyId, headerEl) {
+    const body   = document.getElementById(bodyId);
+    const toggle = headerEl.querySelector('.phase-toggle');
+    body.classList.toggle('collapsed');
+    toggle.classList.toggle('closed');
+  }
+
+  function onCheck(cb, taskId) {
+    document.getElementById(taskId).classList.toggle('completed', cb.checked);
+    updatePhase2Progress();
+  }
+
+  function updatePhase2Progress() {
+    const ids  = ['t2-2','t2-3','t2-4','t2-5','t2-6','t2-7'];
+    const done = ids.filter(id => document.getElementById(id).classList.contains('completed')).length;
+    const pct  = Math.round(done / ids.length * 100);
+    document.getElementById('phase2-bar').style.width = pct + '%';
+    document.getElementById('phase2-pct').textContent = pct + '%';
+  }
+
+  function resetAll() {
+    if (!confirm('すべてのチェックをリセットしますか？')) return;
+    document.querySelectorAll('.task-checkbox').forEach(cb => cb.checked = false);
+    document.querySelectorAll('.task').forEach(t => t.classList.remove('completed'));
+    ['t1-1','t1-2','t1-3','t1-4','t2-2'].forEach(id => {
+      const cb = document.getElementById(id).querySelector('.task-checkbox');
+      cb.checked = true;
+      document.getElementById(id).classList.add('completed');
+    });
+    updatePhase2Progress();
+  }
+
+  updatePhase2Progress();
+</script>
+</body>
+</html>
